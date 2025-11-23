@@ -41,6 +41,7 @@ import * as pdfjs from 'pdfjs-dist';
 import wav from 'wav';
 import { Buffer } from 'buffer';
 import { useAuth } from "@/hooks/use-auth";
+import { memo } from "react";
 import remarkGfm from "remark-gfm";
 
 
@@ -84,92 +85,92 @@ export const useChatStore = create<ChatStore>((set) => ({
 
 // Helper to decode audio
 class AudioDecoder {
-    static async decode(file: File): Promise<Float32Array> {
-        const arrayBuffer = await file.arrayBuffer();
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
-        return decodedAudio.getChannelData(0);
-    }
+  static async decode(file: File): Promise<Float32Array> {
+    const arrayBuffer = await file.arrayBuffer();
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const decodedAudio = await audioContext.decodeAudioData(arrayBuffer);
+    return decodedAudio.getChannelData(0);
+  }
 }
 
 
 const CodeBox = ({ language, code: initialCode }: { language: string, code: string }) => {
-    const { toast } = useToast();
-    const [isEditing, setIsEditing] = useState(false);
-    const [code, setCode] = useState(initialCode);
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [code, setCode] = useState(initialCode);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(code);
-        toast({ title: "Copied!", description: "Code has been copied to clipboard." });
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    toast({ title: "Copied!", description: "Code has been copied to clipboard." });
+  };
+
+  const handleDownload = () => {
+    const fileExtensions: { [key: string]: string } = {
+      javascript: 'js',
+      python: 'py',
+      html: 'html',
+      css: 'css',
+      typescript: 'ts',
+      java: 'java',
+      c: 'c',
+      cpp: 'cpp',
+      csharp: 'cs',
+      go: 'go',
+      rust: 'rs',
+      swift: 'swift',
+      kotlin: 'kt',
+      php: 'php',
+      ruby: 'rb',
+      perl: 'pl',
+      shell: 'sh',
+      sql: 'sql',
+      json: 'json',
+      xml: 'xml',
+      yaml: 'yaml',
+      markdown: 'md',
     };
+    const extension = fileExtensions[language.toLowerCase()] || 'txt';
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `code.${extension}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    toast({ title: "Downloaded!", description: `Code saved as code.${extension}` });
+  };
 
-    const handleDownload = () => {
-        const fileExtensions: { [key: string]: string } = {
-            javascript: 'js',
-            python: 'py',
-            html: 'html',
-            css: 'css',
-            typescript: 'ts',
-            java: 'java',
-            c: 'c',
-            cpp: 'cpp',
-            csharp: 'cs',
-            go: 'go',
-            rust: 'rs',
-            swift: 'swift',
-            kotlin: 'kt',
-            php: 'php',
-            ruby: 'rb',
-            perl: 'pl',
-            shell: 'sh',
-            sql: 'sql',
-            json: 'json',
-            xml: 'xml',
-            yaml: 'yaml',
-            markdown: 'md',
-        };
-        const extension = fileExtensions[language.toLowerCase()] || 'txt';
-        const blob = new Blob([code], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `code.${extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-        toast({ title: "Downloaded!", description: `Code saved as code.${extension}` });
-    };
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
 
-    const handleEditToggle = () => {
-        setIsEditing(!isEditing);
-    };
-
-    return (
-        <div className="code-box">
-            <div className="code-box-header">
-                <span className="code-box-language">{language}</span>
-                <div className="code-box-actions">
-                    <Button type="button" variant="ghost" size="sm" onClick={handleCopy}><Copy className="mr-1 h-4 w-4" /> Copy</Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={handleEditToggle}>
-                        {isEditing ? <Save className="mr-1 h-4 w-4" /> : <Edit className="mr-1 h-4 w-4" />}
-                        {isEditing ? 'Save' : 'Edit'}
-                    </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={handleDownload}><Download className="mr-1 h-4 w-4" /> Download</Button>
-                    <Button type="button" variant="ghost" size="sm" disabled>Run</Button>
-                </div>
-            </div>
-            {isEditing ? (
-                 <Textarea 
-                    value={code} 
-                    onChange={(e) => setCode(e.target.value)}
-                    className="font-mono text-sm bg-black/50 border-0 rounded-t-none h-64"
-                 />
-            ) : (
-                <pre><code>{code}</code></pre>
-            )}
+  return (
+    <div className="code-box">
+      <div className="code-box-header">
+        <span className="code-box-language">{language}</span>
+        <div className="code-box-actions">
+          <Button type="button" variant="ghost" size="sm" onClick={handleCopy}><Copy className="mr-1 h-4 w-4" /> Copy</Button>
+          <Button type="button" variant="ghost" size="sm" onClick={handleEditToggle}>
+            {isEditing ? <Save className="mr-1 h-4 w-4" /> : <Edit className="mr-1 h-4 w-4" />}
+            {isEditing ? 'Save' : 'Edit'}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={handleDownload}><Download className="mr-1 h-4 w-4" /> Download</Button>
+          <Button type="button" variant="ghost" size="sm" disabled>Run</Button>
         </div>
-    );
+      </div>
+      {isEditing ? (
+        <Textarea
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className="font-mono text-sm bg-black/50 border-0 rounded-t-none h-64"
+        />
+      ) : (
+        <pre><code>{code}</code></pre>
+      )}
+    </div>
+  );
 };
 
 const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean }) => {
@@ -192,21 +193,21 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
     setFileContent(null);
     setFileName(null);
   };
-  
-    const { toast } = useToast();
-    const [isRecording, setIsRecording] = useState(false);
-    const recognitionRef = useRef<any>(null);
-    const audioSendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const [imageDataUri, setImageDataUri] = useState<string | null>(null);
-    const [fileContent, setFileContent] = useState<string | null>(null);
-    const [fileName, setFileName] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const audioSendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const [isOcrProcessing, setIsOcrProcessing] = useState(false);
-    const [ocrProgress, setOcrProgress] = useState(0);
+  const [imageDataUri, setImageDataUri] = useState<string | null>(null);
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+
+  useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn('Speech recognition not supported in this browser.');
@@ -257,10 +258,10 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
 
       audioSendTimeoutRef.current = setTimeout(() => {
         if (isRecording) {
-            recognitionRef.current?.stop();
+          recognitionRef.current?.stop();
         }
         if ((currentFinalTranscript + interimTranscript).trim()) {
-            handleLocalSendMessage(currentFinalTranscript + interimTranscript);
+          handleLocalSendMessage(currentFinalTranscript + interimTranscript);
         }
       }, 1500); // Send after 1.5 seconds of silence
     };
@@ -268,208 +269,208 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
   }, [finalTranscript, isRecording]);
 
 
-    const handleToggleRecording = () => {
-        if (!recognitionRef.current) return;
-        if (isRecording) {
-            recognitionRef.current.stop();
-        } else {
-            setInput('');
-            setFinalTranscript('');
-            recognitionRef.current.start();
-        }
-    };
+  const handleToggleRecording = () => {
+    if (!recognitionRef.current) return;
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      setInput('');
+      setFinalTranscript('');
+      recognitionRef.current.start();
+    }
+  };
 
-    const handleFormSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      handleLocalSendMessage();
-    };
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLocalSendMessage();
+  };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            if (file.type === "text/plain") {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    setFileContent(e.target?.result as string);
-                    setFileName(file.name);
-                    setImageDataUri(null);
-                    toast({ title: "Text File Attached", description: "The content is ready to be sent with your next message." });
-                };
-                reader.readAsText(file);
-            } else if (file.type.startsWith("audio/")) {
-                handleAudioFileChange(file);
-            } else if (file.type === "application/pdf") {
-                handlePdfFileChange(file);
-            } else {
-                toast({ title: "Invalid file type", description: "Please upload a .txt, audio, or .pdf file.", variant: "destructive" });
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type === "text/plain") {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFileContent(e.target?.result as string);
+          setFileName(file.name);
+          setImageDataUri(null);
+          toast({ title: "Text File Attached", description: "The content is ready to be sent with your next message." });
+        };
+        reader.readAsText(file);
+      } else if (file.type.startsWith("audio/")) {
+        handleAudioFileChange(file);
+      } else if (file.type === "application/pdf") {
+        handlePdfFileChange(file);
+      } else {
+        toast({ title: "Invalid file type", description: "Please upload a .txt, audio, or .pdf file.", variant: "destructive" });
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handlePdfFileChange = async (file: File) => {
+    setIsOcrProcessing(true); // Re-use OCR state for PDF processing
+    setOcrProgress(0);
+    setFileName(file.name);
+    setImageDataUri(null);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        setOcrProgress(Math.round((i / pdf.numPages) * 100));
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n\n';
+      }
+      setFileContent(fullText);
+      toast({ title: "PDF Processed", description: "Text extracted. Ready to send with your next message." });
+    } catch (e: any) {
+      toast({ title: "PDF Processing Failed", description: e.message || 'Could not extract text.', variant: "destructive" });
+      setFileContent(null);
+      setFileName(null);
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  }
+
+  const handleAudioFileChange = async (file: File) => {
+    setIsOcrProcessing(true);
+    setOcrProgress(0);
+    setFileName(file.name);
+    setImageDataUri(null);
+    toast({ title: "Transcribing Audio...", description: "This may take a moment." });
+
+    try {
+      const { pipeline } = await import('@xenova/transformers');
+      const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
+
+      const audio = await AudioDecoder.decode(file);
+
+      const transcript = await transcriber(audio, {
+        chunk_length_s: 30,
+        stride_length_s: 5,
+        callback_function: (beams: any[]) => {
+          const progress = beams[0].progress;
+          if (progress > ocrProgress) setOcrProgress(Math.round(progress));
+        },
+      });
+
+      setFileContent((transcript as any).text);
+      toast({ title: "Audio Transcribed!", description: "The extracted text will be sent with your next message." });
+
+    } catch (error) {
+      console.error("Audio transcription error:", error);
+      toast({ title: "Audio Transcription Failed", description: "Could not process the audio file. This may be due to a network issue.", variant: "destructive" });
+      setFileContent(null);
+      setFileName(null);
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  };
+
+  const resizeImage = (file: File, maxSize: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxSize) {
+              height *= maxSize / width;
+              width = maxSize;
             }
-        }
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const handlePdfFileChange = async (file: File) => {
-        setIsOcrProcessing(true); // Re-use OCR state for PDF processing
-        setOcrProgress(0);
-        setFileName(file.name);
-        setImageDataUri(null);
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                setOcrProgress(Math.round((i / pdf.numPages) * 100));
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ');
-                fullText += pageText + '\n\n';
+          } else {
+            if (height > maxSize) {
+              width *= maxSize / height;
+              height = maxSize;
             }
-            setFileContent(fullText);
-            toast({ title: "PDF Processed", description: "Text extracted. Ready to send with your next message." });
-        } catch (e: any) {
-            toast({ title: "PDF Processing Failed", description: e.message || 'Could not extract text.', variant: "destructive" });
-            setFileContent(null);
-            setFileName(null);
-        } finally {
-            setIsOcrProcessing(false);
-        }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Could not get canvas context"));
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg"));
+        };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file type", description: "Please upload an image file.", variant: "destructive" });
+      return;
     }
 
-    const handleAudioFileChange = async (file: File) => {
-        setIsOcrProcessing(true);
-        setOcrProgress(0);
-        setFileName(file.name);
-        setImageDataUri(null);
-        toast({ title: "Transcribing Audio...", description: "This may take a moment." });
+    setIsOcrProcessing(true);
+    setOcrProgress(0);
 
-        try {
-            const { pipeline } = await import('@xenova/transformers');
-            const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
-            
-            const audio = await AudioDecoder.decode(file);
-            
-            const transcript = await transcriber(audio, {
-                chunk_length_s: 30,
-                stride_length_s: 5,
-                callback_function: (beams: any[]) => {
-                    const progress = beams[0].progress;
-                    if(progress > ocrProgress) setOcrProgress(Math.round(progress));
-                },
-            });
+    try {
+      const resizedDataUri = await resizeImage(file, 2000);
+      setImageDataUri(resizedDataUri);
+      setFileContent(null);
+      setFileName(file.name);
 
-            setFileContent((transcript as any).text);
-            toast({ title: "Audio Transcribed!", description: "The extracted text will be sent with your next message." });
-            
-        } catch (error) {
-            console.error("Audio transcription error:", error);
-            toast({ title: "Audio Transcription Failed", description: "Could not process the audio file. This may be due to a network issue.", variant: "destructive" });
-            setFileContent(null);
-            setFileName(null);
-        } finally {
-            setIsOcrProcessing(false);
+      const { data: { text } } = await Tesseract.recognize(
+        resizedDataUri,
+        'eng',
+        {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              setOcrProgress(Math.round(m.progress * 100));
+            }
+          }
         }
-    };
-    
-    const resizeImage = (file: File, maxSize: number): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = document.createElement("img");
-                img.onload = () => {
-                    let { width, height } = img;
-                    if (width > height) {
-                        if (width > maxSize) {
-                            height *= maxSize / width;
-                            width = maxSize;
-                        }
-                    } else {
-                        if (height > maxSize) {
-                            width *= maxSize / height;
-                            height = maxSize;
-                        }
-                    }
-                    const canvas = document.createElement("canvas");
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) return reject(new Error("Could not get canvas context"));
-                    ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL("image/jpeg"));
-                };
-                img.onerror = reject;
-                img.src = event.target?.result as string;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
+      );
+      setFileContent(text);
+      toast({
+        title: "Image & Text Attached",
+        description: `Text has been extracted. You can now ask questions.`,
+      });
 
-    const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    } catch (error: any) {
+      toast({ title: "OCR or Image processing Failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
+      setFileContent(null);
+      setImageDataUri(null);
+      setFileName(null);
+    } finally {
+      setIsOcrProcessing(false);
+    }
 
-        if (!file.type.startsWith("image/")) {
-            toast({ title: "Invalid file type", description: "Please upload an image file.", variant: "destructive" });
-            return;
-        }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
-        setIsOcrProcessing(true);
-        setOcrProgress(0);
+  const handleOpenFileDialog = (type: 'text' | 'pdf' | 'audio') => {
+    if (fileInputRef.current) {
+      if (type === 'text') fileInputRef.current.accept = ".txt";
+      else if (type === 'pdf') fileInputRef.current.accept = ".pdf";
+      else if (type === 'audio') fileInputRef.current.accept = "audio/*";
 
-        try {
-            const resizedDataUri = await resizeImage(file, 2000);
-            setImageDataUri(resizedDataUri);
-            setFileContent(null);
-            setFileName(file.name);
+      fileInputRef.current.onchange = handleFileChange;
+      fileInputRef.current.click();
+    }
+  };
 
-            const { data: { text } } = await Tesseract.recognize(
-                resizedDataUri,
-                'eng',
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            setOcrProgress(Math.round(m.progress * 100));
-                        }
-                    }
-                }
-            );
-            setFileContent(text);
-            toast({
-                title: "Image & Text Attached",
-                description: `Text has been extracted. You can now ask questions.`,
-            });
+  const handleOpenImageDialog = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = "image/*";
+      fileInputRef.current.onchange = handleImageFileChange;
+      fileInputRef.current.click();
+    }
+  };
 
-        } catch (error: any) {
-            toast({ title: "OCR or Image processing Failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
-            setFileContent(null);
-            setImageDataUri(null);
-            setFileName(null);
-        } finally {
-            setIsOcrProcessing(false);
-        }
-
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const handleOpenFileDialog = (type: 'text' | 'pdf' | 'audio') => {
-        if (fileInputRef.current) {
-            if (type === 'text') fileInputRef.current.accept = ".txt";
-            else if (type === 'pdf') fileInputRef.current.accept = ".pdf";
-            else if (type === 'audio') fileInputRef.current.accept = "audio/*";
-
-            fileInputRef.current.onchange = handleFileChange;
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleOpenImageDialog = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.accept = "image/*";
-            fileInputRef.current.onchange = handleImageFileChange;
-            fileInputRef.current.click();
-        }
-    };
-
-    const isInputDisabled = isOcrProcessing || isTyping;
+  const isInputDisabled = isOcrProcessing || isTyping;
 
   return (
     <div className="relative">
@@ -552,75 +553,75 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
 
 
 const ChatBar = React.memo(({
-    onSendMessage,
-    isTyping,
-    activeButton,
-    setActiveButton,
-    currentModel,
-    setCurrentModel,
-    isPlayground = false,
+  onSendMessage,
+  isTyping,
+  activeButton,
+  setActiveButton,
+  currentModel,
+  setCurrentModel,
+  isPlayground = false,
 }: {
-    onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void;
-    isTyping: boolean;
-    activeButton: 'deepthink' | 'music' | 'image' | null;
-    setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void;
-    currentModel: string;
-    setCurrentModel: (model: string) => void;
-    isPlayground?: boolean
+  onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void;
+  isTyping: boolean;
+  activeButton: 'deepthink' | 'music' | 'image' | null;
+  setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void;
+  currentModel: string;
+  setCurrentModel: (model: string) => void;
+  isPlayground?: boolean
 }) => {
 
-     const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
-        if (activeButton === buttonName) {
-            setActiveButton(null); // Toggle off
-        } else {
-            setActiveButton(buttonName);
-        }
-    };
+  const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
+    if (activeButton === buttonName) {
+      setActiveButton(null); // Toggle off
+    } else {
+      setActiveButton(buttonName);
+    }
+  };
 
-    return (
-        <div className={cn("mx-auto w-full max-w-3xl space-y-2", isPlayground ? "p-2" : "p-4")}>
-             <div className="flex items-center justify-center gap-2 rounded-full border bg-background/80 p-1 backdrop-blur-sm">
-                 <Button 
-                    variant={activeButton === 'deepthink' ? 'secondary' : 'ghost'} 
-                    className="gap-2 rounded-full"
-                    onClick={() => handleToolbarButtonClick('deepthink')}
-                >
-                    <Wand2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">DeepThink</span>
-                </Button>
-                <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} />
-                 <Button 
-                    variant={activeButton === 'music' ? 'secondary' : 'ghost'} 
-                    className="gap-2 rounded-full"
-                    onClick={() => handleToolbarButtonClick('music')}
-                >
-                    <Music className="h-4 w-4" />
-                    <span className="hidden sm:inline">Music</span>
-                </Button>
-                 <Button 
-                    variant={activeButton === 'image' ? 'secondary' : 'ghost'} 
-                    className="gap-2 rounded-full"
-                    onClick={() => handleToolbarButtonClick('image')}
-                >
-                    <ImageIcon className="h-4 w-4" />
-                    <span className="hidden sm:inline">Image</span>
-                </Button>
-            </div>
-            <ChatInput onSendMessage={onSendMessage} isTyping={isTyping} />
-        </div>
-    )
+  return (
+    <div className={cn("mx-auto w-full max-w-3xl space-y-2", isPlayground ? "p-2" : "p-4")}>
+      <div className="flex items-center justify-center gap-2 rounded-full border bg-background/80 p-1 backdrop-blur-sm">
+        <Button
+          variant={activeButton === 'deepthink' ? 'secondary' : 'ghost'}
+          className="gap-2 rounded-full"
+          onClick={() => handleToolbarButtonClick('deepthink')}
+        >
+          <Wand2 className="h-4 w-4" />
+          <span className="hidden sm:inline">DeepThink</span>
+        </Button>
+        <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} />
+        <Button
+          variant={activeButton === 'music' ? 'secondary' : 'ghost'}
+          className="gap-2 rounded-full"
+          onClick={() => handleToolbarButtonClick('music')}
+        >
+          <Music className="h-4 w-4" />
+          <span className="hidden sm:inline">Music</span>
+        </Button>
+        <Button
+          variant={activeButton === 'image' ? 'secondary' : 'ghost'}
+          className="gap-2 rounded-full"
+          onClick={() => handleToolbarButtonClick('image')}
+        >
+          <ImageIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">Image</span>
+        </Button>
+      </div>
+      <ChatInput onSendMessage={onSendMessage} isTyping={isTyping} />
+    </div>
+  )
 })
 ChatBar.displayName = "ChatBar";
 
 
 type ChatContentProps = {
-    isPlayground?: boolean;
-    onCanvasContent?: (content: string) => void;
-    answerTypes: { [key: string]: boolean };
+  isPlayground?: boolean;
+  onCanvasContent?: (content: string) => void;
+  answerTypes: { [key: string]: boolean };
 };
 
 type ChatContentHandle = {
-    handleReceiveCanvasContent: (content: string) => void;
+  handleReceiveCanvasContent: (content: string) => void;
 };
 
 
@@ -636,9 +637,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const [isSynthesizing, setIsSynthesizing] = useState<string | null>(null);
   const [shareContent, setShareContent] = useState<string | null>(null);
-  
+
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  
+
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -671,7 +672,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       console.error("Failed to save chat history to localStorage", error);
     }
   }, [history]);
-  
+
   const isUserNearBottom = useCallback(() => {
     const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
     if (!viewport) return true; // Default to true if viewport isn't ready
@@ -682,11 +683,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     if (!history?.length || !scrollAreaRef?.current) return;
     const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
     if (!viewport) return;
-    
+
     const latestBotMsg = [...history].reverse().find(m => m.role === "model");
 
     if (!latestBotMsg || lastBotMessageId.current === latestBotMsg.id) return;
-    
+
     lastBotMessageId.current = latestBotMsg.id;
 
     const node = document.querySelector(`[data-message-id="${latestBotMsg.id}"]`);
@@ -699,38 +700,38 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         setTimeout(() => node.classList.remove("searn-highlight"), 800);
       }, 100);
     } else if (isUserNearBottom()) {
-       viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
     }
 
   }, [history, isUserNearBottom]);
 
   const handleTextToSpeech = useCallback(async (text: string, id: string) => {
-      if (isSynthesizing === id) {
-          if (audioRef.current) {
-              audioRef.current.pause();
-              audioRef.current.currentTime = 0;
-          }
-          setAudioDataUri(null);
-          setIsSynthesizing(null);
-          return;
-      }
-
+    if (isSynthesizing === id) {
       if (audioRef.current) {
-          audioRef.current.pause();
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
-      setIsSynthesizing(id);
       setAudioDataUri(null);
+      setIsSynthesizing(null);
+      return;
+    }
 
-      try {
-          const result = await textToSpeechAction({ text });
-          if(result.error) throw new Error(result.error);
-          if(result.data?.audioDataUri) {
-            setAudioDataUri(result.data.audioDataUri);
-          }
-      } catch (e: any) {
-          toast({ title: 'Audio Generation Failed', description: e.message, variant: 'destructive' });
-          setIsSynthesizing(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setIsSynthesizing(id);
+    setAudioDataUri(null);
+
+    try {
+      const result = await textToSpeechAction({ text });
+      if (result.error) throw new Error(result.error);
+      if (result.data?.audioDataUri) {
+        setAudioDataUri(result.data.audioDataUri);
       }
+    } catch (e: any) {
+      toast({ title: 'Audio Generation Failed', description: e.message, variant: 'destructive' });
+      setIsSynthesizing(null);
+    }
   }, [isSynthesizing, toast]);
 
   const executeChat = useCallback(async (
@@ -738,121 +739,191 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     currentImageDataUri?: string | null,
     currentFileContent?: string | null
   ) => {
-      setIsTyping(true);
-      const startTime = Date.now();
-      
-      const genkitHistory: CoreMessage[] = currentHistory.map(h => ({
-        role: h.role as 'user' | 'model' | 'tool',
-        content: String(h.content),
-      }));
+    setIsTyping(true);
+    const startTime = Date.now();
 
-      try {
-        const result = await chatAction({ 
-            history: genkitHistory, 
-            userName: userName,
-            fileContent: currentFileContent, 
-            imageDataUri: currentImageDataUri,
-            model: activeButton === 'deepthink' ? 'gpt-oss-120b' : currentModel,
-            isMusicMode: activeButton === 'music',
-            isPlayground: isPlayground,
-            answerTypes: answerTypes,
-        });
+    const genkitHistory: CoreMessage[] = currentHistory.map(h => ({
+      role: h.role as 'user' | 'model' | 'tool',
+      content: String(h.content),
+    }));
 
+    // Create a temporary message ID for streaming
+    const modelMessageId = `${Date.now()}-model`;
+    let accumulatedContent = '';
+
+    try {
+      // Call the streaming API
+      const response = await fetch('/api/chat-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          history: genkitHistory,
+          userName: userName,
+          fileContent: currentFileContent,
+          imageDataUri: currentImageDataUri,
+          model: activeButton === 'deepthink' ? 'gpt-oss-120b' : currentModel,
+          isMusicMode: activeButton === 'music',
+          isPlayground: isPlayground,
+          answerTypes: answerTypes,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        if (response.status === 429 || errorData.error === '__LIMIT_EXHAUSTED__') {
+          setShowLimitDialog(true);
+          setIsTyping(false);
+          return;
+        }
+
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      // Handle non-streaming responses (search/music modes)
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const result = await response.json();
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
         setGenerationTime(duration);
         setIsTyping(false);
 
-        if (result.error) {
-            if (result.error === "__LIMIT_EXHAUSTED__") {
-                setShowLimitDialog(true);
-            } else {
-                toast({ title: "Chat Error", description: result.error, variant: "destructive" });
-            }
-        } else if (result.data) {
-            const { type, content } = result.data;
-            if (type === 'canvas') {
-                onCanvasContent?.(content);
-                const confirmationMessage: Message = {
-                    id: `${Date.now()}-model`,
-                    role: 'model',
-                    content: "Done. I've placed the content in the canvas.",
-                    duration: duration,
-                };
-                setHistory(prev => [...prev, confirmationMessage]);
-            } else {
-                const modelMessageId = `${Date.now()}-model`;
-                setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: content, duration: duration }]);
-            }
+        if (result.type === 'canvas') {
+          onCanvasContent?.(result.content);
+          const confirmationMessage: Message = {
+            id: modelMessageId,
+            role: 'model',
+            content: "Done. I've placed the content in the canvas.",
+            duration: duration,
+          };
+          setHistory(prev => [...prev, confirmationMessage]);
+        } else {
+          setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: result.content, duration: duration }]);
         }
-      } catch (error: any) {
-          if (error.name === 'AbortError') {
-              toast({ title: 'Generation Stopped', description: 'You have stopped the AI response.' });
-          } else {
-              toast({ title: "Chat Error", description: error.message, variant: "destructive" });
-          }
-      } finally {
-        setIsTyping(false);
+        return;
       }
-      
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No reader available');
+      }
+
+      const decoder = new TextDecoder();
+
+      // Add a placeholder message that we'll update
+      setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedContent += chunk;
+
+        // Update the message in history with the accumulated content
+        setHistory(prev =>
+          prev.map(msg =>
+            msg.id === modelMessageId
+              ? { ...msg, content: accumulatedContent }
+              : msg
+          )
+        );
+      }
+
+      const endTime = Date.now();
+      const duration = (endTime - startTime) / 1000;
+      setGenerationTime(duration);
+      setIsTyping(false);
+
+      // Final update with duration
+      setHistory(prev =>
+        prev.map(msg =>
+          msg.id === modelMessageId
+            ? { ...msg, duration: duration }
+            : msg
+        )
+      );
+
+    } catch (error: any) {
+      setIsTyping(false);
+
+      if (error.name === 'AbortError') {
+        toast({ title: 'Generation Stopped', description: 'You have stopped the AI response.' });
+      } else {
+        toast({ title: "Chat Error", description: error.message, variant: "destructive" });
+      }
+
+      // Remove the placeholder message if streaming failed
+      if (accumulatedContent === '') {
+        setHistory(prev => prev.filter(msg => msg.id !== modelMessageId));
+      }
+    }
+
   }, [currentModel, activeButton, toast, userName, onCanvasContent, isPlayground, answerTypes]);
 
 
   const handleSendMessage = useCallback((messageContent: string, imageDataUri?: string | null, fileContent?: string | null) => {
-    const userMessage: Message = { 
-        id: `${Date.now()}-user`, 
-        role: "user", 
-        content: messageContent, 
-        image: imageDataUri 
+    const userMessage: Message = {
+      id: `${Date.now()}-user`,
+      role: "user",
+      content: messageContent,
+      image: imageDataUri
     };
 
     const newHistory = [...history, userMessage];
     setHistory(newHistory);
-    
+
     const isImageGenRequest = activeButton === 'image';
 
     if (isImageGenRequest) {
-        setIsTyping(true);
-        const startTime = Date.now();
-        const prompt = messageContent.trim();
-        generateImageAction({ prompt }).then(result => {
-            const endTime = Date.now();
-            setGenerationTime((endTime - startTime) / 1000);
-            setIsTyping(false);
-            if (result.error) {
-                toast({ title: "Image Generation Error", description: result.error, variant: "destructive" });
-            } else if (result.data) {
-                const imagePayload = {
-                    type: 'image',
-                    imageDataUri: result.data.imageDataUri,
-                    prompt: prompt
-                };
-                const modelMessageId = `${Date.now()}-model`;
-                setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(imagePayload) }]);
-            }
-        });
+      setIsTyping(true);
+      const startTime = Date.now();
+      const prompt = messageContent.trim();
+      generateImageAction({ prompt }).then(result => {
+        const endTime = Date.now();
+        setGenerationTime((endTime - startTime) / 1000);
+        setIsTyping(false);
+        if (result.error) {
+          toast({ title: "Image Generation Error", description: result.error, variant: "destructive" });
+        } else if (result.data) {
+          const imagePayload = {
+            type: 'image',
+            imageDataUri: result.data.imageDataUri,
+            prompt: prompt
+          };
+          const modelMessageId = `${Date.now()}-model`;
+          setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(imagePayload) }]);
+        }
+      });
     } else {
-        executeChat(newHistory, imageDataUri, fileContent);
+      executeChat(newHistory, imageDataUri, fileContent);
     }
   }, [activeButton, executeChat, history, toast]);
 
-    useImperativeHandle(ref, () => ({
-        handleReceiveCanvasContent(content: string) {
-            setHistory(prev => [...prev, { id: `${Date.now()}-model`, role: 'model', content: "Done. I've placed the content in the canvas." }]);
-        }
-    }));
-  
+  useImperativeHandle(ref, () => ({
+    handleReceiveCanvasContent(content: string) {
+      setHistory(prev => [...prev, { id: `${Date.now()}-model`, role: 'model', content: "Done. I've placed the content in the canvas." }]);
+    }
+  }));
+
 
   const handleRegenerateResponse = async () => {
-      const lastUserMessageIndex = history.findLastIndex(m => m.role === 'user');
-      if (lastUserMessageIndex === -1) return;
+    const lastUserMessageIndex = history.findLastIndex(m => m.role === 'user');
+    if (lastUserMessageIndex === -1) return;
 
-      const historyForRegen = history.slice(0, lastUserMessageIndex + 1);
-      setHistory(historyForRegen);
-      
-      const lastUserMessage = historyForRegen[lastUserMessageIndex];
-      // When regenerating, we must pass the same context as the original message
-      await executeChat(historyForRegen, lastUserMessage.image, null);
+    const historyForRegen = history.slice(0, lastUserMessageIndex + 1);
+    setHistory(historyForRegen);
+
+    const lastUserMessage = historyForRegen[lastUserMessageIndex];
+    // When regenerating, we must pass the same context as the original message
+    await executeChat(historyForRegen, lastUserMessage.image, null);
   };
 
 
@@ -860,18 +931,18 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: "The response has been copied to clipboard." });
   };
-  
+
   const handleShare = (text: string) => {
     setShareContent(text);
   };
 
   const handleBrowserToggle = (url: string | null) => {
     setHistory(prev => {
-        const filtered = prev.filter(m => m.role !== 'browser');
-        if (url) {
-            return [...filtered, { id: `browser-${Date.now()}`, role: 'browser', content: url }];
-        }
-        return filtered;
+      const filtered = prev.filter(m => m.role !== 'browser');
+      if (url) {
+        return [...filtered, { id: `browser-${Date.now()}`, role: 'browser', content: url }];
+      }
+      return filtered;
     });
   };
 
@@ -879,61 +950,61 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const renderMessageContent = (message: Message) => {
     if (message.role === 'browser') {
-        return (
-             <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="h-[60vh] flex flex-col border rounded-2xl bg-card overflow-hidden my-4"
-              >
-                <div className="flex items-center justify-between p-2 border-b">
-                    <p className="text-sm font-semibold truncate ml-2">Inline Browser</p>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleBrowserToggle(null)}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-                <div className="flex-1">
-                    <BrowserView initialUrl={message.content} />
-                </div>
-            </motion.div>
-        )
+      return (
+        <motion.div
+          key={message.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="h-[60vh] flex flex-col border rounded-2xl bg-card overflow-hidden my-4"
+        >
+          <div className="flex items-center justify-between p-2 border-b">
+            <p className="text-sm font-semibold truncate ml-2">Inline Browser</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleBrowserToggle(null)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex-1">
+            <BrowserView initialUrl={message.content} />
+          </div>
+        </motion.div>
+      )
     }
 
     const thinkMatch = message.content.match(/<think>([\s\S]*?)<\/think>/);
     const thinkingText = thinkMatch ? thinkMatch[1].trim() : null;
     let mainContent = thinkMatch ? message.content.replace(/<think>[\s\S]*?<\/think>/, '').trim() : message.content;
-    
+
     try {
-        const data = JSON.parse(mainContent);
-        if (data.type === 'youtube' && data.videoId) {
-            return <YoutubeChatCard videoData={data} onPin={() => setActiveVideoId(data.videoId, data.title)} />;
-        }
-        if (data.type === 'website_results' && Array.isArray(data.results)) {
-            return (
-                <div className="space-y-3">
-                    <p className="text-sm">I searched the entire internet and found these results:</p>
-                    {data.results.map((result: any, index: number) => (
-                        <WebsiteChatCard key={index} websiteData={result} onBrowserToggle={handleBrowserToggle} />
-                    ))}
-                </div>
-            );
-        }
-        if (data.type === 'image' && data.imageDataUri) {
-            return <GeneratedImageCard imageDataUri={data.imageDataUri} prompt={data.prompt} />;
-        }
+      const data = JSON.parse(mainContent);
+      if (data.type === 'youtube' && data.videoId) {
+        return <YoutubeChatCard videoData={data} onPin={() => setActiveVideoId(data.videoId, data.title)} />;
+      }
+      if (data.type === 'website_results' && Array.isArray(data.results)) {
+        return (
+          <div className="space-y-3">
+            <p className="text-sm">I searched the entire internet and found these results:</p>
+            {data.results.map((result: any, index: number) => (
+              <WebsiteChatCard key={index} websiteData={result} onBrowserToggle={handleBrowserToggle} />
+            ))}
+          </div>
+        );
+      }
+      if (data.type === 'image' && data.imageDataUri) {
+        return <GeneratedImageCard imageDataUri={data.imageDataUri} prompt={data.prompt} />;
+      }
     } catch (e) {
-        // Not a JSON object, so render as plain text
+      // Not a JSON object, so render as plain text
     }
-    
+
     // Fallback for single website result for backward compatibility
     try {
-        const data = JSON.parse(mainContent);
-        if (data.type === 'website' && data.url) {
-            mainContent = `I found this website for you: [${data.title || data.url}](${data.url})`;
-        }
+      const data = JSON.parse(mainContent);
+      if (data.type === 'website' && data.url) {
+        mainContent = `I found this website for you: [${data.title || data.url}](${data.url})`;
+      }
     } catch (e) {
-        // Not a JSON object
+      // Not a JSON object
     }
 
     const responseHeaderMatch = mainContent.match(/\*\*Response from (.*?)\*\*\n\n/);
@@ -951,93 +1022,51 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             rehypePlugins={[rehypeKatex]}
             className="prose dark:prose-invert max-w-none text-sm leading-relaxed"
             components={{
-                code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || '');
-                    return !inline && match ? (
-                        <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
-                    ) : (
-                        <code className={className} {...props}>
-                            {children}
-                        </code>
-                    );
-                },
-                blockquote({ node, children, ...props }) {
-                    const value = React.Children.toArray(children).map(child =>
-                        React.isValidElement(child) ? (child.props.children) : child
-                    ).join('') || '';
-                    if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
-                    if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
-                    if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
-                    if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
-                    return <blockquote {...props}>{children}</blockquote>;
-                },
-                p: ({node, ...props}) => <p className="mb-4" {...props} />,
-                table: ({node, ...props}) => <table className="table-auto w-full my-4" {...props} />,
-                thead: ({node, ...props}) => <thead className="bg-muted/50" {...props} />,
-                tbody: ({node, ...props}) => <tbody {...props} />,
-                tr: ({node, ...props}) => <tr className="border-b border-border" {...props} />,
-                th: ({node, ...props}) => <th className="p-2 text-left font-semibold" {...props} />,
-                td: ({node, ...props}) => <td className="p-2" {...props} />,
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '');
+                return !inline && match ? (
+                  <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              },
+              blockquote({ node, children, ...props }) {
+                const value = React.Children.toArray(children).map(child =>
+                  React.isValidElement(child) ? (child.props.children) : child
+                ).join('') || '';
+                if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
+                if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
+                if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
+                if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
+                return <blockquote {...props}>{children}</blockquote>;
+              },
+              p: ({ node, ...props }) => <p className="mb-4" {...props} />,
+              table: ({ node, ...props }) => <table className="table-auto w-full my-4" {...props} />,
+              thead: ({ node, ...props }) => <thead className="bg-muted/50" {...props} />,
+              tbody: ({ node, ...props }) => <tbody {...props} />,
+              tr: ({ node, ...props }) => <tr className="border-b border-border" {...props} />,
+              th: ({ node, ...props }) => <th className="p-2 text-left font-semibold" {...props} />,
+              td: ({ node, ...props }) => <td className="p-2" {...props} />,
             }}
           >
             {restOfContent}
           </ReactMarkdown>
         </>
-      )
+      );
     }
-
-    return (
-        <>
-            {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration} />}
-            <ReactMarkdown
-                remarkPlugins={[remarkMath, remarkGfm]}
-                rehypePlugins={[rehypeKatex]}
-                className="prose dark:prose-invert max-w-none text-sm leading-relaxed"
-                components={{
-                    code({ node, inline, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                            <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
-                        ) : (
-                            <code className={className} {...props}>
-                                {children}
-                            </code>
-                        );
-                    },
-                    blockquote({ node, children, ...props }) {
-                        const value = React.Children.toArray(children).map(child =>
-                            React.isValidElement(child) ? (child.props.children) : child
-                        ).join('') || '';
-                        if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
-                        if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
-                        if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
-                        if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
-                        return <blockquote {...props}>{children}</blockquote>;
-                    },
-                    p: ({node, ...props}) => <p className="mb-4" {...props} />,
-                    table: ({node, ...props}) => <table className="table-auto w-full my-4" {...props} />,
-                    thead: ({node, ...props}) => <thead className="bg-muted/50" {...props} />,
-                    tbody: ({node, ...props}) => <tbody {...props} />,
-                    tr: ({node, ...props}) => <tr className="border-b border-border" {...props} />,
-                    th: ({node, ...props}) => <th className="p-2 text-left font-semibold" {...props} />,
-                    td: ({node, ...props}) => <td className="p-2" {...props} />,
-                }}
-            >
-                {mainContent}
-            </ReactMarkdown>
-        </>
-    );
   };
 
   const chatBar = (
-    <ChatBar 
-        onSendMessage={handleSendMessage} 
-        isTyping={isTyping} 
-        activeButton={activeButton}
-        setActiveButton={setActiveButton}
-        currentModel={currentModel}
-        setCurrentModel={setCurrentModel}
-        isPlayground={isPlayground}
+    <ChatBar
+      onSendMessage={handleSendMessage}
+      isTyping={isTyping}
+      activeButton={activeButton}
+      setActiveButton={setActiveButton}
+      currentModel={currentModel}
+      setCurrentModel={setCurrentModel}
+      isPlayground={isPlayground}
     />
   );
 
@@ -1051,94 +1080,95 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       />
       <div className={cn("flex-1", isPlayground ? "h-full flex flex-col" : "")}>
         {showWelcome && !isPlayground ? (
-            <div className="flex h-full flex-col justify-start p-4 pt-16">
-              <div className="mx-auto w-full max-w-3xl flex flex-col items-start gap-8">
-                  <h1 className="text-4xl font-bold">SearnAI</h1>
-                  <div className="space-y-4">
-                      <h2 className="text-4xl font-light text-muted-foreground">Hi {userName || 'there'},</h2>
-                      <h2 className="text-4xl font-bold">Where should we start?</h2>
-                  </div>
-                  <div className="flex flex-col items-start gap-3">
-                      <Button variant="outline" className="rounded-full" onClick={() => router.push('/image-generation')}>
-                          <span className="mr-2">🍌</span> Create image
-                      </Button>
-                      <Button variant="outline" className="rounded-full" onClick={() => router.push('/ai-editor')}>
-                          Write anything
-                      </Button>
-                      <Button variant="outline" className="rounded-full" onClick={() => handleSendMessage('Help me build an idea for a new project')}>
-                          Build an idea
-                      </Button>
-                  </div>
+          <div className="flex h-full flex-col justify-start p-4 pt-16">
+            <div className="mx-auto w-full max-w-3xl flex flex-col items-start gap-8">
+              <h1 className="text-4xl font-bold">SearnAI</h1>
+              <div className="space-y-4">
+                <h2 className="text-4xl font-light text-muted-foreground">Hi {userName || 'there'},</h2>
+                <h2 className="text-4xl font-bold">Where should we start?</h2>
               </div>
+              <div className="flex flex-col items-start gap-3">
+                <Button variant="outline" className="rounded-full" onClick={() => router.push('/image-generation')}>
+                  <span className="mr-2">🍌</span> Create image
+                </Button>
+                <Button variant="outline" className="rounded-full" onClick={() => router.push('/ai-editor')}>
+                  Write anything
+                </Button>
+                <Button variant="outline" className="rounded-full" onClick={() => handleSendMessage('Help me build an idea for a new project')}>
+                  Build an idea
+                </Button>
+              </div>
+
+            </div>
           </div>
         ) : (
           <ScrollArea className="flex-1" ref={scrollAreaRef}>
-              <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-4", isPlayground ? "pb-4" : "pb-48")}>
-                  {history.map((message, index) => (
-                      <React.Fragment key={`${message.id}-${index}`}>
-                        <div
-                          data-message-id={message.id}
-                          className={cn(
-                            "flex w-full items-start gap-4",
-                            message.role === "user" ? "justify-end" : "justify-start"
-                          )}
-                        >
-                          {message.role === "user" ? (
-                            <div className="flex items-start gap-4 justify-end">
-                              <div className="border bg-transparent inline-block rounded-xl p-3 max-w-md">
-                                <p className="text-sm">{message.content}</p>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="w-full">
-                              {renderMessageContent(message)}
-                              {audioDataUri && isSynthesizing === message.id && (
-                                <audio
-                                  ref={audioRef}
-                                  src={audioDataUri}
-                                  autoPlay
-                                  onEnded={() => setIsSynthesizing(null)}
-                                  onPause={() => setIsSynthesizing(null)}
-                                />
-                              )}
-                              {message.role === 'model' && message.role !== 'browser' && (
-                                <div className="mt-2 flex items-center gap-1 transition-opacity">
-                                  <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopyToClipboard(message.content)}>
-                                    <Copy className="h-4 w-4" />
-                                  </Button>
-                                  <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleShare(message.content)}>
-                                    <Share2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleTextToSpeech(message.content, message.id)}>
-                                    {isSynthesizing === message.id ? <StopCircle className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
-                                  </Button>
-                                  <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={handleRegenerateResponse} disabled={isTyping}>
-                                    <RefreshCw className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          )}
+            <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-4", isPlayground ? "pb-4" : "pb-48")}>
+              {history.map((message, index) => (
+                <React.Fragment key={`${message.id}-${index}`}>
+                  <div
+                    data-message-id={message.id}
+                    className={cn(
+                      "flex w-full items-start gap-4",
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    )}
+                  >
+                    {message.role === "user" ? (
+                      <div className="flex items-start gap-4 justify-end">
+                        <div className="border bg-transparent inline-block rounded-xl p-3 max-w-md">
+                          <p className="text-sm">{message.content}</p>
                         </div>
-                        {index < history.length - 1 && (
-                          <Separator className="my-8" />
+                      </div>
+                    ) : (
+                      <div className="w-full">
+                        {renderMessageContent(message)}
+                        {audioDataUri && isSynthesizing === message.id && (
+                          <audio
+                            ref={audioRef}
+                            src={audioDataUri}
+                            autoPlay
+                            onEnded={() => setIsSynthesizing(null)}
+                            onPause={() => setIsSynthesizing(null)}
+                          />
                         )}
-                      </React.Fragment>
-                    )
+                        {message.role === 'model' && message.role !== 'browser' && (
+                          <div className="mt-2 flex items-center gap-1 transition-opacity">
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopyToClipboard(message.content)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleShare(message.content)}>
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleTextToSpeech(message.content, message.id)}>
+                              {isSynthesizing === message.id ? <StopCircle className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
+                            </Button>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={handleRegenerateResponse} disabled={isTyping}>
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {index < history.length - 1 && (
+                    <Separator className="my-8" />
                   )}
-                {isTyping && <ThinkingIndicator text={null} duration={generationTime} />}
-              </div>
-            </ScrollArea>
+                </React.Fragment>
+              )
+              )}
+              {isTyping && <ThinkingIndicator text={null} duration={generationTime} />}
+            </div>
+          </ScrollArea>
         )}
       </div>
-      
+
       {isPlayground ? (
         <div className="border-t">
           {chatBar}
         </div>
       ) : (
         <div className={cn("fixed bottom-0 left-0 lg:left-auto right-0 w-full lg:w-[calc(100%-16rem)] group-data-[collapsible=icon]:lg:w-[calc(100%-3rem)] transition-all bg-transparent")}>
-            {chatBar}
+          {chatBar}
         </div>
       )}
 

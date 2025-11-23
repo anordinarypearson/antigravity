@@ -1,13 +1,13 @@
 
-
 "use server";
 
 import { CoreMessage } from 'ai';
 import { openai } from '@/lib/openai';
-import { z }from 'zod';
+import { z } from 'zod';
 import { generateFlashcardsSamba, GenerateFlashcardsSambaInput, GenerateFlashcardsSambaOutput } from '@/ai/flows/generate-flashcards-samba';
 import { generateQuizzesSamba, GenerateQuizzesSambaInput, GenerateQuizzesSambaOutput } from '@/ai/flows/generate-quizzes-samba';
 import { analyzeCode } from '@/ai/flows/analyze-code';
+import { handleActionError, withTimeout } from '@/lib/utils/error-handling';
 import { generateMindMap, GenerateMindMapInput, GenerateMindMapOutput } from '@/ai/flows/generate-mindmap';
 import { generateQuestionPaper } from '@/ai/flows/generate-question-paper';
 import { generateEbookChapter, GenerateEbookChapterInput, GenerateEbookChapterOutput } from '@/ai/flows/generate-ebook-chapter';
@@ -35,30 +35,40 @@ export type ActionResult<T> = {
     error?: string;
 };
 
+/**
+ * Generates flashcards based on the provided prompt using the Gemini model.
+ * @param prompt - The topic or content to generate flashcards for.
+ * @returns A JSON string representing the generated flashcards.
+ */
 export async function generateFlashcardsAction(input: GenerateFlashcardsSambaInput): Promise<ActionResult<GenerateFlashcardsSambaOutput>> {
     try {
-        const data = await generateFlashcardsSamba(input);
+        const data = await withTimeout(generateFlashcardsSamba(input), 60000);
         return { data };
     } catch (e: any) {
-        return { error: e.message };
+        return { error: handleActionError(e) };
     }
 }
 
+/**
+ * Generates a quiz based on the provided prompt using the Gemini model.
+ * @param prompt - The topic or content to generate a quiz for.
+ * @returns A JSON string representing the generated quiz.
+ */
 export async function generateQuizAction(input: GenerateQuizzesSambaInput): Promise<ActionResult<GenerateQuizzesSambaOutput>> {
     try {
-        const data = await generateQuizzesSamba(input);
+        const data = await withTimeout(generateQuizzesSamba(input), 60000);
         return { data };
     } catch (e: any) {
-        return { error: e.message };
+        return { error: handleActionError(e) };
     }
 }
 
 export async function helpChatAction(input: HelpChatInput): Promise<ActionResult<HelpChatOutput>> {
     try {
-        const data = await helpChat(input);
+        const data = await withTimeout(helpChat(input), 30000);
         return { data };
     } catch (e: any) {
-        return { error: e.message };
+        return { error: handleActionError(e) };
     }
 }
 
@@ -136,10 +146,10 @@ export async function generateImageAction(input: GenerateImageInput): Promise<Ac
 
 export async function analyzeContentAction(content: string): Promise<ActionResult<AnalyzeContentOutput>> {
     try {
-        const data = await analyzeContent({ content });
+        const data = await withTimeout(analyzeContent({ content }), 45000);
         return { data };
     } catch (e: any) {
-        return { error: e.message };
+        return { error: handleActionError(e) };
     }
 }
 
@@ -155,10 +165,10 @@ export async function analyzeImageContentAction(input: AnalyzeImageContentInput)
 
 export async function summarizeContentAction(input: SummarizeContentInput): Promise<ActionResult<SummarizeContentOutput>> {
     try {
-        const data = await summarizeContent(input);
+        const data = await withTimeout(summarizeContent(input), 45000);
         return { data };
     } catch (e: any) {
-        return { error: e.message };
+        return { error: handleActionError(e) };
     }
 }
 
@@ -172,13 +182,13 @@ export async function chatWithTutorAction(input: ChatWithTutorInput): Promise<Ac
 }
 
 const getSystemPrompt = (
-    modelId: string, 
-    userName: string | null, 
+    modelId: string,
+    userName: string | null,
     fileContent: string | null | undefined,
     answerTypes: { [key: string]: boolean }
 ): string => {
     const basePrompt = `You are SearnAI, an expert AI assistant with a confident and helpful Indian-style personality. You are currently speaking with ${userName || 'a student'}. When addressing the user, use their name if you know it (e.g., "Hi ${userName}, ..."). Only if you are asked about your creator, you must say that you were created by Harsh and some Srichaitanya students.`;
-    
+
     let answerStyleInstruction = "";
     const selectedTypes = Object.entries(answerTypes)
         .filter(([key, value]) => key !== 'auto' && value)
@@ -249,7 +259,7 @@ $$
 $$
 **IMPORTANT: Do NOT use square brackets \`[...]\`, parentheses \`(..)\` or any other format for math. Only use \`$\` and \`$$\`. This is a strict requirement.**
 `;
-    
+
     const richFormattingInstruction = `
 **Rule 4: Use Rich Markdown Formatting**
 To make your answers more engaging and readable, use the following special markdown formats:
@@ -268,10 +278,10 @@ Example of a styled box:
 
     const persona = personaPrompts[modelId] || `You are a helpful AI assistant.`;
 
-    const fileContext = fileContent 
-        ? `\n\n**User's Provided Context (from OCR or file):**\nThis is the primary context for your answer. Adhere to the OCR handling rules.\n\n---\n${fileContent}\n---` 
+    const fileContext = fileContent
+        ? `\n\n**User's Provided Context (from OCR or file):**\nThis is the primary context for your answer. Adhere to the OCR handling rules.\n\n---\n${fileContent}\n---`
         : '';
-        
+
     return `${basePrompt}\n\n${persona}\n\n${answerStyleInstruction}\n\n${ocrInstruction}\n\n${mathInstruction}\n\n${richFormattingInstruction}\n\nYour answers must be excellent, comprehensive, well-researched, and easy to understand. Use Markdown for formatting. Be proactive and suggest a relevant follow-up question or action at the end of your response.${fileContext}`;
 };
 
@@ -286,7 +296,12 @@ User request:
 `;
 }
 
-// Main non-streaming chat action
+/**
+ * Main chat action that handles user messages, tool calls, and AI responses.
+ * Supports text, image, and file inputs.
+ * @param params - Object containing history, model, and other chat parameters.
+ * @returns The AI response content and type.
+ */
 export async function chatAction(input: {
     history: CoreMessage[],
     userName?: string | null,
@@ -298,7 +313,7 @@ export async function chatAction(input: {
     answerTypes: { [key: string]: boolean },
 }): Promise<ActionResult<{ type: 'chat' | 'canvas', content: string }>> {
     const userMessageContent = input.history[input.history.length - 1]?.content.toString();
-    
+
     // If isPlayground is true, ALL generative requests go to the canvas.
     const useCanvas = !!input.isPlayground;
 
@@ -310,7 +325,7 @@ export async function chatAction(input: {
         try {
             const searchResults = await webSearch({ query });
             if (searchResults.results && searchResults.results.length > 0) {
-                 const responsePayload = {
+                const responsePayload = {
                     type: 'website_results',
                     results: searchResults.results.map(r => ({
                         url: r.url,
@@ -318,7 +333,7 @@ export async function chatAction(input: {
                         snippet: r.snippet,
                     }))
                 };
-                 return { data: { type: 'chat', content: JSON.stringify(responsePayload) } };
+                return { data: { type: 'chat', content: JSON.stringify(responsePayload) } };
             } else {
                 return { data: { type: 'chat', content: "I searched the entire internet and couldn't find any relevant websites for that search." } };
             }
@@ -328,8 +343,8 @@ export async function chatAction(input: {
     }
 
     if (isMusic) {
-         const query = userMessageContent;
-         try {
+        const query = userMessageContent;
+        try {
             const video = await searchYoutube({ query });
             if (video.id) {
                 const responsePayload = {
@@ -340,21 +355,21 @@ export async function chatAction(input: {
                 };
                 return { data: { type: 'chat', content: JSON.stringify(responsePayload) } };
             } else {
-                 return { data: { type: 'chat', content: "Sorry, I couldn't find a matching song on YouTube." } };
+                return { data: { type: 'chat', content: "Sorry, I couldn't find a matching song on YouTube." } };
             }
-         } catch (error: any) {
-             return { error: `Sorry, an error occurred while searching YouTube: ${error.message}` };
-         }
+        } catch (error: any) {
+            return { error: `Sorry, an error occurred while searching YouTube: ${error.message}` };
+        }
     }
 
     const selectedModelId = input.model || DEFAULT_MODEL_ID;
-    
+
     // If an image is provided, ALWAYS force the model to be gpt-oss-120b
     let finalModelId = input.imageDataUri ? 'gpt-oss-120b' : selectedModelId;
     if (finalModelId === 'auto') {
         finalModelId = DEFAULT_MODEL_ID; // Fallback from auto if not an image
     }
-    
+
     const userMessage = input.history[input.history.length - 1];
     let finalUserMessage: CoreMessage;
 
@@ -364,13 +379,13 @@ export async function chatAction(input: {
             ...userMessage,
             content: [
                 { type: "text", text: String(userMessage.content) },
-                { type: "image_url", image_url: { url: input.imageDataUri } }
+                { type: "image", image: input.imageDataUri }
             ]
         };
     } else {
         finalUserMessage = userMessage;
     }
-    
+
     const RECENT_MESSAGE_COUNT = 10;
     const recentHistory = input.history.slice(-RECENT_MESSAGE_COUNT);
 
@@ -379,9 +394,9 @@ export async function chatAction(input: {
         : [...recentHistory.slice(0, -1), finalUserMessage];
 
     const modelsToTry = (finalModelId === 'auto' || !finalModelId)
-      ? AVAILABLE_MODELS.map(m => m.id).filter(id => id !== 'auto')
-      : [finalModelId];
-    
+        ? AVAILABLE_MODELS.map(m => m.id).filter(id => id !== 'auto')
+        : [finalModelId];
+
     let lastError: any = null;
 
     for (const modelId of modelsToTry) {
@@ -403,9 +418,9 @@ export async function chatAction(input: {
             if (!responseText) {
                 throw new Error("Received an empty response from the AI model.");
             }
-            
+
             if (useCanvas) {
-                 return { data: { type: 'canvas', content: responseText } };
+                return { data: { type: 'canvas', content: responseText } };
             }
 
             const modelName = AVAILABLE_MODELS.find(m => m.id === modelId)?.name || modelId;
@@ -419,23 +434,15 @@ export async function chatAction(input: {
             if (e.status === 429) {
                 return { error: `__LIMIT_EXHAUSTED__` };
             }
-            if(finalModelId !== 'auto' && modelsToTry.length === 1) {
+            if (finalModelId !== 'auto' && modelsToTry.length === 1) {
                 break;
             }
         }
     }
-    
+
     if (lastError?.message?.includes('maximum context length')) {
         return { error: "The provided content is too long for the selected AI model. Please shorten it or try a different model." };
     }
 
     return { error: lastError?.message || "An unknown error occurred with all available AI models." };
 }
-
-    
-
-
-
-    
-
-  

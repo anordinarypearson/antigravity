@@ -1,11 +1,11 @@
 
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
-import { WelcomeDialog } from '@/components/welcome-dialog';
+
 
 export const metadata: Metadata = {
   title: 'SearnAI',
@@ -28,7 +28,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
-            <WelcomeDialog />
+
           </AuthProvider>
           <Toaster />
         </ThemeProvider>
