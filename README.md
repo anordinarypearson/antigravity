@@ -1,128 +1,136 @@
-# 🎓 ScholarSage - The AI-Powered Learning Ecosystem
+# 🎓 ScholarSage: The Ultimate AI-Powered learning Ecosystem
 
-ScholarSage is a next-generation study application designed to transform how students learn, collaborate, and master new subjects. By integrating a powerful suite of AI-driven tools into a single, intuitive platform, ScholarSage helps you study smarter, not harder.
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-11-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
+[![Genkit](https://img.shields.io/badge/Genkit-1.20-blueviolet?style=for-the-badge)](https://firebase.google.com/docs/genkit)
 
-![ScholarSage Dashboard](https://placehold.co/800x400.png?text=ScholarSage+App+Screenshot)
-
----
-
-## ✨ Key Features
-
-- **🧠 AI Content Analysis**: Paste any text, upload a document, or use your camera to get an instant AI-powered analysis, including summaries, key concepts, and potential questions.
-- **📚 Multi-Format Study Sessions**: Create study sessions from text, images (with OCR), `.txt` files, PDFs, and even YouTube video transcripts.
-- **📇 Smart Flashcards**: Automatically generate flashcards from your study material, complete with a Spaced Repetition System (SRS) to maximize retention.
-- **❓ Intelligent Quizzes**: Generate custom quizzes with various question types (MCQ, True/False, etc.) and get instant feedback.
-- **🤖 AI Tutor**: Engage in a conversational chat with an AI tutor that has context on your study material to help you understand complex topics.
-- **🗺️ Mind Maps**: Visualize complex information with AI-generated mind maps.
-- **✍️ AI Editor & Playground**: Use the AI Editor for writing assistance or the Playground for a split-screen chat and canvas experience.
-- **🌐 Integrated Resources**: Features a built-in web browser, news reader, and eBook library to keep all your study tools in one place.
+**ScholarSage** is a cutting-edge, AI-first study platform designed to revolutionize how students interact with information. From instant document analysis to automated Spaced Repetition (SRS), ScholarSage brings all the tools you need into one cohesive, high-performance ecosystem.
 
 ---
 
-## 🛠️ Tech Stack
+## 🔥 Key Pillars of ScholarSage
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **UI**: React 18, shadcn/ui, Radix UI, Tailwind CSS
-- **State Management**: Zustand
-- **AI/ML**: Google Genkit, SambaNova, Qwen
-- **Backend**: Firebase (Authentication, Firestore, Storage)
-- **Desktop App**: Electron (Optional, for enhanced features)
+### 🧠 Advanced AI & Content Processing
+- **Multi-Source Ingestion**: Transform PDFs, DOCX, YouTube videos, and raw text into interactive study materials.
+- **Deep Document Analysis**: Get instant summaries, extraction of key concepts, and AI-generated insights.
+- **Client-Side OCR**: Use **Tesseract.js** for powerful text extraction from images directly in your browser.
+- **Intelligent RAG Search**: A sophisticated Retrieval-Augmented Generation system for accurate, context-aware answers.
+
+### 📚 Science-Backed Learning
+- **Smart Flashcards**: Automatically generate flashcards from your notes and study materials.
+- **Spaced Repetition (SRS)**: Optimize your memory retention with an integrated SRS system.
+- **Interactive Quizzes**: Generate personalized tests (MCQ, True/False) with real-time feedback and performance tracking.
+- **Visual Learning**: Create AI-powered **Mind Maps** to see the big picture and connect complex ideas.
+
+### 🤖 Your Personal AI Tutor
+- **Socratic Method**: An AI tutor that doesn't just give answers but guides you through the learning process.
+- **Contextual Memory**: The tutor understands your entire study session, creating a seamless conversational experience.
+- **Multi-Level Explanations**: Ask for simplified "ELI5" explanations or deep dives into complex topics.
+
+### 🛠️ The Integrated Workspace
+- **AI Editor & Canvas**: A dual-pane workspace for writing and brainstorming alongside an AI assistant.
+- **Integrated Browser & News**: Read articles and browse the web without leaving your study environment.
+- **Performance Dashboard**: Track your learning velocity, retention rates, and subject mastery with beautiful data visualizations.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+- **Frontend**: [Next.js 15 (App Router)](https://nextjs.org/), [React 18](https://reactjs.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/)
+- **AI Orchestration**: [Google Genkit](https://firebase.google.com/docs/genkit), [Vercel AI SDK](https://sdk.vercel.ai/)
+- **Models**: [Qwen](https://huggingface.co/Qwen), [SambaNova](https://sambanova.ai/), [Google Gemini](https://deepmind.google/technologies/gemini/)
+- **Backend & Auth**: [Firebase](https://firebase.google.com/) (Auth, Firestore, Cloud Functions)
+- **Local ML**: [Transformers.js](https://huggingface.co/docs/transformers.js), [Tensorflow.js](https://www.tensorflow.org/js)
+- **Desktop**: [Electron](https://www.electronjs.org/) (Optional wrapper for native features)
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js (v18 or later)
-- npm or yarn
+- **Node.js**: v18.0 or higher
+- **npm** or **yarn**
 
 ### 1. Installation
 
-Clone the repository and install the dependencies:
-
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-username/ScholarSage.git
 cd ScholarSage
 npm install
 ```
 
-### 2. Environment Variables
-
-Create a `.env` file in the root of the project and add your Firebase and AI service API keys. Refer to `.env.example` if available.
+### 2. Configuration
+Create a `.env.local` file in the root directory and add your credentials:
 
 ```bash
-# .env
-FIREBASE_SERVICE_ACCOUNT="..."
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY="..."
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="..."
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="..."
+
+# AI Service Keys
 SAMBANOVA_API_KEY="..."
-SAMBANOVA_BASE_URL="..."
-# Add other keys as needed
+OPENAI_API_KEY="..."
+GOOGLE_GENAI_API_KEY="..."
 ```
 
-### 3. Running the Development Server
+### 3. Launch the Platform
 
-Start the Next.js development server:
-
+**Web Version:**
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Desktop Version (Electron):**
+```bash
+# Terminal 1
+npm run dev
 
-### 4. Running with Electron (Optional)
-
-The project includes an optional Electron wrapper for enhanced desktop features like the Web Agent.
-
-1.  **Start the Next.js App** (if not already running):
-    ```bash
-    npm run dev
-    ```
-
-2.  **Start the Electron App**:
-    In a separate terminal, start the Electron process.
-
-    ```bash
-    npm run electron
-    ```
-
-This will open a native desktop window loading your local development server.
+# Terminal 2
+npm run electron
+```
 
 ---
 
 ## 📂 Project Structure
 
-Here's a brief overview of the key directories:
-
 ```
-.
 ├── /src
-│   ├── /app          # Next.js App Router pages and layouts
-│   ├── /ai           # AI-related code (Genkit flows, tools)
-│   ├── /components   # Reusable React components
-│   ├── /hooks        # Custom React hooks (e.g., useAuth)
-│   ├── /lib          # Utility functions, Firebase config, types
-│   └── /styles       # Global CSS and Tailwind config
-├── /docs             # Project documentation and design files
-├── /electron         # Electron-specific files (main process, preloads)
-└── README.md         # You are here!
+│   ├── /app          # Pages, Layouts, and API Routes
+│   ├── /ai           # Genkit flows and AI utility tools
+│   ├── /components   # Reusable UI components (shadcn)
+│   ├── /hooks        # Custom React hooks
+│   ├── /lib          # Core logic, Firebase config, and types
+│   └── /styles       # Global CSS & Tailwind configuration
+├── /docs             # Extensive feature & design documentation
+├── /electron         # Main process and desktop integration
+├── /python-backend   # Specialized processing scripts (optional)
+└── README.md         # You are here
 ```
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing & Community
 
-We welcome contributions! If you have suggestions or want to improve the app, please feel free to:
+ScholarSage is built for students, by developers who care about education. We welcome all contributions!
 
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/YourFeature`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'Add some feature'`).
-5.  Push to the branch (`git push origin feature/YourFeature`).
-6.  Open a Pull Request.
+1. **Fork** the repository
+2. **Branch**: `git checkout -b feature/amazing-feature`
+3. **Commit**: `git commit -m 'Add amazing feature'`
+4. **Push**: `git push origin feature/amazing-feature`
+5. **Open a PR**
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Built with ❤️ for the future of education.
+</p>
