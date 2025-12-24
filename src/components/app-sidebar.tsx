@@ -123,7 +123,10 @@ export function AppSidebar() {
   const router = useRouter();
   const currentPathname = usePathname();
   const [pathname, setPathname] = useState("");
-  const { user, signOut } = useAuth();
+  // TEMPORARILY MODIFIED: Make auth optional
+  const auth = useAuth();
+  const user = auth?.user;
+  const signOut = auth?.signOut || (() => { });
 
   useEffect(() => {
     setPathname(currentPathname);
@@ -297,12 +300,15 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={signOut} className="w-full justify-start gap-2.5 px-3">
-                <LogOut />
-                <span className="text-sm">Log Out</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {/* TEMPORARILY HIDDEN when no user */}
+            {user && (
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={signOut} className="w-full justify-start gap-2.5 px-3">
+                  <LogOut />
+                  <span className="text-sm">Log Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarFooter>
       </SidebarContent>
