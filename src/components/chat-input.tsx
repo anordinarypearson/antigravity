@@ -31,14 +31,14 @@ type ChatInputProps = {
 };
 
 
-export function ChatInput({ 
+export function ChatInput({
     input, setInput, isTyping, isRecording, isOcrProcessing, ocrProgress, handleSendMessage, handleToggleRecording, toggleEditor,
     imageDataUri, setImageDataUri, fileContent, setFileContent, fileName, setFileName, handleImageFileChange
 }: ChatInputProps) {
-    
+
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
+
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleSendMessage();
@@ -47,20 +47,20 @@ export function ChatInput({
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-          if (file.type === "text/plain") {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setFileContent(e.target?.result as string);
-                setFileName(file.name);
-                setImageDataUri(null);
-            };
-            reader.readAsText(file);
-          } else {
-            toast({ title: "Invalid file type", description: "Please upload a .txt file.", variant: "destructive" });
-          }
+            if (file.type === "text/plain") {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setFileContent(e.target?.result as string);
+                    setFileName(file.name);
+                    setImageDataUri(null);
+                };
+                reader.readAsText(file);
+            } else {
+                toast({ title: "Invalid file type", description: "Please upload a .txt file.", variant: "destructive" });
+            }
         }
         if (fileInputRef.current) fileInputRef.current.value = "";
-      };
+    };
 
     const handleOpenFileDialog = () => {
         if (fileInputRef.current) {
@@ -69,7 +69,7 @@ export function ChatInput({
             fileInputRef.current.click();
         }
     };
-    
+
     const handleOpenImageDialog = () => {
         if (fileInputRef.current) {
             fileInputRef.current.accept = "image/*";
@@ -108,7 +108,7 @@ export function ChatInput({
                 )}
                 <form
                     onSubmit={handleFormSubmit}
-                    className="relative flex items-center rounded-full border bg-card p-2 shadow-lg focus-within:border-primary"
+                    className="relative flex items-center rounded-xl border bg-card p-2 shadow-lg focus-within:border-primary"
                 >
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -149,8 +149,7 @@ export function ChatInput({
                     </div>
                 </form>
             </div>
-      </div>
+        </div>
     );
 }
 
-    

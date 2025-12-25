@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save, Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus, Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause, Rewind, FastForward, Presentation, Video, Image as ImageIcon, ChevronDown, Globe, FileUp, FileAudio, File as FileIcon } from "lucide-react";
+import { Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save, Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus, Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause, Rewind, FastForward, Presentation, Video, Image as ImageIcon, ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles, Code, ChevronRight, Palette, Terminal, Zap } from "lucide-react";
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -43,6 +43,7 @@ import { Buffer } from 'buffer';
 import { useAuth } from "@/hooks/use-auth";
 import { memo } from "react";
 import remarkGfm from "remark-gfm";
+import { ChatWelcomeScreen } from "./chat-welcome-screen";
 
 
 // Required for pdf.js to work
@@ -173,8 +174,16 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   );
 };
 
-const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean }) => {
+const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, currentModel, setCurrentModel }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean, activeButton: 'deepthink' | 'music' | 'image' | null, setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void, currentModel: string, setCurrentModel: (model: string) => void }) => {
   const [input, setInput] = useState('');
+
+  const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
+    if (activeButton === buttonName) {
+      setActiveButton(null);
+    } else {
+      setActiveButton(buttonName);
+    }
+  };
   const [finalTranscript, setFinalTranscript] = useState('');
 
   const handleLocalSendMessage = (messageToSend?: string) => {
@@ -501,13 +510,13 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
           )}
         </div>
       )}
-      <form onSubmit={handleFormSubmit} className="relative">
+      <form onSubmit={handleFormSubmit} className="relative flex flex-col gap-2 rounded-xl border bg-background/95 backdrop-blur-sm p-2 shadow-lg focus-within:ring-2 focus-within:ring-primary/20 transition-all">
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Message SearnAI..."
           disabled={isInputDisabled}
-          className="chat-textarea h-12 max-h-48 flex-1 border-border bg-background/80 text-base shadow-lg focus-visible:ring-2 ring-primary/50 backdrop-blur-sm resize-none rounded-2xl p-3 pr-28"
+          className="min-h-[44px] max-h-48 w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2 text-base"
           rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -516,35 +525,78 @@ const ChatInput = ({ onSendMessage, isTyping }: { onSendMessage: (message: strin
             }
           }}
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" size="icon" variant="ghost" className="chat-icon-button" disabled={isInputDisabled}>
-                <Plus className="h-5 w-5" />
-                <span className="sr-only">Attach file</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={handleOpenImageDialog}><ImageIcon className="mr-2 h-4 w-4" />Image</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleOpenFileDialog('text')}><FileText className="mr-2 h-4 w-4" />Text File</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleOpenFileDialog('pdf')}><FileIcon className="mr-2 h-4 w-4" />PDF File</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleOpenFileDialog('audio')}><FileAudio className="mr-2 h-4 w-4" />Audio File</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <input type="file" ref={fileInputRef} className="hidden" />
-          <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="chat-icon-button" onClick={handleToggleRecording} disabled={isInputDisabled}>
-            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            <span className="sr-only">{isRecording ? "Stop recording" : "Start recording"}</span>
-          </Button>
-          <Button
-            type="submit"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            disabled={isInputDisabled || (!input.trim() && !imageDataUri && !fileContent)}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span className="sr-only">Send</span>
-          </Button>
+
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1">
+            <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} disabled={isInputDisabled} />
+
+            <Button
+              type="button"
+              variant={activeButton === 'deepthink' ? 'secondary' : 'ghost'}
+              size="icon"
+              className={cn("h-8 w-8 rounded-lg", activeButton === 'deepthink' && "bg-secondary text-secondary-foreground")}
+              onClick={() => handleToolbarButtonClick('deepthink')}
+              disabled={isInputDisabled}
+              title="DeepThink"
+            >
+              <Wand2 className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant={activeButton === 'music' ? 'secondary' : 'ghost'}
+              size="icon"
+              className={cn("h-8 w-8 rounded-lg", activeButton === 'music' && "bg-secondary text-secondary-foreground")}
+              onClick={() => handleToolbarButtonClick('music')}
+              disabled={isInputDisabled}
+              title="Music Generation"
+            >
+              <Music className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant={activeButton === 'image' ? 'secondary' : 'ghost'}
+              size="icon"
+              className={cn("h-8 w-8 rounded-lg", activeButton === 'image' && "bg-secondary text-secondary-foreground")}
+              onClick={() => handleToolbarButtonClick('image')}
+              disabled={isInputDisabled}
+              title="Image Generation"
+            >
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" disabled={isInputDisabled}>
+                  <Plus className="h-5 w-5" />
+                  <span className="sr-only">Attach file</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onSelect={handleOpenImageDialog}><ImageIcon className="mr-2 h-4 w-4" />Image</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleOpenFileDialog('text')}><FileText className="mr-2 h-4 w-4" />Text File</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleOpenFileDialog('pdf')}><FileIcon className="mr-2 h-4 w-4" />PDF File</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleOpenFileDialog('audio')}><FileAudio className="mr-2 h-4 w-4" />Audio File</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <input type="file" ref={fileInputRef} className="hidden" />
+
+            <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleToggleRecording} disabled={isInputDisabled}>
+              {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              <span className="sr-only">{isRecording ? "Stop recording" : "Start recording"}</span>
+            </Button>
+
+            <Button
+              type="submit"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-primary text-primary-foreground shadow hover:bg-primary/90"
+              disabled={isInputDisabled || (!input.trim() && !imageDataUri && !fileContent)}
+            >
+              <ArrowUp className="h-4 w-4" />
+              <span className="sr-only">Send</span>
+            </Button>
+          </div>
         </div>
       </form>
     </div>
@@ -579,35 +631,15 @@ const ChatBar = React.memo(({
   };
 
   return (
-    <div className={cn("mx-auto w-full max-w-3xl space-y-2", isPlayground ? "p-2" : "p-4")}>
-      <div className="flex items-center justify-center gap-2 rounded-full border bg-background/80 p-1 backdrop-blur-sm">
-        <Button
-          variant={activeButton === 'deepthink' ? 'secondary' : 'ghost'}
-          className="gap-2 rounded-full"
-          onClick={() => handleToolbarButtonClick('deepthink')}
-        >
-          <Wand2 className="h-4 w-4" />
-          <span className="hidden sm:inline">DeepThink</span>
-        </Button>
-        <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} />
-        <Button
-          variant={activeButton === 'music' ? 'secondary' : 'ghost'}
-          className="gap-2 rounded-full"
-          onClick={() => handleToolbarButtonClick('music')}
-        >
-          <Music className="h-4 w-4" />
-          <span className="hidden sm:inline">Music</span>
-        </Button>
-        <Button
-          variant={activeButton === 'image' ? 'secondary' : 'ghost'}
-          className="gap-2 rounded-full"
-          onClick={() => handleToolbarButtonClick('image')}
-        >
-          <ImageIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Image</span>
-        </Button>
-      </div>
-      <ChatInput onSendMessage={onSendMessage} isTyping={isTyping} />
+    <div className={cn("mx-auto w-full max-w-3xl", isPlayground ? "p-2" : "p-2 pb-4")}>
+      <ChatInput
+        onSendMessage={onSendMessage}
+        isTyping={isTyping}
+        activeButton={activeButton}
+        setActiveButton={setActiveButton}
+        currentModel={currentModel}
+        setCurrentModel={setCurrentModel}
+      />
     </div>
   )
 })
@@ -1042,6 +1074,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                 if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
                 return <blockquote {...props}>{children}</blockquote>;
               },
+              img: ({ node, ...props }) => (
+                <div className="my-4 not-prose">
+                  <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
+                </div>
+              ),
               p: ({ node, ...props }) => <p className="mb-4" {...props} />,
               table: ({ node, ...props }) => <table className="table-auto w-full my-4" {...props} />,
               thead: ({ node, ...props }) => <thead className="bg-muted/50" {...props} />,
@@ -1080,27 +1117,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       />
       <div className={cn("flex-1", isPlayground ? "h-full flex flex-col" : "")}>
         {showWelcome && !isPlayground ? (
-          <div className="flex h-full flex-col justify-start p-4 pt-16">
-            <div className="mx-auto w-full max-w-3xl flex flex-col items-start gap-8">
-              <h1 className="text-4xl font-bold">SearnAI</h1>
-              <div className="space-y-4">
-                <h2 className="text-4xl font-light text-muted-foreground">Hi {userName || 'there'},</h2>
-                <h2 className="text-4xl font-bold">Where should we start?</h2>
-              </div>
-              <div className="flex flex-col items-start gap-3">
-                <Button variant="outline" className="rounded-full" onClick={() => router.push('/image-generation')}>
-                  <span className="mr-2">🍌</span> Create image
-                </Button>
-                <Button variant="outline" className="rounded-full" onClick={() => router.push('/ai-editor')}>
-                  Write anything
-                </Button>
-                <Button variant="outline" className="rounded-full" onClick={() => handleSendMessage('Help me build an idea for a new project')}>
-                  Build an idea
-                </Button>
-              </div>
-
-            </div>
-          </div>
+          <ChatWelcomeScreen
+            userName={userName}
+            setActiveButton={setActiveButton}
+            handleSendMessage={handleSendMessage}
+          />
         ) : (
           <ScrollArea className="flex-1" ref={scrollAreaRef}>
             <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-4", isPlayground ? "pb-4" : "pb-48")}>
