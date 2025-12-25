@@ -159,20 +159,49 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       </header>
       <div className="flex justify-center items-center py-2 border-b bg-background">
-        <div className="flex items-center gap-1 rounded-full bg-muted p-1">
-          <Button variant={activeView === 'searnai' ? 'secondary' : 'ghost'} size="sm" className="rounded-full gap-2" onClick={() => setActiveView('searnai')}>
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("gap-2 rounded-none px-4 hover:bg-transparent hover:text-foreground/80", activeView === 'searnai' ? "text-foreground font-bold" : "text-muted-foreground")}
+            onClick={() => setActiveView('searnai')}
+          >
             <MessageSquare className="h-4 w-4" />
             SearnAI
           </Button>
-          <Button variant={activeView === 'stories' ? 'secondary' : 'ghost'} size="sm" className="rounded-full gap-2" onClick={() => setActiveView('stories')}>
+
+          <div className="h-4 w-[1px] bg-border/50" />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("gap-2 rounded-none px-4 hover:bg-transparent hover:text-foreground/80", activeView === 'stories' ? "text-foreground font-bold" : "text-muted-foreground")}
+            onClick={() => setActiveView('stories')}
+          >
             <Newspaper className="h-4 w-4" />
             Stories
           </Button>
-          <Button variant={activeView === 'browser' ? 'secondary' : 'ghost'} size="sm" className="rounded-full gap-2" onClick={() => setActiveView('browser')}>
+
+          <div className="h-4 w-[1px] bg-border/50" />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("gap-2 rounded-none px-4 hover:bg-transparent hover:text-foreground/80", activeView === 'browser' ? "text-foreground font-bold" : "text-muted-foreground")}
+            onClick={() => setActiveView('browser')}
+          >
             <Globe className="h-4 w-4" />
             Browser
           </Button>
-          <Button variant='ghost' size="sm" className="rounded-full gap-2" onClick={() => router.push('/playground')}>
+
+          <div className="h-4 w-[1px] bg-border/50" />
+
+          <Button
+            variant='ghost'
+            size="sm"
+            className="gap-2 rounded-none px-4 text-muted-foreground hover:bg-transparent hover:text-foreground/80"
+            onClick={() => router.push('/playground')}
+          >
             <FlaskConical className="h-4 w-4" />
             Playground
           </Button>

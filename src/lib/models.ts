@@ -46,4 +46,4 @@ export const AVAILABLE_MODELS = [
 
 export const DEFAULT_MODEL_ID = 'auto';
 
-    
+

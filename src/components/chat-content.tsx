@@ -510,7 +510,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
           )}
         </div>
       )}
-      <form onSubmit={handleFormSubmit} className="relative flex flex-col gap-2 rounded-xl border bg-background/95 backdrop-blur-sm p-2 shadow-lg focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+      <form onSubmit={handleFormSubmit} className="relative flex flex-col gap-2 rounded-none border border-foreground/30 bg-background/95 backdrop-blur-sm p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] focus-within:border-foreground transition-all">
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}

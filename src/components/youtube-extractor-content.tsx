@@ -33,15 +33,26 @@ export function YouTubeExtractorContent() {
         startExtracting(async () => {
             setTranscript("");
             setSummary(null);
-            const result = await getYoutubeTranscriptAction({ videoUrl });
-            if (result.error) {
-                toast({ title: "Failed to get transcript", description: result.error, variant: 'destructive' });
-            } else if (result.data) {
-                setTranscript(result.data.transcript);
-                toast({ title: "Transcript extracted successfully!" });
+            try {
+                console.log('[YouTubeExtractor] Calling getYoutubeTranscriptAction with:', videoUrl);
+                const result = await getYoutubeTranscriptAction({ videoUrl });
+                console.log('[YouTubeExtractor] Result:', result);
+
+                if (result.error) {
+                    toast({ title: "Failed to get transcript", description: result.error, variant: 'destructive' });
+                } else if (result.data && result.data.transcript) {
+                    setTranscript(result.data.transcript);
+                    toast({ title: "Transcript extracted successfully!" });
+                } else {
+                    toast({ title: "Failed to get transcript", description: "No transcript data returned. The video may not have subtitles available.", variant: 'destructive' });
+                }
+            } catch (err: any) {
+                console.error('[YouTubeExtractor] Error:', err);
+                toast({ title: "Failed to get transcript", description: err.message || "An unexpected error occurred", variant: 'destructive' });
             }
         });
     };
+
 
     const handleSummarize = () => {
         if (!transcript) {
@@ -85,7 +96,7 @@ export function YouTubeExtractorContent() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex w-full items-center space-x-2">
-                                <Input 
+                                <Input
                                     placeholder="https://www.youtube.com/watch?v=..."
                                     value={videoUrl}
                                     onChange={(e) => setVideoUrl(e.target.value)}
@@ -105,7 +116,7 @@ export function YouTubeExtractorContent() {
                             <CardDescription>The transcript will appear below. You can copy it or generate a summary.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Textarea 
+                            <Textarea
                                 placeholder="Transcript will appear here..."
                                 className="h-64 resize-none"
                                 value={transcript}
@@ -114,11 +125,11 @@ export function YouTubeExtractorContent() {
                         </CardContent>
                         <CardFooter className="flex gap-2">
                             <Button onClick={() => handleCopyToClipboard(transcript, "transcript")} disabled={isExtracting || !transcript.trim()}>
-                                <Copy className="mr-2"/>
+                                <Copy className="mr-2" />
                                 Copy Transcript
                             </Button>
                             <Button onClick={handleSummarize} disabled={isSummarizing || !transcript.trim()}>
-                                {isSummarizing ? <Loader2 className="mr-2 animate-spin" /> : <Pilcrow className="mr-2"/>}
+                                {isSummarizing ? <Loader2 className="mr-2 animate-spin" /> : <Pilcrow className="mr-2" />}
                                 Summarize
                             </Button>
                         </CardFooter>
@@ -141,10 +152,10 @@ export function YouTubeExtractorContent() {
                                     <p className="text-sm text-muted-foreground">{summary?.summary}</p>
                                 )}
                             </CardContent>
-                             {summary && (
+                            {summary && (
                                 <CardFooter>
                                     <Button variant="outline" onClick={() => handleCopyToClipboard(summary.summary, "summary")}>
-                                        <Copy className="mr-2"/>
+                                        <Copy className="mr-2" />
                                         Copy Summary
                                     </Button>
                                 </CardFooter>
