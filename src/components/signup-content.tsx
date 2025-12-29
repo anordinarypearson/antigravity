@@ -47,15 +47,16 @@ const AppLogo = () => (
     </svg>
 );
 
-export function LoginContent() {
-    const { signInWithGoogle, signInWithGithub, signInWithEmail, enterGuestMode } = useAuth();
+export function SignUpContent() {
+    const { signInWithGoogle, signInWithGithub, signUpWithEmail } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
 
-    const handleGoogleSignIn = async () => {
+    const handleGoogleSignUp = async () => {
         setIsLoading(true);
         setError(null);
         const user = await signInWithGoogle();
@@ -66,7 +67,7 @@ export function LoginContent() {
         }
     };
 
-    const handleGithubSignIn = async () => {
+    const handleGithubSignUp = async () => {
         setIsLoading(true);
         setError(null);
         const user = await signInWithGithub();
@@ -77,40 +78,29 @@ export function LoginContent() {
         }
     }
 
-    const handleEmailSignIn = async (e: React.FormEvent) => {
+    const handleEmailSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
         try {
-            await signInWithEmail(email, password);
+            await signUpWithEmail(email, password, name);
             router.push('/');
         } catch (err: any) {
-            setError(err.message || "Failed to sign in");
-            setIsLoading(false);
-        }
-    }
-
-    const handleGuestMode = async () => {
-        setIsLoading(true);
-        setError(null);
-        const success = await enterGuestMode();
-        if (success) {
-            router.push('/');
-        } else {
-            setError("You have already used your one-time test run. Please sign in.");
+            setError(err.message || "Failed to sign up");
             setIsLoading(false);
         }
     }
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
-            {/* Animated Background Elements */}
+            {/* Animated Background Elements - Using Theme Colors */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
                 <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-ring/10 blur-3xl animate-pulse delay-1000" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-secondary/30 blur-3xl animate-pulse delay-500" />
             </div>
 
+            {/* Main Card */}
             <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl ring-1 ring-border/5">
                 <CardHeader className="text-center space-y-3 pb-6">
                     <div className="flex justify-center items-center gap-3 mb-2">
@@ -120,10 +110,10 @@ export function LoginContent() {
                         </div>
                     </div>
                     <CardTitle className="text-3xl font-bold tracking-tight text-foreground">
-                        Welcome Back
+                        Create Account
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">
-                        Sign in to continue your learning journey
+                        Join to unlock personalized study tools ✨
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 px-8 pb-8">
@@ -134,7 +124,18 @@ export function LoginContent() {
                         </div>
                     )}
 
-                    <form onSubmit={handleEmailSignIn} className="space-y-4">
+                    <form onSubmit={handleEmailSignUp} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="John Doe"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -159,7 +160,7 @@ export function LoginContent() {
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            Sign In
+                            Create Account
                         </Button>
                     </form>
 
@@ -174,7 +175,7 @@ export function LoginContent() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <Button
-                            onClick={handleGoogleSignIn}
+                            onClick={handleGoogleSignUp}
                             variant="outline"
                             disabled={isLoading}
                         >
@@ -182,7 +183,7 @@ export function LoginContent() {
                             Google
                         </Button>
                         <Button
-                            onClick={handleGithubSignIn}
+                            onClick={handleGithubSignUp}
                             variant="outline"
                             disabled={isLoading}
                         >
@@ -191,19 +192,10 @@ export function LoginContent() {
                         </Button>
                     </div>
 
-                    <Button
-                        onClick={handleGuestMode}
-                        variant="ghost"
-                        className="w-full text-muted-foreground hover:text-foreground"
-                        disabled={isLoading}
-                    >
-                        Try Demo (One Time Access)
-                    </Button>
-
                     <div className="text-center text-sm text-muted-foreground mt-4">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="text-primary hover:underline font-medium">
-                            Sign up
+                        Already have an account?{" "}
+                        <Link href="/login" className="text-primary hover:underline font-medium">
+                            Sign in
                         </Link>
                     </div>
                 </CardContent>

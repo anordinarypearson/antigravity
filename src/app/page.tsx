@@ -1,32 +1,25 @@
-
 "use client";
 
 import { MainLayout } from "@/components/main-layout";
 import { MainDashboard } from "@/components/main-dashboard";
-// TEMPORARILY DISABLED: Authentication requirement
-// import { useAuth } from "@/hooks/use-auth";
-// import { useRouter } from "next/navigation";
-// import { useEffect } from "react";
-// import { Loader2 } from "lucide-react";
+import { LoginContent } from "@/components/login-content";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  // TEMPORARILY DISABLED: Authentication check
-  // const { user, loading } = useAuth();
-  // const router = useRouter();
+  const { user, loading, isGuest } = useAuth();
+  const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!loading && !user) {
-  //     router.push('/login');
-  //   }
-  // }, [user, loading, router]);
+  // Redirect to home if user logs in (handled by state change re-rendering)
 
-  // if (loading || !user) {
-  //   return (
-  //      <div className="flex h-screen w-full items-center justify-center">
-  //         <Loader2 className="h-8 w-8 animate-spin" />
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return null; // Return nothing while loading to avoid the "spinner" visual
+  }
+
+  if (!user && !isGuest) {
+    return <LoginContent />;
+  }
 
   return (
     <MainLayout>

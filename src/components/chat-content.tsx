@@ -650,6 +650,7 @@ type ChatContentProps = {
   isPlayground?: boolean;
   onCanvasContent?: (content: string) => void;
   answerTypes: { [key: string]: boolean };
+  onMessageSent?: () => void;
 };
 
 type ChatContentHandle = {
@@ -657,7 +658,7 @@ type ChatContentHandle = {
 };
 
 
-export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ isPlayground = false, onCanvasContent, answerTypes }, ref) => {
+export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ isPlayground = false, onCanvasContent, answerTypes, onMessageSent }, ref) => {
   const { toast } = useToast();
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -773,6 +774,10 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   ) => {
     setIsTyping(true);
     const startTime = Date.now();
+
+    if (onMessageSent) {
+      onMessageSent();
+    }
 
     const genkitHistory: CoreMessage[] = currentHistory.map(h => ({
       role: h.role as 'user' | 'model' | 'tool',
@@ -1023,7 +1028,20 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         );
       }
       if (data.type === 'image' && data.imageDataUri) {
-        return <GeneratedImageCard imageDataUri={data.imageDataUri} prompt={data.prompt} />;
+        return (
+          <div className="flex flex-wrap gap-3">
+            <GeneratedImageCard imageDataUri={data.imageDataUri} prompt={data.prompt} />
+          </div>
+        );
+      }
+      if (data.type === 'images' && Array.isArray(data.images)) {
+        return (
+          <div className="flex flex-wrap gap-3">
+            {data.images.map((img: { imageDataUri: string; prompt: string }, idx: number) => (
+              <GeneratedImageCard key={idx} imageDataUri={img.imageDataUri} prompt={img.prompt} />
+            ))}
+          </div>
+        );
       }
     } catch (e) {
       // Not a JSON object, so render as plain text
@@ -1075,7 +1093,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                 return <blockquote {...props}>{children}</blockquote>;
               },
               img: ({ node, ...props }) => (
-                <div className="my-4 not-prose">
+                <div className="my-4 not-prose inline-block">
                   <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
                 </div>
               ),

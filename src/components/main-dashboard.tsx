@@ -210,7 +210,14 @@ export const MainDashboard = React.memo(function MainDashboard() {
       <main className="flex-1 overflow-hidden relative">
         {activeView === 'searnai' ? (
           <div className="h-full flex flex-col">
-            <ChatContent answerTypes={answerTypes} />
+            <ChatContent
+              answerTypes={answerTypes}
+              onMessageSent={() => {
+                if (localStorage.getItem('isGuest') === 'true') {
+                  localStorage.setItem('has_tested_app', 'true');
+                }
+              }}
+            />
           </div>
         ) : activeView === 'stories' ? (
           <NewsContent />
