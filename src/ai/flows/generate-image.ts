@@ -7,7 +7,8 @@
  * - generateImage - A function that generates an image.
  */
 import { openai } from '@/lib/openai';
-import { GenerateImageInput, GenerateImageOutput } from '@/components/image-generation-content';
+export type GenerateImageInput = { prompt: string };
+export type GenerateImageOutput = { imageDataUri: string };
 
 const promptEnhancerSystemPrompt = `You are an imaginative artist and prompt engineer for an advanced SVG image generator. Your task is to take a user's simple idea and transform it into a rich, detailed, and evocative prompt. This prompt should be a single, descriptive paragraph.
 
@@ -48,7 +49,7 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
     if (!process.env.SAMBANOVA_API_KEY || !process.env.SAMBANOVA_BASE_URL) {
         throw new Error("SambaNova API key or base URL is not configured for image generation.");
     }
-    
+
     let enhancedPrompt;
     try {
         // Step 1: Enhance the user's prompt
@@ -92,10 +93,10 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
             console.error("AI did not return valid SVG:", svgResponse);
             throw new Error("The AI failed to generate a valid SVG image. Please try a different prompt.");
         }
-        
+
         const pureSvg = svgMatch[0];
         const imageDataUri = `data:image/svg+xml;base64,${btoa(pureSvg)}`;
-        
+
         return { imageDataUri };
 
     } catch (error: any) {

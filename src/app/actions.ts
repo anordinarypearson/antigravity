@@ -23,9 +23,6 @@ import { chatWithTutor, ChatWithTutorInput, ChatWithTutorOutput } from '@/ai/flo
 import { webSearch } from '@/ai/tools/web-search';
 import { searchYoutube } from '@/ai/tools/youtube-search';
 import { DEFAULT_MODEL_ID, AVAILABLE_MODELS } from '@/lib/models';
-import { generateImage } from "@/ai/flows/generate-image";
-import { ai } from '@/ai/genkit'; // Keep for other actions
-import { GenerateImageInput, GenerateImageOutput } from '@/components/image-generation-content';
 import { AnalyzeCodeInput, AnalyzeCodeOutput } from '@/lib/code-analysis-types';
 import { GenerateQuestionPaperInput, GenerateQuestionPaperOutput } from '@/lib/question-paper-types';
 
@@ -144,14 +141,7 @@ export async function generateEditedContentAction(input: GenerateEditedContentIn
     }
 }
 
-export async function generateImageAction(input: GenerateImageInput): Promise<ActionResult<GenerateImageOutput>> {
-    try {
-        const data = await generateImage(input);
-        return { data };
-    } catch (e: any) {
-        return { error: e.message };
-    }
-}
+
 
 export async function analyzeContentAction(content: string): Promise<ActionResult<AnalyzeContentOutput>> {
     try {

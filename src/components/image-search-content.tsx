@@ -2,12 +2,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generateImageAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, Image as ImageIcon, Download, Share2, AlertTriangle } from "lucide-react";
+import { Loader2, Search, Image as ImageIcon, AlertTriangle } from "lucide-react";
 import Image from "next/image";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -16,21 +15,17 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { z } from "zod";
 import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
-export const GenerateImageInputSchema = z.object({
-    prompt: z.string().describe('A text description of the image to generate.'),
+export const ImageSearchInputSchema = z.object({
+    query: z.string().describe('The search query for images.'),
 });
-export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
+export type ImageSearchInput = z.infer<typeof ImageSearchInputSchema>;
 
-export const GenerateImageOutputSchema = z.object({
-    imageDataUri: z
-        .string()
-        .describe(
-            "The generated image as a data URI."
-        ),
+export const ImageSearchOutputSchema = z.object({
+    images: z.array(z.any()),
 });
-export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
+export type ImageSearchOutput = z.infer<typeof ImageSearchOutputSchema>;
 
-export function ImageGenerationContent() {
+export function ImageSearchContent() {
     const [query, setQuery] = useState("");
     const [images, setImages] = useState<any[]>([]);
     const [isSearching, startSearching] = useTransition();
