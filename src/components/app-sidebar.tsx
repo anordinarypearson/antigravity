@@ -69,7 +69,7 @@ const studyTools = [
   { name: "Mind Map", icon: <BrainCircuit />, href: "/mind-map" },
   { name: "Question Paper", icon: <FileText />, href: "/question-paper" },
   { name: "Presentation Maker", icon: <Presentation />, href: "/presentation-maker" },
-  { name: "Image Generation", icon: <ImageIcon />, href: "/image-generation" },
+  { name: "Image Search", icon: <ImageIcon />, href: "/image-search" },
 ];
 
 const resources = [
@@ -162,7 +162,7 @@ export function AppSidebar() {
             className="justify-start w-full gap-2.5 px-3 relative"
           >
             {pathname === item.href && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
             )}
             <div className="transition-transform duration-200 group-hover/menu-button:scale-110">
               {item.icon}
@@ -185,6 +185,12 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex-grow flex flex-col">
+        <div className="px-2 pb-2">
+          <Button onClick={handleNewChat} className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 transition-colors text-white shadow-md border border-neutral-700">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            <span className="font-semibold">New Chat</span>
+          </Button>
+        </div>
         <div className="flex-grow">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -194,22 +200,14 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
                   )}
                   <Home />
                   <span className="text-sm">Home</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={handleNewChat}
-                className="justify-start w-full gap-2.5 px-3"
-              >
-                <MessageSquare />
-                <span className="text-sm">New Chat</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+
             <SidebarMenuItem>
               <Link href="/planner" passHref>
                 <SidebarMenuButton
@@ -217,7 +215,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/planner" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
                   )}
                   <Calendar />
                   <span className="text-sm">Planner</span>
@@ -231,7 +229,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/inbox" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
                   )}
                   <Inbox />
                   <span className="text-sm">Inbox</span>
@@ -245,7 +243,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/agent" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
                   )}
                   <Bot />
                   <span className="text-sm">Agent</span>
@@ -259,7 +257,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/friends" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-accent"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
                   )}
                   <Users />
                   <span className="text-sm">Friends</span>

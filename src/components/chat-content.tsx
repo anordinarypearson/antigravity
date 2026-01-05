@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save, Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus, Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause, Rewind, FastForward, Presentation, Video, Image as ImageIcon, ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles, Code, ChevronRight, Palette, Terminal, Zap } from "lucide-react";
+import { Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save, Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus, Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause, Rewind, FastForward, Presentation, Video, Image as ImageIcon, ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles, Code, ChevronRight, Palette, Terminal, Zap, Square, ThumbsUp, ThumbsDown, ArrowDown, Pencil } from "lucide-react";
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -44,6 +44,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { memo } from "react";
 import remarkGfm from "remark-gfm";
 import { ChatWelcomeScreen } from "./chat-welcome-screen";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StreamingTypewriter } from "./typewriter-text";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 
 // Required for pdf.js to work
@@ -174,8 +178,42 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   );
 };
 
-const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, currentModel, setCurrentModel }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean, activeButton: 'deepthink' | 'music' | 'image' | null, setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void, currentModel: string, setCurrentModel: (model: string) => void }) => {
+const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, currentModel, setCurrentModel, onStop, isCommandOpen, setIsCommandOpen }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean, activeButton: 'deepthink' | 'music' | 'image' | null, setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void, currentModel: string, setCurrentModel: (model: string) => void, onStop?: () => void, isCommandOpen?: boolean, setIsCommandOpen?: (open: boolean) => void }) => {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (input.trim().endsWith('/')) {
+      setIsCommandOpen?.(true);
+    } else if (!input.includes('/')) {
+      setIsCommandOpen?.(false);
+    }
+  }, [input, setIsCommandOpen]);
+
+  // Handle Slash Command Selection
+  const handleCommandSelect = (command: string) => {
+    setIsCommandOpen?.(false);
+    // Remove the slash
+    const newInput = input.replace(/\/$/, '');
+    setInput(newInput);
+
+    switch (command) {
+      case 'image':
+        setActiveButton('image');
+        break;
+      case 'music':
+        setActiveButton('music');
+        break;
+      case 'deepthink':
+        setActiveButton('deepthink');
+        break;
+      case 'code':
+        // Just a mode example, maybe sets a specialized system prompt or model?
+        // keeping simple for now
+        break;
+    }
+    textareaRef.current?.focus();
+  };
 
   const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
     if (activeButton === buttonName) {
@@ -201,6 +239,11 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
     setImageDataUri(null);
     setFileContent(null);
     setFileName(null);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const { toast } = useToast();
@@ -481,6 +524,15 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
 
   const isInputDisabled = isOcrProcessing || isTyping;
 
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 192)}px`; // max-h-48 = 192px
+    }
+  }, [input]);
+
   return (
     <div className="relative">
       {(imageDataUri || (fileContent && fileName)) && (
@@ -510,13 +562,44 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
           )}
         </div>
       )}
-      <form onSubmit={handleFormSubmit} className="relative flex flex-col gap-2 rounded-none border border-foreground/30 bg-background/95 backdrop-blur-sm p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] focus-within:border-foreground transition-all">
+      <motion.form
+        onSubmit={handleFormSubmit}
+        initial={false}
+        animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 0 15px -3px hsl(var(--primary) / 0.3)" } : { borderColor: "hsla(var(--foreground) / 0.1)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+        whileHover={{ borderColor: "hsla(var(--foreground) / 0.3)" }}
+        whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 0 20px -5px hsl(var(--primary) / 0.4)" }}
+        transition={{ duration: 0.3 }}
+        className="relative flex flex-col gap-2 rounded-2xl border bg-background/80 backdrop-blur-xl p-3 shadow-sm"
+      >
+        {isCommandOpen && (
+          <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border rounded-xl shadow-lg z-50 overflow-hidden">
+            <Command>
+              <CommandList>
+                <CommandGroup heading="Modes">
+                  <CommandItem onSelect={() => handleCommandSelect('image')}>
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    <span>Image Search</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('music')}>
+                    <Music className="mr-2 h-4 w-4" />
+                    <span>Music Generation</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('deepthink')}>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    <span>DeepThink</span>
+                  </CommandItem>
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </div>
+        )}
         <Textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Message SearnAI..."
+          placeholder="Message SearnAI... (Type '/' for commands)"
           disabled={isInputDisabled}
-          className="min-h-[44px] max-h-48 w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2 text-base"
+          className="min-h-[44px] max-h-48 w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 p-2 text-base overflow-hidden"
           rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -559,7 +642,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
               className={cn("h-8 w-8 rounded-lg", activeButton === 'image' && "bg-secondary text-secondary-foreground")}
               onClick={() => handleToolbarButtonClick('image')}
               disabled={isInputDisabled}
-              title="Image Generation"
+              title="Image Search"
             >
               <ImageIcon className="h-4 w-4" />
             </Button>
@@ -588,17 +671,18 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
             </Button>
 
             <Button
-              type="submit"
+              type={isTyping ? "button" : "submit"}
               size="icon"
               className="h-8 w-8 rounded-full bg-primary text-primary-foreground shadow hover:bg-primary/90"
-              disabled={isInputDisabled || (!input.trim() && !imageDataUri && !fileContent)}
+              disabled={isOcrProcessing || (!isTyping && !input.trim() && !imageDataUri && !fileContent)}
+              onClick={isTyping ? onStop : undefined}
             >
-              <ArrowUp className="h-4 w-4" />
-              <span className="sr-only">Send</span>
+              {isTyping ? <Square className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
+              <span className="sr-only">{isTyping ? "Stop" : "Send"}</span>
             </Button>
           </div>
         </div>
-      </form>
+      </motion.form>
     </div>
   );
 }
@@ -612,6 +696,9 @@ const ChatBar = React.memo(({
   currentModel,
   setCurrentModel,
   isPlayground = false,
+  onStop,
+  isCommandOpen,
+  setIsCommandOpen,
 }: {
   onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void;
   isTyping: boolean;
@@ -619,7 +706,10 @@ const ChatBar = React.memo(({
   setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void;
   currentModel: string;
   setCurrentModel: (model: string) => void;
-  isPlayground?: boolean
+  isPlayground?: boolean;
+  onStop?: () => void;
+  isCommandOpen?: boolean;
+  setIsCommandOpen?: (open: boolean) => void;
 }) => {
 
   const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
@@ -639,6 +729,9 @@ const ChatBar = React.memo(({
         setActiveButton={setActiveButton}
         currentModel={currentModel}
         setCurrentModel={setCurrentModel}
+        onStop={onStop}
+        isCommandOpen={isCommandOpen}
+        setIsCommandOpen={setIsCommandOpen}
       />
     </div>
   )
@@ -681,7 +774,16 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   const [activeButton, setActiveButton] = useState<'deepthink' | 'music' | 'image' | null>(null);
   const [currentModel, setCurrentModel] = useState(DEFAULT_MODEL_ID);
 
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  // Using generic "editId" to track which message is being edited
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editedContent, setEditedContent] = useState("");
+
   const lastBotMessageId = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     try {
@@ -695,6 +797,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       }
     } catch (error) {
       console.error("Failed to load chat state from localStorage", error);
+    } finally {
+      setIsLoadingHistory(false);
     }
   }, []);
 
@@ -737,6 +841,32 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
   }, [history, isUserNearBottom]);
+
+  // Handle Scroll to Bottom Visibility
+  const handleScroll = () => {
+    if (!scrollAreaRef.current) return;
+    const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    const isBottom = scrollHeight - (scrollTop + clientHeight) < 100;
+    setShowScrollBottom(!isBottom);
+  };
+
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.addEventListener('scroll', handleScroll);
+      return () => viewport.removeEventListener('scroll', handleScroll);
+    }
+  }, [scrollAreaRef.current]);
+
+  const scrollToBottom = () => {
+    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+    }
+  };
 
   const handleTextToSpeech = useCallback(async (text: string, id: string) => {
     if (isSynthesizing === id) {
@@ -789,6 +919,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     let accumulatedContent = '';
 
     try {
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+
       // Call the streaming API
       const response = await fetch('/api/chat-stream', {
         method: 'POST',
@@ -805,6 +938,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           isPlayground: isPlayground,
           answerTypes: answerTypes,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -901,6 +1035,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       if (accumulatedContent === '') {
         setHistory(prev => prev.filter(msg => msg.id !== modelMessageId));
       }
+    } finally {
+      abortControllerRef.current = null;
     }
 
   }, [currentModel, activeButton, toast, userName, onCanvasContent, isPlayground, answerTypes]);
@@ -917,32 +1053,53 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     const newHistory = [...history, userMessage];
     setHistory(newHistory);
 
-    const isImageGenRequest = activeButton === 'image';
+    const isImageSearchRequest = activeButton === 'image';
 
-    if (isImageGenRequest) {
+    if (isImageSearchRequest) {
       setIsTyping(true);
       const startTime = Date.now();
-      const prompt = messageContent.trim();
-      generateImageAction({ prompt }).then(result => {
-        const endTime = Date.now();
-        setGenerationTime((endTime - startTime) / 1000);
-        setIsTyping(false);
-        if (result.error) {
-          toast({ title: "Image Generation Error", description: result.error, variant: "destructive" });
-        } else if (result.data) {
-          const imagePayload = {
-            type: 'image',
-            imageDataUri: result.data.imageDataUri,
-            prompt: prompt
-          };
-          const modelMessageId = `${Date.now()}-model`;
-          setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(imagePayload) }]);
-        }
-      });
+      const query = messageContent.trim();
+
+      fetch('/api/image-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      })
+        .then(res => res.json())
+        .then(result => {
+          const endTime = Date.now();
+          setGenerationTime((endTime - startTime) / 1000);
+          setIsTyping(false);
+
+          if (!result.success || result.error) {
+            toast({ title: "Image Search Error", description: result.error || 'Failed to search images', variant: "destructive" });
+          } else if (result.images && result.images.length > 0) {
+            const imagePayload = {
+              type: 'image-gallery',
+              images: result.images,
+              query: query,
+              total: result.total
+            };
+            const modelMessageId = `${Date.now()}-model`;
+            setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(imagePayload) }]);
+          } else {
+            toast({ title: "No Images Found", description: `No images found for "${query}"`, variant: "destructive" });
+          }
+        })
+        .catch(error => {
+          setIsTyping(false);
+          toast({ title: "Image Search Error", description: error.message, variant: "destructive" });
+        });
     } else {
       executeChat(newHistory, imageDataUri, fileContent);
     }
   }, [activeButton, executeChat, history, toast]);
+
+  const handleStopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }, []);
 
   useImperativeHandle(ref, () => ({
     handleReceiveCanvasContent(content: string) {
@@ -983,7 +1140,90 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     });
   };
 
+  // Drag and Drop Handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    // Only set to false if we're leaving the main container
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      // Reuse existing file handling logic
+      const file = files[0]; // Handle first file for now
+      if (file.type.startsWith('image/')) {
+        // Mocking event for handleImageFileChange
+        // We'd need to refactor handleImageFileChange to accept File directly, 
+        // or just recreate logic here. Let's refactor slightly effectively by direct call.
+        // Actually, let's just create a synthetic event or call logic directly.
+        // Better: extract logic to `processImageFile` and `processOtherFile`.
+        // For expediency, we'll manually call the input ref logic or similar.
+
+        // Simulating the file input workflow:
+        if (fileInputRef.current) {
+          // Create a DataTransfer to set files on the input
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInputRef.current.files = dt.files;
+          // Trigger change manually
+          const event = { target: fileInputRef.current } as React.ChangeEvent<HTMLInputElement>;
+          handleImageFileChange(event);
+        }
+      } else {
+        // Determine type for handleFileChange
+        if (fileInputRef.current) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInputRef.current.files = dt.files;
+          const event = { target: fileInputRef.current } as React.ChangeEvent<HTMLInputElement>;
+          handleFileChange(event);
+        }
+      }
+    }
+  }, []);
+
+  // Edit Message Handlers
+  const handleEditMessage = (messageId: string, content: string) => {
+    setEditingMessageId(messageId);
+    setEditedContent(content);
+  };
+
+  const handleSaveEdit = async (messageId: string) => {
+    // Find index
+    const index = history.findIndex(m => m.id === messageId);
+    if (index === -1) return;
+
+    // Truncate history to this point
+    const newHistory = history.slice(0, index);
+    const newMessage: Message = { ...history[index], content: editedContent };
+
+    // Update UI immediately
+    setHistory([...newHistory, newMessage]);
+    setEditingMessageId(null);
+
+    // Regenerate from here
+    await executeChat([...newHistory, newMessage], newMessage.image, null);
+    // Note: passing null for fileContent as we assume it's part of context or re-attached if visible.
+    // Ideally we should preserve attachments. For now, text edit is primary.
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditedContent("");
+  };
+
   const showWelcome = history.length === 0 && !isTyping;
+
 
   const renderMessageContent = (message: Message) => {
     if (message.role === 'browser') {
@@ -1043,8 +1283,41 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           </div>
         );
       }
+      if (data.type === 'image-gallery' && Array.isArray(data.images)) {
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Found {data.total} images for "{data.query}"</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {data.images.map((img: any) => (
+                <div key={img.id} className="group relative aspect-square overflow-hidden rounded-2xl border border-border/20 hover:border-primary/50 transition-all hover:shadow-xl">
+                  <a href={img.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                    <img
+                      src={img.thumbnail}
+                      alt={img.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                      <p className="text-[10px] text-white/60 font-medium">#{img.index}</p>
+                      <p className="text-white text-[11px] font-bold line-clamp-2 leading-tight">{img.alt}</p>
+                    </div>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
     } catch (e) {
       // Not a JSON object, so render as plain text
+    }
+
+    // Wrap plain text in Typewriter if it's the latest message and still typing
+    if (message.id === history[history.length - 1].id && isTyping && message.role === 'model') {
+      // We can use a custom renderer for ReactMarkdown, or just wrap the whole thing.
+      // Since ReactMarkdown handles streaming gracefully usually, but user wants "smooth typewriter".
+      // We'll wrap the `restOfContent` below for the *response* part.
     }
 
     // Fallback for single website result for backward compatibility
@@ -1061,53 +1334,64 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     if (responseHeaderMatch) {
       const modelName = responseHeaderMatch[1];
       const restOfContent = mainContent.substring(responseHeaderMatch[0].length);
+      const markdownProps = {
+        remarkPlugins: [remarkMath, remarkGfm],
+        rehypePlugins: [rehypeKatex],
+        className: "prose dark:prose-invert max-w-none text-sm leading-relaxed",
+        components: {
+          code({ node, inline, className, children, ...props }: any) {
+            const match = /language-(\w+)/.exec(className || '');
+            return !inline && match ? (
+              <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+          blockquote({ node, children, ...props }: any) {
+            const value = React.Children.toArray(children).map(child =>
+              React.isValidElement(child) ? (child.props.children) : child
+            ).join('') || '';
+            if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
+            if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
+            if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
+            if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
+            return <blockquote {...props}>{children}</blockquote>;
+          },
+          img: ({ node, ...props }: any) => (
+            <div className="my-4 not-prose inline-block">
+              <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
+            </div>
+          ),
+          p: ({ node, ...props }: any) => <div className="mb-4" {...props} />,
+          table: ({ node, ...props }: any) => <table className="table-auto w-full my-4" {...props} />,
+          thead: ({ node, ...props }: any) => <thead className="bg-muted/50" {...props} />,
+          tbody: ({ node, ...props }: any) => <tbody {...props} />,
+          tr: ({ node, ...props }: any) => <tr className="border-b border-border" {...props} />,
+          th: ({ node, ...props }: any) => <th className="p-2 text-left font-semibold" {...props} />,
+          td: ({ node, ...props }: any) => <td className="p-2" {...props} />,
+        }
+      };
+
       return (
         <>
           <div className="model-response-header">
             <strong>Response from {modelName}</strong>
           </div>
           {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration} />}
-          <ReactMarkdown
-            remarkPlugins={[remarkMath, remarkGfm]}
-            rehypePlugins={[rehypeKatex]}
-            className="prose dark:prose-invert max-w-none text-sm leading-relaxed"
-            components={{
-              code({ node, inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return !inline && match ? (
-                  <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-              blockquote({ node, children, ...props }) {
-                const value = React.Children.toArray(children).map(child =>
-                  React.isValidElement(child) ? (child.props.children) : child
-                ).join('') || '';
-                if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
-                if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
-                if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
-                if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
-                return <blockquote {...props}>{children}</blockquote>;
-              },
-              img: ({ node, ...props }) => (
-                <div className="my-4 not-prose inline-block">
-                  <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
-                </div>
-              ),
-              p: ({ node, ...props }) => <p className="mb-4" {...props} />,
-              table: ({ node, ...props }) => <table className="table-auto w-full my-4" {...props} />,
-              thead: ({ node, ...props }) => <thead className="bg-muted/50" {...props} />,
-              tbody: ({ node, ...props }) => <tbody {...props} />,
-              tr: ({ node, ...props }) => <tr className="border-b border-border" {...props} />,
-              th: ({ node, ...props }) => <th className="p-2 text-left font-semibold" {...props} />,
-              td: ({ node, ...props }) => <td className="p-2" {...props} />,
-            }}
-          >
-            {restOfContent}
-          </ReactMarkdown>
+
+          {isTyping && message.id === history[history.length - 1].id ? (
+            <StreamingTypewriter content={restOfContent} speed={3} render={(text) => (
+              <ReactMarkdown {...markdownProps}>
+                {text}
+              </ReactMarkdown>
+            )} />
+          ) : (
+            <ReactMarkdown {...markdownProps}>
+              {restOfContent}
+            </ReactMarkdown>
+          )}
         </>
       );
     }
@@ -1122,6 +1406,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       currentModel={currentModel}
       setCurrentModel={setCurrentModel}
       isPlayground={isPlayground}
+      onStop={handleStopGeneration}
+      isCommandOpen={isCommandOpen}
+      setIsCommandOpen={setIsCommandOpen}
     />
   );
 
@@ -1133,30 +1420,79 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         onOpenChange={(open) => !open && setShareContent(null)}
         content={shareContent || ""}
       />
-      <div className={cn("flex-1", isPlayground ? "h-full flex flex-col" : "")}>
-        {showWelcome && !isPlayground ? (
+      <div
+        className={cn("flex-1 relative bg-muted/40", isPlayground ? "h-full flex flex-col" : "")}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {isDragOver && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary m-4 rounded-xl">
+            <div className="text-center">
+              <Paperclip className="h-12 w-12 mx-auto mb-4 text-primary animate-bounce" />
+              <p className="text-2xl font-bold text-primary">Drop files here</p>
+            </div>
+          </div>
+        )}
+        {isLoadingHistory ? (
+          <div className="flex-1 p-4 space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-20 w-full max-w-lg rounded-xl" />
+              </div>
+            ))}
+          </div>
+        ) : showWelcome && !isPlayground ? (
           <ChatWelcomeScreen
             userName={userName}
             setActiveButton={setActiveButton}
             handleSendMessage={handleSendMessage}
           />
         ) : (
-          <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1" ref={scrollAreaRef} onScrollCapture={handleScroll}>
             <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-4", isPlayground ? "pb-4" : "pb-48")}>
               {history.map((message, index) => (
                 <React.Fragment key={`${message.id}-${index}`}>
                   <div
                     data-message-id={message.id}
                     className={cn(
-                      "flex w-full items-start gap-4",
+                      "flex w-full items-start gap-4 group", // Added group for hover capability
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.role === "user" ? (
-                      <div className="flex items-start gap-4 justify-end">
-                        <div className="border bg-transparent inline-block rounded-xl p-3 max-w-md">
-                          <p className="text-sm">{message.content}</p>
-                        </div>
+                      <div className="flex flex-col items-end gap-1 max-w-md w-full">
+                        {editingMessageId === message.id ? (
+                          <div className="w-full bg-muted p-3 rounded-xl border border-primary/50">
+                            <Textarea
+                              value={editedContent}
+                              onChange={(e) => setEditedContent(e.target.value)}
+                              className="min-h-[60px] mb-2 bg-transparent border-0 focus-visible:ring-0 p-0 resize-none"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
+                              <Button size="sm" onClick={() => handleSaveEdit(message.id)}>Save & Submit</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative group/msg">
+                            <div className="border bg-transparent inline-block rounded-xl p-3">
+                              <p className="text-sm">{message.content}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute -left-8 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/msg:opacity-100 transition-opacity"
+                              onClick={() => handleEditMessage(message.id, message.content)}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="w-full">
@@ -1177,6 +1513,12 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                             </Button>
                             <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleShare(message.content)}>
                               <Share2 className="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 hover:text-green-500 transition-colors" onClick={() => {/* TODO: implement like */ }}>
+                              <ThumbsUp className="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 hover:text-red-500 transition-colors" onClick={() => {/* TODO: implement unlike */ }}>
+                              <ThumbsDown className="h-4 w-4" />
                             </Button>
                             <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleTextToSpeech(message.content, message.id)}>
                               {isSynthesizing === message.id ? <StopCircle className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
@@ -1207,6 +1549,18 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         </div>
       ) : (
         <div className={cn("fixed bottom-0 left-0 lg:left-auto right-0 w-full lg:w-[calc(100%-16rem)] group-data-[collapsible=icon]:lg:w-[calc(100%-3rem)] transition-all bg-transparent")}>
+          {showScrollBottom && (
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full shadow-md bg-background/80 backdrop-blur-sm animate-bounce"
+                onClick={scrollToBottom}
+              >
+                <ArrowDown className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           {chatBar}
         </div>
       )}

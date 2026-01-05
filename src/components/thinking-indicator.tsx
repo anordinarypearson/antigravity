@@ -50,13 +50,41 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
         );
     }
 
+    const [doingMessage, setDoingMessage] = useState("Thinking");
+
+    useEffect(() => {
+        if (!isAnimating) return;
+
+        const messages = [
+            "Analyzing your request",
+            "Consulting scientific databases",
+            "Verifying latest research",
+            "Formulating comprehensive response",
+            "Synthesizing complex information",
+            "Checking for factual accuracy",
+            "Structuring deep-dive answer",
+            "Applying unrestricted logic"
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            setDoingMessage(messages[i % messages.length]);
+            i++;
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [isAnimating]);
+
     // For normal chat (not DeepThink), show ChatGPT-style blinking "Thinking" text
     if (!isDeepThink) {
         return (
-            <div className="flex items-center gap-2 p-3">
-                <span className="text-sm text-muted-foreground">
-                    Thinking
-                    <span className="inline-block w-[2px] h-4 ml-0.5 bg-foreground animate-pulse" style={{ animationDuration: '0.8s' }}></span>
+            <div className="flex items-center gap-2 p-3 transition-all duration-500 animate-in fade-in slide-in-from-left-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
+                    <Loader2 className="h-3 w-3 text-primary animate-spin" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center">
+                    {doingMessage}
+                    <span className="inline-block w-[2px] h-3 ml-1 bg-primary animate-pulse" style={{ animationDuration: '0.8s' }}></span>
                 </span>
             </div>
         );
@@ -64,34 +92,37 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
 
     // For DeepThink mode, show the full thinking text UI
     return (
-        <div className="p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm mb-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
-                    <Bot className="h-3 w-3 text-primary animate-pulse" />
-                </div>
-                <p className="text-xs font-medium text-foreground/80 flex items-center gap-1.5">
-                    Thinking Process {duration && <span className="text-muted-foreground font-normal">({duration.toFixed(1)}s)</span>}
-                </p>
-            </div>
-            <div className="relative pl-7">
-                <div className="absolute left-[9px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/20 to-transparent rounded-full"></div>
-                {isAnimating ? (
-                    <div className="text-xs text-muted-foreground/90 font-mono leading-relaxed">
-                        <TypewriterText text={displayText} onComplete={handleAnimationComplete} />
+        <div className="relative p-[1px] rounded-xl mb-4 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 group">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-xl blur-sm group-hover:blur-md transition-all duration-500"></div>
+            <div className="relative p-4 rounded-xl bg-background/95 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
+                        <Loader2 className="h-3 w-3 text-primary animate-spin" />
                     </div>
-                ) : (
-                    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-                        <div className="font-mono text-xs text-muted-foreground/90 leading-relaxed whitespace-pre-wrap">
-                            {isExpanded ? displayText : previewLines}
+                    <p className="text-xs font-medium text-foreground/80 flex items-center gap-1.5 animate-pulse">
+                        Thinking Process {duration && <span className="text-muted-foreground font-normal">({duration.toFixed(1)}s)</span>}
+                    </p>
+                </div>
+                <div className="relative pl-7">
+                    <div className="absolute left-[9px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/20 to-transparent rounded-full"></div>
+                    {isAnimating ? (
+                        <div className="text-xs text-muted-foreground/90 font-mono leading-relaxed">
+                            <TypewriterText text={displayText} onComplete={handleAnimationComplete} />
                         </div>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] mt-2 text-muted-foreground hover:text-foreground hover:bg-primary/5">
-                                {isExpanded ? 'Show less' : 'Show more'}
-                                <ChevronDown className={cn("h-3 w-3 ml-1 transition-transform", isExpanded && "rotate-180")} />
-                            </Button>
-                        </CollapsibleTrigger>
-                    </Collapsible>
-                )}
+                    ) : (
+                        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+                            <div className="font-mono text-xs text-muted-foreground/90 leading-relaxed whitespace-pre-wrap">
+                                {isExpanded ? displayText : previewLines}
+                            </div>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] mt-2 text-muted-foreground hover:text-foreground hover:bg-primary/5">
+                                    {isExpanded ? 'Show less' : 'Show more'}
+                                    <ChevronDown className={cn("h-3 w-3 ml-1 transition-transform", isExpanded && "rotate-180")} />
+                                </Button>
+                            </CollapsibleTrigger>
+                        </Collapsible>
+                    )}
+                </div>
             </div>
         </div>
     );

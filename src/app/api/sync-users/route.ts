@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID || "scholarsage-ue2av",
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
+// Helper function to initialize Firebase Admin
+function initializeFirebaseAdmin() {
+    if (!admin.apps.length) {
+        admin.initializeApp({
+            credential: admin.credential.cert({
+                projectId: process.env.FIREBASE_PROJECT_ID || "scholarsage-ue2av",
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            }),
+        });
+    }
+    return admin;
 }
 
 export async function POST(request: Request) {
     try {
+        // Initialize Firebase Admin at runtime
+        const adminApp = initializeFirebaseAdmin();
+
         // This is a one-time admin sync - in production, protect this endpoint
-        const authUsers = await admin.auth().listUsers(1000);
-        const firestore = admin.firestore();
+        const authUsers = await adminApp.auth().listUsers(1000);
+        const firestore = adminApp.firestore();
 
         const results = [];
 
@@ -40,7 +46,7 @@ export async function POST(request: Request) {
                     username: username,
                     followerCount: 0,
                     followingCount: 0,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    createdAt: adminApp.firestore.FieldValue.serverTimestamp(),
                 });
 
                 results.push({ uid: user.uid, email: user.email, status: 'created' });

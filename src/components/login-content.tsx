@@ -191,14 +191,7 @@ export function LoginContent() {
                         </Button>
                     </div>
 
-                    <Button
-                        onClick={handleGuestMode}
-                        variant="ghost"
-                        className="w-full text-muted-foreground hover:text-foreground"
-                        disabled={isLoading}
-                    >
-                        Try Demo (One Time Access)
-                    </Button>
+
 
                     <div className="text-center text-sm text-muted-foreground mt-4">
                         Don&apos;t have an account?{" "}

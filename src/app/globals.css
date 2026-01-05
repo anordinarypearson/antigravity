@@ -297,4 +297,12 @@
       opacity: 0.5;
     }
   }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gray-200 via-white to-gray-200;
+  }
+
+  .bg-gradient-accent {
+    @apply bg-gradient-to-r from-neutral-700 via-neutral-600 to-neutral-700;
+  }
 }

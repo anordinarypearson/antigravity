@@ -10,8 +10,8 @@ import { Badge } from "./ui/badge";
 import Link from "next/link";
 
 interface PricingDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
 const tiers = [
@@ -48,7 +48,7 @@ const tiers = [
             "Access to Study Planner & Calendar",
             "Ad-free experience",
         ],
-        href: "https://paypal.me/Rishabharsh/20INR"
+        href: "https://buy.stripe.com/your-go-plan-link" // Replace with actual Stripe payment link
     },
     {
         name: "Plus",
@@ -66,7 +66,7 @@ const tiers = [
             "Deck Marketplace to share & sell content",
             "Priority support",
         ],
-        href: "https://paypal.me/Rishabharsh/100INR"
+        href: "https://buy.stripe.com/your-plus-plan-link" // Replace with actual Stripe payment link
     },
     {
         name: "Pro",
@@ -83,7 +83,7 @@ const tiers = [
             "Team management features",
             "Dedicated account manager",
         ],
-        href: "https://paypal.me/Rishabharsh/499INR"
+        href: "https://buy.stripe.com/your-pro-plan-link" // Replace with actual Stripe payment link
     }
 ];
 
@@ -130,7 +130,7 @@ export function PricingDialog({ isOpen, onOpenChange }: PricingDialogProps) {
                         </Card>
                     ))}
                 </div>
-                 <Button variant="ghost" size="icon" className="absolute top-4 right-4" onClick={() => onOpenChange(false)}>
+                <Button variant="ghost" size="icon" className="absolute top-4 right-4" onClick={() => onOpenChange(false)}>
                     <X />
                 </Button>
             </DialogContent>

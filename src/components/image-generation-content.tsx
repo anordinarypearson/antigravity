@@ -17,67 +17,56 @@ import { z } from "zod";
 import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
 export const GenerateImageInputSchema = z.object({
-  prompt: z.string().describe('A text description of the image to generate.'),
+    prompt: z.string().describe('A text description of the image to generate.'),
 });
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 
 export const GenerateImageOutputSchema = z.object({
-  imageDataUri: z
-    .string()
-    .describe(
-      "The generated image as a data URI."
-    ),
+    imageDataUri: z
+        .string()
+        .describe(
+            "The generated image as a data URI."
+        ),
 });
 export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
 
 export function ImageGenerationContent() {
-    const [prompt, setPrompt] = useState("");
-    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-    const [isGenerating, startGenerating] = useTransition();
+    const [query, setQuery] = useState("");
+    const [images, setImages] = useState<any[]>([]);
+    const [isSearching, startSearching] = useTransition();
     const [error, setError] = useState<string | null>(null);
     const [showLimitDialog, setShowLimitDialog] = useState(false);
     const { toast } = useToast();
 
-    const handleGenerateImage = () => {
-        if (!prompt.trim()) {
-            toast({ title: "Prompt is empty", description: "Please enter a description for the image.", variant: "destructive" });
+    const handleSearchImages = () => {
+        if (!query.trim()) {
+            toast({ title: "Query is empty", description: "Please enter what you're looking for.", variant: "destructive" });
             return;
         }
 
-        startGenerating(async () => {
-            setGeneratedImage(null);
+        startSearching(async () => {
+            setImages([]);
             setError(null);
-            const result = await generateImageAction({ prompt });
-            if (result.error) {
-                if (result.error === "__LIMIT_EXHAUSTED__") {
-                    setShowLimitDialog(true);
+            try {
+                const response = await fetch('/api/image-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const result = await response.json();
+
+                if (!result.success || result.error) {
+                    setError(result.error || 'Failed to search images');
+                    toast({ title: "Search Failed", description: result.error, variant: "destructive" });
                 } else {
-                    setError(result.error);
-                    toast({ title: "Image Generation Failed", description: result.error, variant: "destructive" });
+                    setImages(result.images || []);
+                    toast({ title: `Found ${result.images.length} images!` });
                 }
-            } else if (result.data) {
-                setGeneratedImage(result.data.imageDataUri);
-                toast({ title: "Image Generated Successfully!" });
+            } catch (err: any) {
+                setError(err.message);
+                toast({ title: "Error", description: err.message, variant: "destructive" });
             }
         });
-    };
-
-    const handleDownload = () => {
-        if (!generatedImage) return;
-        const link = document.createElement("a");
-        link.href = generatedImage;
-        link.download = `${prompt.substring(0, 30).replace(/\s/g, "_")}.svg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast({title: "Image downloaded"});
-    };
-    
-    const handleShare = () => {
-        if (!generatedImage) return;
-        // Simple copy for now, as sharing data URI directly can be tricky
-        navigator.clipboard.writeText(generatedImage);
-        toast({ title: "Image Data URL Copied!", description: "You can paste this into a browser or another app."});
     };
 
     return (
@@ -87,67 +76,70 @@ export function ImageGenerationContent() {
                 <div className="flex items-center gap-2">
                     <SidebarTrigger className="md:hidden" />
                     <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">AI Image Generation</h1>
+                    <h1 className="text-xl font-semibold tracking-tight">Image Search</h1>
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                 <div className="mx-auto max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    <Card>
+                <div className="mx-auto max-w-6xl space-y-8">
+                    <Card className="max-w-2xl mx-auto">
                         <CardHeader>
-                            <CardTitle>Describe Your Image</CardTitle>
-                            <CardDescription>Enter a detailed prompt to generate an SVG image using an AI model.</CardDescription>
+                            <CardTitle>Search for Images</CardTitle>
+                            <CardDescription>Enter a keyword to find high-quality images from across the internet.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Textarea 
-                                placeholder="e.g., A simple logo for a coffee shop"
-                                className="h-40"
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
+                        <CardContent className="flex gap-2">
+                            <Textarea
+                                placeholder="e.g., modern workspace, space galaxy, cute puppies"
+                                className="h-20"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
                             />
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={handleGenerateImage} disabled={isGenerating}>
-                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                Generate Image
+                            <Button onClick={handleSearchImages} disabled={isSearching} className="w-full">
+                                {isSearching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                                Search Images
                             </Button>
                         </CardFooter>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Generated Image</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="aspect-square w-full rounded-lg border-2 border-dashed border-muted bg-muted/50 flex items-center justify-center p-4">
-                               {isGenerating ? (
-                                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                        <Loader2 className="h-8 w-8 animate-spin"/>
-                                        <p>Generating...</p>
-                                    </div>
-                                ) : error ? (
-                                    <Alert variant="destructive" className="m-4">
-                                        <AlertTriangle className="h-4 w-4" />
-                                        <AlertTitle>Generation Failed</AlertTitle>
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                ) : generatedImage ? (
-                                    <Image src={generatedImage} alt={prompt} width={512} height={512} className="object-contain rounded-md" />
-                                ) : (
-                                    <div className="text-center text-muted-foreground p-8">
-                                        <ImageIcon className="mx-auto h-12 w-12" />
-                                        <p className="mt-2">Your image will appear here.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                        {generatedImage && !isGenerating && (
-                            <CardFooter className="flex gap-2">
-                                <Button className="w-full" onClick={handleDownload}><Download className="mr-2 h-4 w-4"/>Download SVG</Button>
-                                <Button className="w-full" variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4"/>Share</Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-                 </div>
+                    {isSearching ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                                <Skeleton key={i} className="aspect-square rounded-2xl" />
+                            ))}
+                        </div>
+                    ) : error ? (
+                        <Alert variant="destructive" className="max-w-2xl mx-auto">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Search Failed</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    ) : images.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {images.map((img) => (
+                                <div key={img.id} className="group relative aspect-square overflow-hidden rounded-2xl border border-border/20 hover:border-primary/50 transition-all hover:shadow-xl">
+                                    <a href={img.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                                        <Image
+                                            src={img.thumbnail}
+                                            alt={img.alt}
+                                            fill
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                            <p className="text-[10px] text-white/60 font-medium">#{img.index}</p>
+                                            <p className="text-white text-[11px] font-bold line-clamp-2 leading-tight">{img.alt}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground p-12">
+                            <ImageIcon className="mx-auto h-16 w-16 opacity-20" />
+                            <p className="mt-4 text-lg">Enter a search above to see images.</p>
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );
