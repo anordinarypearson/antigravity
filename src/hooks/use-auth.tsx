@@ -83,8 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async (): Promise<User | null> => {
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
-    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
     provider.setCustomParameters({
       'prompt': 'consent'
     });

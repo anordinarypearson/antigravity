@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Search, MessageSquare } from "lucide-react";
+import { Users, Search, MessageSquare, BadgeCheck } from "lucide-react";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -36,7 +36,10 @@ const FriendCard = ({ user, onFollowToggle, onMessage, isLoading }: { user: User
         <div className="flex-1">
             <div className="flex justify-between items-center">
                 <div>
-                    <div className="font-semibold">{user.name || 'Anonymous User'}</div>
+                    <div className="flex items-center gap-1">
+                        <span className="font-semibold">{user.name || 'Anonymous User'}</span>
+                        <BadgeCheck className="h-4 w-4 text-primary fill-primary/10" title="Verified User" />
+                    </div>
                     <div className="text-xs text-muted-foreground">{user.username || '@unknown'}</div>
                     {user.followerCount > 0 && <div className="text-xs text-muted-foreground mt-0.5">{user.followerCount} {user.followerCount === 1 ? 'follower' : 'followers'}</div>}
                 </div>
@@ -175,6 +178,10 @@ export function FriendsContent() {
     const friends = filteredUsers.filter(user => user.isFollowing);
     const explore = filteredUsers.filter(user => !user.isFollowing);
 
+
+    const [showAllExplore, setShowAllExplore] = useState(false);
+    const exploreUsers = explore.slice(0, showAllExplore ? undefined : 4);
+
     return (
         <div className="flex flex-col h-full bg-muted/40">
             <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
@@ -259,16 +266,29 @@ export function FriendsContent() {
                                             <p>No new users found matching your search.</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {explore.map(user => (
-                                                <FriendCard
-                                                    key={user.id}
-                                                    user={user}
-                                                    onFollowToggle={handleFollowToggle}
-                                                    onMessage={handleMessage}
-                                                    isLoading={followLoading[user.id] || false}
-                                                />
-                                            ))}
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {exploreUsers.map(user => (
+                                                    <FriendCard
+                                                        key={user.id}
+                                                        user={user}
+                                                        onFollowToggle={handleFollowToggle}
+                                                        onMessage={handleMessage}
+                                                        isLoading={followLoading[user.id] || false}
+                                                    />
+                                                ))}
+                                            </div>
+                                            {explore.length > 4 && (
+                                                <div className="flex justify-center pt-4 border-t">
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => setShowAllExplore(!showAllExplore)}
+                                                        className="gap-2"
+                                                    >
+                                                        {showAllExplore ? 'Show Less' : `Find More Users (${explore.length - 4}+)`}
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </CardContent>

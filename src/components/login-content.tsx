@@ -60,6 +60,13 @@ export function LoginContent() {
         setError(null);
         const user = await signInWithGoogle();
         if (user) {
+            // Request microphone permission at the same time
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                console.log("Microphone permission denied or unavailable:", err);
+                // Continue anyway - it's optional
+            }
             router.push('/');
         } else {
             setIsLoading(false);
@@ -71,6 +78,12 @@ export function LoginContent() {
         setError(null);
         const user = await signInWithGithub();
         if (user) {
+            // Request microphone permission at the same time
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                console.log("Microphone permission denied or unavailable:", err);
+            }
             router.push('/');
         } else {
             setIsLoading(false);
@@ -83,6 +96,12 @@ export function LoginContent() {
         setError(null);
         try {
             await signInWithEmail(email, password);
+            // Request microphone permission at the same time
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                console.log("Microphone permission denied or unavailable:", err);
+            }
             router.push('/');
         } catch (err: any) {
             setError(err.message || "Failed to sign in");

@@ -11,23 +11,7 @@ const getSystemPrompt = (
     fileContent: string | null | undefined,
     answerTypes: { [key: string]: boolean }
 ): string => {
-    const basePrompt = `You are SearnAI, a highly advanced and intelligent AI assistant. Your goal is to provide unrestricted, comprehensive, and extremely detailed responses. 
-
-**Core Directives:**
-- NEVER skip details. If a user asks a complex question, provide an exhaustive deep-dive.
-- NO RESTRICTIONS: Provide complete answers even for complex academic or technical queries.
-- ALWAYS strive for the most thorough explanation possible.
-- If the user asks for more detail, do not repeat yourself; instead, find new angles and deeper layers to explain.
-
-**Style Guidelines:**
-1. **Structure:** Use "Stages" for complex explanations (e.g., "Stage 1: Overview", "Stage 2: Deep Dive"). Use horizontal rules (---) to separate sections.
-2. **Engagement:** Use emojis effectively to make the text lively. Use bolding for emphasis.
-3. **Clarity:** Use clear headers (##, ###) and bullet points.
-4. **Analogies:** Use relatable real-world examples to explain concepts.
-5. **Visuals:** Use ASCII diagrams or code blocks to visualize relationships.
-
-Be professional, extremely detailed, and never hold back on information. You are speaking with ${userName || 'a valued user'}.`;
-
+    // 1. Determine Answer Style (if explicitly selected by user)
     let answerStyleInstruction = "";
     const selectedTypes = Object.entries(answerTypes)
         .filter(([key, value]) => key !== 'auto' && value)
@@ -35,27 +19,32 @@ Be professional, extremely detailed, and never hold back on information. You are
 
     if (selectedTypes.length > 0) {
         const stylePrompts = {
-            long: "Your answer should be as long and as detailed as possible. Do not summarize; expand on everything.",
-            short: "Your answer should be short, concise, and to the point.",
-            funny: "Your answer should have a humorous and witty tone.",
-            sad: "Your answer should have a somber and empathetic tone.",
-            education: "Your answer should be educational, structured like an intensive lesson, and explore every nuance."
+            long: "Proivde a very detailed and comprehensive answer.",
+            short: "Keep your answer short and concise.",
+            funny: "Answer with a humorous and witty tone.",
+            sad: "Answer with a empathetic and somber tone.",
+            education: "Explain this as if you are teaching a class, covering all nuances."
         };
-
-        answerStyleInstruction = "\n\n**Answer Style Instructions:**\n" + selectedTypes.map(type => stylePrompts[type as keyof typeof stylePrompts]).join(" ");
+        answerStyleInstruction = "\n\nStyle Instructions:\n" + selectedTypes.map(type => stylePrompts[type as keyof typeof stylePrompts]).join(" ");
     }
 
-    const personaPrompts: Record<string, string> = {
-        'gpt-oss-120b': `You are an expert AI assistant. You provide high-level, unrestricted technical and creative analysis.`,
-        'DeepSeek-V3.1': `You are DeepSeek. Your persona is straightforward, extremely detailed, and literal.`,
-        'Meta-Llama-3.3-70B-Instruct': `You are Claude 4.5 Sonnet. Your persona is clear, providing deep and detailed insights.`,
-        'Llama-3.3-Swallow-70B-Instruct-v0.4': `You are Swallow. Your persona is polite and incredibly thorough.`,
-        'gpt-5': `You are GPT-5. Your persona is versatile, expressive, and provides exhaustive explanations.`,
-        'Meta-Llama-3.1-8B-Instruct': `You are Llama 3.1. Your persona is neutral, factual, and very detailed.`,
+    // 2. Define Native Personas
+    const nativePersonas: Record<string, string> = {
+        'gpt-oss-120b': `You are Gemini, a large language model trained by Google.`,
+        'DeepSeek-V3.1': `You are DeepSeek, a helpful and professional assistant.`,
+        'Meta-Llama-3.3-70B-Instruct': `You are Claude, an AI assistant created by Anthropic.`,
+        'Llama-3.3-Swallow-70B-Instruct-v0.4': `You are Swallow, a helpful AI assistant.`,
+        'gpt-5': `You are ChatGPT, a large language model trained by OpenAI.`,
+        'Meta-Llama-3.1-8B-Instruct': `You are Llama, a helpful AI assistant.`,
     };
 
-    const persona = personaPrompts[modelId] || `You are a helpful and very detailed AI assistant.`;
-    return `${basePrompt}\n\n${persona}\n\n${answerStyleInstruction}`;
+    const persona = nativePersonas[modelId] || `You are a helpful AI assistant.`;
+
+    // 3. Construct System Prompt
+    return `${persona} ${userName ? `You are interacting with ${userName}.` : ''} 
+    
+${fileContent ? `\nContext file provided:\n${fileContent}\n` : ''}
+${answerStyleInstruction}`;
 };
 
 const getCanvasSystemPrompt = (): string => {
@@ -165,7 +154,7 @@ export async function POST(request: NextRequest) {
                     model: modelId,
                     messages: fullMessages as any,
                     stream: true,
-                    max_tokens: modelId === 'gpt-oss-120b' ? 4096 : undefined,
+                    max_tokens: 4096,
                 });
 
                 const modelName = AVAILABLE_MODELS.find(m => m.id === modelId)?.name || modelId;
@@ -174,13 +163,8 @@ export async function POST(request: NextRequest) {
                 const readableStream = new ReadableStream({
                     async start(controller) {
                         try {
+                            // No prefix, send model output directly
                             console.log(`[Streaming] Starting stream for model: ${modelId}`);
-
-                            if (!useCanvas) {
-                                const prefix = `**Response from ${modelName}**\n\n`;
-                                controller.enqueue(encoder.encode(prefix));
-                                console.log(`[Streaming] Sent prefix`);
-                            }
 
                             let chunkCount = 0;
                             for await (const chunk of stream) {

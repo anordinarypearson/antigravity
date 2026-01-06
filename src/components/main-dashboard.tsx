@@ -148,10 +148,12 @@ export const MainDashboard = React.memo(function MainDashboard() {
           </motion.div>
         )}
 
+
+
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setShowPricingDialog(true)}
-            className="relative overflow-hidden group bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+            className="relative overflow-hidden group bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hidden sm:flex"
           >
             <motion.div
               className="absolute top-0 -left-[100%] h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
@@ -175,8 +177,8 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       </header>
 
-      <div className="flex justify-center items-center py-6 bg-background/50 backdrop-blur-sm sticky top-16 z-10">
-        <div className="flex items-center p-1 bg-muted/40 rounded-full border shadow-sm">
+      <div className="flex justify-center items-center py-3 bg-transparent z-10">
+        <div className="flex items-center p-1 bg-muted/40 rounded-full border shadow-sm backdrop-blur-md">
           {views.map((view) => {
             const Icon = view.icon;
             const isActive = activeView === view.id;
@@ -185,7 +187,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
                 className={cn(
-                  "relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-full flex items-center gap-2",
+                  "relative px-4 py-1.5 text-xs font-semibold transition-all duration-200 rounded-full flex items-center gap-2",
                   isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -205,6 +207,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
           })}
         </div>
       </div>
+
       <main className="flex-1 overflow-hidden relative">
         {activeView === 'searnai' ? (
           <div className="h-full flex flex-col">

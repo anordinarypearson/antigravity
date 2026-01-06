@@ -45,7 +45,6 @@ import { memo } from "react";
 import remarkGfm from "remark-gfm";
 import { ChatWelcomeScreen } from "./chat-welcome-screen";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StreamingTypewriter } from "./typewriter-text";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -61,6 +60,7 @@ export type Message = {
   content: string;
   image?: string | null;
   duration?: number;
+  timestamp?: number;
 };
 
 const CHAT_HISTORY_STORAGE_KEY = 'chatHistory';
@@ -774,6 +774,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   const [activeButton, setActiveButton] = useState<'deepthink' | 'music' | 'image' | null>(null);
   const [currentModel, setCurrentModel] = useState(DEFAULT_MODEL_ID);
 
+  const handleUpdateName = (newName: string) => {
+    setUserName(newName);
+    localStorage.setItem(USER_NAME_STORAGE_KEY, newName);
+  };
+
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
@@ -1047,7 +1052,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       id: `${Date.now()}-user`,
       role: "user",
       content: messageContent,
-      image: imageDataUri
+      image: imageDataUri,
+      timestamp: Date.now()
     };
 
     const newHistory = [...history, userMessage];
@@ -1198,6 +1204,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     setEditedContent(content);
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    setHistory(prev => prev.filter(msg => msg.id !== messageId));
+    toast({ title: "Message Deleted", description: "Your message has been removed from the chat." });
+  };
+
   const handleSaveEdit = async (messageId: string) => {
     // Find index
     const index = history.findIndex(m => m.id === messageId);
@@ -1331,70 +1342,65 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
     const responseHeaderMatch = mainContent.match(/\*\*Response from (.*?)\*\*\n\n/);
-    if (responseHeaderMatch) {
-      const modelName = responseHeaderMatch[1];
-      const restOfContent = mainContent.substring(responseHeaderMatch[0].length);
-      const markdownProps = {
-        remarkPlugins: [remarkMath, remarkGfm],
-        rehypePlugins: [rehypeKatex],
-        className: "prose dark:prose-invert max-w-none text-sm leading-relaxed",
-        components: {
-          code({ node, inline, className, children, ...props }: any) {
-            const match = /language-(\w+)/.exec(className || '');
-            return !inline && match ? (
-              <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          },
-          blockquote({ node, children, ...props }: any) {
-            const value = React.Children.toArray(children).map(child =>
-              React.isValidElement(child) ? (child.props.children) : child
-            ).join('') || '';
-            if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
-            if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
-            if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
-            if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
-            return <blockquote {...props}>{children}</blockquote>;
-          },
-          img: ({ node, ...props }: any) => (
-            <div className="my-4 not-prose inline-block">
-              <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
-            </div>
-          ),
-          p: ({ node, ...props }: any) => <div className="mb-4" {...props} />,
-          table: ({ node, ...props }: any) => <table className="table-auto w-full my-4" {...props} />,
-          thead: ({ node, ...props }: any) => <thead className="bg-muted/50" {...props} />,
-          tbody: ({ node, ...props }: any) => <tbody {...props} />,
-          tr: ({ node, ...props }: any) => <tr className="border-b border-border" {...props} />,
-          th: ({ node, ...props }: any) => <th className="p-2 text-left font-semibold" {...props} />,
-          td: ({ node, ...props }: any) => <td className="p-2" {...props} />,
-        }
-      };
+    const modelName = responseHeaderMatch ? responseHeaderMatch[1] : null;
+    const restOfContent = responseHeaderMatch
+      ? mainContent.substring(responseHeaderMatch[0].length)
+      : mainContent;
 
-      return (
-        <>
+    const markdownProps = {
+      remarkPlugins: [remarkMath, remarkGfm],
+      rehypePlugins: [rehypeKatex],
+      className: "prose dark:prose-invert max-w-none text-sm leading-relaxed",
+      components: {
+        code({ node, inline, className, children, ...props }: any) {
+          const match = /language-(\w+)/.exec(className || '');
+          return !inline && match ? (
+            <CodeBox language={match[1]} code={String(children).replace(/\n$/, '')} />
+          ) : (
+            <code className={className} {...props}>
+              {children}
+            </code>
+          );
+        },
+        blockquote({ node, children, ...props }: any) {
+          const value = React.Children.toArray(children).map(child =>
+            React.isValidElement(child) ? (child.props.children) : child
+          ).join('') || '';
+          if (value.startsWith('[!NOTE]')) return <blockquote {...props} data-type="note"><strong>💡 Note</strong>{value.replace('[!NOTE]', '')}</blockquote>;
+          if (value.startsWith('[!TIP]')) return <blockquote {...props} data-type="tip"><strong>✨ Tip</strong>{value.replace('[!TIP]', '')}</blockquote>;
+          if (value.startsWith('[!WARNING]')) return <blockquote {...props} data-type="warning"><strong>⚠️ Warning</strong>{value.replace('[!WARNING]', '')}</blockquote>;
+          if (value.startsWith('[!SUCCESS]')) return <blockquote {...props} data-type="success"><strong>✅ Success</strong>{value.replace('[!SUCCESS]', '')}</blockquote>;
+          return <blockquote {...props}>{children}</blockquote>;
+        },
+        img: ({ node, ...props }: any) => (
+          <div className="my-4 not-prose inline-block">
+            <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
+          </div>
+        ),
+        p: ({ node, ...props }: any) => <div className="mb-4" {...props} />,
+        table: ({ node, ...props }: any) => <table className="table-auto w-full my-4" {...props} />,
+        thead: ({ node, ...props }: any) => <thead className="bg-muted/50" {...props} />,
+        tbody: ({ node, ...props }: any) => <tbody {...props} />,
+        tr: ({ node, ...props }: any) => <tr className="border-b border-border" {...props} />,
+        th: ({ node, ...props }: any) => <th className="p-2 text-left font-semibold" {...props} />,
+        td: ({ node, ...props }: any) => <td className="p-2" {...props} />,
+      }
+    };
+
+    return (
+      <>
+        {modelName && (
           <div className="model-response-header">
             <strong>Response from {modelName}</strong>
           </div>
-          {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration} />}
+        )}
+        {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration} />}
 
-          {isTyping && message.id === history[history.length - 1].id ? (
-            <StreamingTypewriter content={restOfContent} speed={3} render={(text) => (
-              <ReactMarkdown {...markdownProps}>
-                {text}
-              </ReactMarkdown>
-            )} />
-          ) : (
-            <ReactMarkdown {...markdownProps}>
-              {restOfContent}
-            </ReactMarkdown>
-          )}
-        </>
-      );
-    }
+        <ReactMarkdown {...markdownProps}>
+          {restOfContent}
+        </ReactMarkdown>
+      </>
+    );
   };
 
   const chatBar = (
@@ -1451,6 +1457,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             userName={userName}
             setActiveButton={setActiveButton}
             handleSendMessage={handleSendMessage}
+            onUpdateName={handleUpdateName}
           />
         ) : (
           <ScrollArea className="flex-1" ref={scrollAreaRef} onScrollCapture={handleScroll}>
@@ -1479,19 +1486,38 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                             </div>
                           </div>
                         ) : (
-                          <div className="relative group/msg">
-                            <div className="border bg-transparent inline-block rounded-xl p-3">
-                              <p className="text-sm">{message.content}</p>
+                          <>
+                            <div className="relative group/msg">
+                              <div className="border bg-transparent inline-block rounded-xl p-3">
+                                <p className="text-sm">{message.content}</p>
+                              </div>
+                              <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleEditMessage(message.id, message.content)}
+                                  title="Edit message"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 hover:text-destructive"
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  title="Delete message"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute -left-8 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/msg:opacity-100 transition-opacity"
-                              onClick={() => handleEditMessage(message.id, message.content)}
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                          </div>
+                            {message.timestamp && (
+                              <span className="text-[10px] text-muted-foreground px-2">
+                                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     ) : (

@@ -25,9 +25,11 @@ import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
-import { Send, Search, Loader2, MessageSquare, Plus } from "lucide-react";
+import { Send, Search, Loader2, MessageSquare, Plus, Check, CheckCheck, BadgeCheck } from "lucide-react";
+import { format } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { writeBatch } from "firebase/firestore";
 
 type Chat = {
     id: string;
@@ -47,6 +49,7 @@ type Message = {
     senderId: string;
     text: string;
     createdAt: any;
+    read?: boolean;
 };
 
 type User = {
@@ -131,7 +134,7 @@ export function InboxContent() {
 
     // Fetch Messages for Selected Chat
     useEffect(() => {
-        if (!selectedChatId) return;
+        if (!selectedChatId || !currentUser) return;
 
         const q = query(
             collection(db, "chats", selectedChatId, "messages"),
@@ -145,6 +148,20 @@ export function InboxContent() {
             } as Message));
             setMessages(msgs);
 
+            // Mark unseen messages as read
+            const unreadMessages = snapshot.docs.filter(doc => {
+                const data = doc.data();
+                return data.senderId !== currentUser.uid && !data.read;
+            });
+
+            if (unreadMessages.length > 0) {
+                const batch = writeBatch(db);
+                unreadMessages.forEach(msgDoc => {
+                    batch.update(msgDoc.ref, { read: true });
+                });
+                batch.commit().catch(err => console.error("Error marking as read:", err));
+            }
+
             // Scroll to bottom
             setTimeout(() => {
                 if (scrollRef.current) {
@@ -154,7 +171,7 @@ export function InboxContent() {
         });
 
         return () => unsubscribe();
-    }, [selectedChatId]);
+    }, [selectedChatId, currentUser]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -167,7 +184,8 @@ export function InboxContent() {
             await addDoc(collection(db, "chats", selectedChatId, "messages"), {
                 senderId: currentUser.uid,
                 text: text,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                read: false
             });
 
             await updateDoc(doc(db, "chats", selectedChatId), {
@@ -275,7 +293,10 @@ export function InboxContent() {
                                                 <AvatarFallback>{friend.name[0]}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <div className="font-medium">{friend.name}</div>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="font-medium">{friend.name}</div>
+                                                    <BadgeCheck className="h-3.5 w-3.5 text-primary fill-primary/10" />
+                                                </div>
                                                 <div className="text-xs text-muted-foreground mr-2">{friend.username}</div>
                                             </div>
                                         </button>
@@ -320,7 +341,10 @@ export function InboxContent() {
                                         </Avatar>
                                         <div className="flex-1 overflow-hidden">
                                             <div className="flex justify-between items-baseline mb-1">
-                                                <span className="font-semibold truncate pr-2">{chat.otherUser?.name}</span>
+                                                <div className="flex items-center gap-1 min-w-0 pr-2">
+                                                    <span className="font-semibold truncate">{chat.otherUser?.name}</span>
+                                                    <BadgeCheck className="h-3.5 w-3.5 text-primary fill-primary/10 shrink-0" />
+                                                </div>
                                                 {chat.lastMessageTimestamp && (
                                                     <span className="text-[10px] text-muted-foreground shrink-0">
                                                         {formatDistanceToNow(chat.lastMessageTimestamp.toDate ? chat.lastMessageTimestamp.toDate() : new Date(), { addSuffix: true })}
@@ -344,18 +368,38 @@ export function InboxContent() {
                             <Button variant="ghost" size="sm" onClick={() => setSelectedChatId(null)} className="mr-2">
                                 <BackIcon />
                             </Button>
-                            <span className="font-semibold">
+                            <div className="flex items-center gap-1 font-semibold">
                                 {chats.find(c => c.id === selectedChatId)?.otherUser?.name}
-                            </span>
+                                <BadgeCheck className="h-4 w-4 text-primary fill-primary/10" />
+                            </div>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
                             {messages.map((msg) => {
                                 const isMe = msg.senderId === currentUser?.uid;
+                                const date = msg.createdAt?.toDate ? msg.createdAt.toDate() : new Date();
                                 return (
                                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[75%] rounded-lg p-3 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                            <p className="text-sm">{msg.text}</p>
+                                        <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                                            <div className={`rounded-lg p-3 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                                <p className="text-sm">{msg.text}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 mt-1 px-1">
+                                                <span className="text-[10px] text-muted-foreground opacity-70">
+                                                    {format(date, 'h:mm a')}
+                                                </span>
+                                                {isMe && (
+                                                    msg.read ? (
+                                                        <span className="flex items-center gap-0.5 text-[10px] text-primary font-medium">
+                                                            <CheckCheck className="h-3 w-3" /> Seen
+                                                        </span>
+                                                    ) : (
+                                                        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                                                            <Check className="h-3 w-3" /> Sent
+                                                        </span>
+                                                    )
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );

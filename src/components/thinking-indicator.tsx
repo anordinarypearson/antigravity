@@ -40,6 +40,8 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
 
     const previewLines = displayText.split('\n').slice(0, 3).join('\n');
 
+    const effectiveIsDeepThink = isDeepThink || !!text;
+
     // For searching mode, show "Searching Internet..." with blinking icon
     if (isSearching) {
         return (
@@ -76,7 +78,7 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
     }, [isAnimating]);
 
     // For normal chat (not DeepThink), show ChatGPT-style blinking "Thinking" text
-    if (!isDeepThink) {
+    if (!effectiveIsDeepThink) {
         return (
             <div className="flex items-center gap-2 p-3 transition-all duration-500 animate-in fade-in slide-in-from-left-2">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
@@ -105,9 +107,9 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
                 </div>
                 <div className="relative pl-7">
                     <div className="absolute left-[9px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/20 to-transparent rounded-full"></div>
-                    {isAnimating ? (
-                        <div className="text-xs text-muted-foreground/90 font-mono leading-relaxed">
-                            <TypewriterText text={displayText} onComplete={handleAnimationComplete} />
+                    {isAnimating && text ? (
+                        <div className="text-xs text-muted-foreground/90 font-mono leading-relaxed whitespace-pre-wrap">
+                            {displayText}
                         </div>
                     ) : (
                         <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
