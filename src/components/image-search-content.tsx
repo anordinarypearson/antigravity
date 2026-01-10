@@ -43,10 +43,10 @@ export function ImageSearchContent() {
             setImages([]);
             setError(null);
             try {
-                const response = await fetch('/api/image-search', {
+                const response = await fetch('/api/search-images', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
+                    body: JSON.stringify({ query, maxResults: 30 })
                 });
                 const result = await response.json();
 
@@ -54,8 +54,8 @@ export function ImageSearchContent() {
                     setError(result.error || 'Failed to search images');
                     toast({ title: "Search Failed", description: result.error, variant: "destructive" });
                 } else {
-                    setImages(result.images || []);
-                    toast({ title: `Found ${result.images.length} images!` });
+                    setImages(result.results || []);
+                    toast({ title: `Found ${result.results.length} legal images!`, description: "From Unsplash, Pexels & Wikimedia" });
                 }
             } catch (err: any) {
                 setError(err.message);
@@ -111,18 +111,19 @@ export function ImageSearchContent() {
                         </Alert>
                     ) : images.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {images.map((img) => (
+                            {images.map((img, index) => (
                                 <div key={img.id} className="group relative aspect-square overflow-hidden rounded-2xl border border-border/20 hover:border-primary/50 transition-all hover:shadow-xl">
                                     <a href={img.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
                                         <Image
-                                            src={img.thumbnail}
-                                            alt={img.alt}
+                                            src={img.thumbnailUrl || img.url}
+                                            alt={img.title || 'Image'}
                                             fill
                                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                                            <p className="text-[10px] text-white/60 font-medium">#{img.index}</p>
-                                            <p className="text-white text-[11px] font-bold line-clamp-2 leading-tight">{img.alt}</p>
+                                            <p className="text-[10px] text-white/60 font-medium">{img.source}</p>
+                                            <p className="text-white text-[11px] font-bold line-clamp-2 leading-tight">{img.title}</p>
+                                            {img.author && <p className="text-white/80 text-[10px] mt-1">by {img.author}</p>}
                                         </div>
                                     </a>
                                 </div>

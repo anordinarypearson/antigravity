@@ -1,0 +1,6 @@
+﻿
+> nextn@0.1.0 typecheck
+> tsc --noEmit
+
+web/utils/extractors.js(31,33): error TS8016: Type assertion expressions can only be used in TypeScript files.
+web/utils/extractors.js(35,49): error TS8016: Type assertion expressions can only be used in TypeScript files.

@@ -4,6 +4,7 @@ import { openai } from '@/lib/openai';
 import { DEFAULT_MODEL_ID, AVAILABLE_MODELS } from '@/lib/models';
 import { webSearch } from '@/ai/tools/web-search';
 import { searchYoutube } from '@/ai/tools/youtube-search';
+import { searchImages } from '@/ai/tools/image-search';
 
 const getSystemPrompt = (
     modelId: string,
@@ -44,7 +45,9 @@ const getSystemPrompt = (
     return `${persona} ${userName ? `You are interacting with ${userName}.` : ''} 
     
 ${fileContent ? `\nContext file provided:\n${fileContent}\n` : ''}
-${answerStyleInstruction}`;
+${answerStyleInstruction}
+
+IMPORTANT: If the user requests images, photos, or visual information, assume that relevant images are being displayed to the user by the system. Do NOT state that you cannot generate or show images. Instead, introduce the images, describe the subject matter in detail, or explain the context of what is being shown. Always be helpful and provide information about the visual topics requested.`;
 };
 
 const getCanvasSystemPrompt = (): string => {
@@ -165,6 +168,43 @@ export async function POST(request: NextRequest) {
                         try {
                             // No prefix, send model output directly
                             console.log(`[Streaming] Starting stream for model: ${modelId}`);
+
+                            // AUTO IMAGE SEARCH INJECTION
+                            const lowerContent = userMessageContent.toLowerCase();
+                            const visualKeywords = [
+                                "map", "location", "geography", "diagram", "chart", "anatomy",
+                                "where is", "capital", "landscape", "mountain", "river", "lake",
+                                "ocean", "planet", "stars", "nebula", "galaxy", "cell", "molecule",
+                                "atom", "history", "ancient", "show me", "picture of", "image of",
+                                "what does a", "look like", "structure of",
+                                // Expanded keywords as requested
+                                "technology", "tech", "gadget", "device", "innovation",
+                                "science", "physics", "chemistry", "biology", "space", "universe",
+                                "nature", "animal", "bird", "fish", "insect", "plant", "flower",
+                                "tree", "forest", "city", "building", "architecture", "car", "vehicle",
+                                "airplane", "boat", "computer", "robot", "ai", "network", "internet",
+                                "news", "latest", "info", "information", "real time", "who is", "what is",
+                                "pm of", "president of", "king of", "queen of", "leader of",
+                                "actor", "actress", "movie", "film", "celebrity", "singer", "band",
+                                "sport", "game", "player", "team", "match", "tournament",
+                                "tell me about", "describe", "explain", "smartphone", "laptop", "console"
+                            ];
+
+                            // Only search if not explicitly using other modes and contains keywords
+                            if (!isSearch && !isMusic && !imageDataUri && visualKeywords.some(k => lowerContent.includes(k))) {
+                                try {
+                                    console.log(`[Streaming] Detected visual intent, searching images for: ${userMessageContent}`);
+                                    const searchResult = await searchImages({ query: userMessageContent });
+
+                                    if (searchResult.images && searchResult.images.length > 0) {
+                                        const header = `:::IMAGE_SEARCH_RESULT=${JSON.stringify(searchResult)}:::\n\n`;
+                                        controller.enqueue(encoder.encode(header));
+                                        console.log(`[Streaming] Injected ${searchResult.images.length} images`);
+                                    }
+                                } catch (e) {
+                                    console.error("[Streaming] Auto image search failed", e);
+                                }
+                            }
 
                             let chunkCount = 0;
                             for await (const chunk of stream) {

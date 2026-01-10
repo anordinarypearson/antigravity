@@ -1,17 +1,29 @@
 
 "use client";
 
-import { chatAction, generateImageAction } from "@/app/actions";
+import { chatAction } from "@/app/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save, Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus, Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause, Rewind, FastForward, Presentation, Video, Image as ImageIcon, ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles, Code, ChevronRight, Palette, Terminal, Zap, Square, ThumbsUp, ThumbsDown, ArrowDown, Pencil } from "lucide-react";
+import {
+  Bot, User, Copy, Share2, Volume2, RefreshCw, FileText, X, Edit, Save,
+  Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus,
+  Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause,
+  Rewind, FastForward, Presentation, Video, Image as ImageIcon,
+  ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles,
+  Code, ChevronRight, Palette, Terminal, Zap, Square, ThumbsUp,
+  ThumbsDown, ArrowDown, Pencil, Check, Clipboard, Edit2
+} from "lucide-react";
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import vscDarkPlus from 'react-syntax-highlighter/dist/cjs/styles/prism/vsc-dark-plus';
+import prism from 'react-syntax-highlighter/dist/cjs/styles/prism/prism';
+import { useTheme } from "next-themes";
 import 'katex/dist/katex.min.css';
 import { ShareDialog } from "./share-dialog";
 import Image from "next/image";
@@ -47,6 +59,8 @@ import { ChatWelcomeScreen } from "./chat-welcome-screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ImageSearchCard } from "./image-search-card";
+
 
 
 // Required for pdf.js to work
@@ -99,14 +113,20 @@ class AudioDecoder {
 }
 
 
+
+
 const CodeBox = ({ language, code: initialCode }: { language: string, code: string }) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [code, setCode] = useState(initialCode);
+  const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
+    setCopied(true);
     toast({ title: "Copied!", description: "Code has been copied to clipboard." });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownload = () => {
@@ -151,29 +171,99 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
     setIsEditing(!isEditing);
   };
 
+  const isDark = theme === 'dark';
+
   return (
-    <div className="code-box">
-      <div className="code-box-header">
-        <span className="code-box-language">{language}</span>
-        <div className="code-box-actions">
-          <Button type="button" variant="ghost" size="sm" onClick={handleCopy}><Copy className="mr-1 h-4 w-4" /> Copy</Button>
-          <Button type="button" variant="ghost" size="sm" onClick={handleEditToggle}>
-            {isEditing ? <Save className="mr-1 h-4 w-4" /> : <Edit className="mr-1 h-4 w-4" />}
-            {isEditing ? 'Save' : 'Edit'}
+    <div className="group relative my-4 rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
+            <div className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
+          </div>
+          <span className="ml-2 text-xs font-medium text-muted-foreground uppercase tracking-wider font-mono">
+            {language || 'text'}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            onClick={handleCopy}
+            title="Copy code"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Clipboard className="h-3.5 w-3.5" />}
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={handleDownload}><Download className="mr-1 h-4 w-4" /> Download</Button>
-          <Button type="button" variant="ghost" size="sm" disabled>Run</Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            onClick={handleEditToggle}
+            title={isEditing ? "Save code" : "Edit code"}
+          >
+            {isEditing ? <Check className="h-3.5 w-3.5" /> : <Edit2 className="h-3.5 w-3.5" />}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            onClick={handleDownload}
+            title="Download code"
+          >
+            <Download className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
-      {isEditing ? (
-        <Textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="font-mono text-sm bg-black/50 border-0 rounded-t-none h-64"
-        />
-      ) : (
-        <pre><code>{code}</code></pre>
-      )}
+
+      <div className="relative">
+        {isEditing ? (
+          <div className="relative">
+            <Textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="min-h-[300px] w-full resize-none rounded-none border-0 bg-background p-4 font-mono text-sm leading-relaxed focus-visible:ring-0"
+              spellCheck={false}
+            />
+          </div>
+        ) : (
+          <div className="max-h-[500px] overflow-auto custom-scrollbar">
+            {SyntaxHighlighter ? (
+              <SyntaxHighlighter
+                language={language?.toLowerCase() || 'text'}
+                style={isDark ? (vscDarkPlus || {}) : (prism || {})}
+                customStyle={{
+                  margin: 0,
+                  padding: '1.5rem',
+                  background: 'transparent',
+                  fontSize: '0.875rem',
+                  lineHeight: '1.6',
+                  borderRadius: 0,
+                }}
+                wrapLines={true}
+                showLineNumbers={true}
+                lineNumberStyle={{
+                  minWidth: '2.5em',
+                  paddingRight: '1em',
+                  color: 'hsl(var(--muted-foreground))',
+                  textAlign: 'right',
+                  opacity: 0.5
+                }}
+              >
+                {code}
+              </SyntaxHighlighter>
+            ) : (
+              <pre className="p-6 overflow-auto font-mono text-sm leading-relaxed">
+                <code>{code}</code>
+              </pre>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -1077,17 +1167,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           setGenerationTime((endTime - startTime) / 1000);
           setIsTyping(false);
 
-          if (!result.success || result.error) {
-            toast({ title: "Image Search Error", description: result.error || 'Failed to search images', variant: "destructive" });
-          } else if (result.images && result.images.length > 0) {
-            const imagePayload = {
-              type: 'image-gallery',
-              images: result.images,
-              query: query,
-              total: result.total
-            };
+          if (result.error) {
+            toast({ title: "Image Search Error", description: result.error, variant: "destructive" });
+          } else if (result.type === 'image_search_result' && result.images && result.images.length > 0) {
             const modelMessageId = `${Date.now()}-model`;
-            setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(imagePayload) }]);
+            setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(result) }]);
           } else {
             toast({ title: "No Images Found", description: `No images found for "${query}"`, variant: "destructive" });
           }
@@ -1174,29 +1258,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         // Actually, let's just create a synthetic event or call logic directly.
         // Better: extract logic to `processImageFile` and `processOtherFile`.
         // For expediency, we'll manually call the input ref logic or similar.
-
-        // Simulating the file input workflow:
-        if (fileInputRef.current) {
-          // Create a DataTransfer to set files on the input
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          fileInputRef.current.files = dt.files;
-          // Trigger change manually
-          const event = { target: fileInputRef.current } as React.ChangeEvent<HTMLInputElement>;
-          handleImageFileChange(event);
-        }
-      } else {
-        // Determine type for handleFileChange
-        if (fileInputRef.current) {
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          fileInputRef.current.files = dt.files;
-          const event = { target: fileInputRef.current } as React.ChangeEvent<HTMLInputElement>;
-          handleFileChange(event);
-        }
+        // TODO: Handle file drop correctly by passing it to ChatInput or processing here
+        toast({ title: "Drop detected", description: "File upload via drop is being improved." });
       }
     }
-  }, []);
+  }, [toast]);
 
   // Edit Message Handlers
   const handleEditMessage = (messageId: string, content: string) => {
@@ -1263,6 +1329,20 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     const thinkingText = thinkMatch ? thinkMatch[1].trim() : null;
     let mainContent = thinkMatch ? message.content.replace(/<think>[\s\S]*?<\/think>/, '').trim() : message.content;
 
+    // Check for Auto-Injected Image Search Results (Mixed Content)
+    const imageSearchMatch = mainContent.match(/:::IMAGE_SEARCH_RESULT=(.*?):::/);
+    let injectedImages = null;
+
+    if (imageSearchMatch) {
+      try {
+        injectedImages = JSON.parse(imageSearchMatch[1]);
+        // Remove the marker from the text shown to user
+        mainContent = mainContent.replace(imageSearchMatch[0], '').trim();
+      } catch (e) {
+        console.error("Failed to parse injected images", e);
+      }
+    }
+
     try {
       const data = JSON.parse(mainContent);
       if (data.type === 'youtube' && data.videoId) {
@@ -1294,34 +1374,18 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           </div>
         );
       }
-      if (data.type === 'image-gallery' && Array.isArray(data.images)) {
+      // Handle image search results
+      if (data.type === 'image_search_result') {
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Found {data.total} images for "{data.query}"</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {data.images.map((img: any) => (
-                <div key={img.id} className="group relative aspect-square overflow-hidden rounded-2xl border border-border/20 hover:border-primary/50 transition-all hover:shadow-xl">
-                  <a href={img.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                    <img
-                      src={img.thumbnail}
-                      alt={img.alt}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                      <p className="text-[10px] text-white/60 font-medium">#{img.index}</p>
-                      <p className="text-white text-[11px] font-bold line-clamp-2 leading-tight">{img.alt}</p>
-                    </div>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ImageSearchCard
+            query={data.query}
+            images={data.images}
+            loading={data.loading}
+          />
         );
       }
     } catch (e) {
-      // Not a JSON object, so render as plain text
+      // Not a JSON object, continue
     }
 
     // Wrap plain text in Typewriter if it's the latest message and still typing
@@ -1347,11 +1411,22 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       ? mainContent.substring(responseHeaderMatch[0].length)
       : mainContent;
 
+
     const markdownProps = {
       remarkPlugins: [remarkMath, remarkGfm],
       rehypePlugins: [rehypeKatex],
       className: "prose dark:prose-invert max-w-none text-sm leading-relaxed",
       components: {
+        pre: ({ children }: any) => {
+          const childArray = React.Children.toArray(children);
+          if (childArray.length === 1 && React.isValidElement(childArray[0]) && childArray[0].type === CodeBox) {
+            return <>{children}</>;
+          }
+          // Default styled pre for non-codebox content. We remove the background and border here
+          // because if a CodeBox IS rendered (and we missed the check), we don't want a double box.
+          // IMPORTANT: We use !bg-transparent !p-0 !border-0 to override Tailwind typography (prose) defaults.
+          return <pre className="!bg-transparent !p-0 !border-0 !m-0 overflow-visible text-sm leading-relaxed">{children}</pre>;
+        },
         code({ node, inline, className, children, ...props }: any) {
           const match = /language-(\w+)/.exec(className || '');
           return !inline && match ? (
@@ -1389,6 +1464,15 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
     return (
       <>
+        {injectedImages && (
+          <div className="mb-4">
+            <ImageSearchCard
+              query={injectedImages.query}
+              images={injectedImages.images}
+              loading={injectedImages.loading}
+            />
+          </div>
+        )}
         {modelName && (
           <div className="model-response-header">
             <strong>Response from {modelName}</strong>
