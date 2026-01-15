@@ -265,7 +265,7 @@ export function InboxContent() {
                 </div>
                 <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
                     <DialogTrigger asChild>
-                        <Button size="sm" onClick={fetchFriends}>
+                        <Button size="sm" onClick={fetchFriends} className="h-10 touch-manipulation">
                             <Plus className="h-4 w-4 mr-2" /> New Chat
                         </Button>
                     </DialogTrigger>
@@ -364,8 +364,8 @@ export function InboxContent() {
                 {selectedChatId ? (
                     <Card className={`w-full md:w-2/3 flex flex-col ${!selectedChatId ? 'hidden md:flex' : 'flex'}`}>
                         {/* Chat Header for Mobile */}
-                        <div className="md:hidden flex items-center p-4 border-b">
-                            <Button variant="ghost" size="sm" onClick={() => setSelectedChatId(null)} className="mr-2">
+                        <div className="md:hidden flex items-center p-3 border-b">
+                            <Button variant="ghost" size="icon" onClick={() => setSelectedChatId(null)} className="mr-2 h-10 w-10 touch-manipulation">
                                 <BackIcon />
                             </Button>
                             <div className="flex items-center gap-1 font-semibold">
@@ -405,15 +405,15 @@ export function InboxContent() {
                                 );
                             })}
                         </div>
-                        <div className="p-4 border-t">
+                        <div className="p-3 sm:p-4 border-t pb-safe">
                             <form onSubmit={handleSendMessage} className="flex gap-2">
                                 <Input
                                     placeholder="Type a message..."
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="flex-1"
+                                    className="flex-1 h-11 touch-manipulation"
                                 />
-                                <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="h-11 w-11 touch-manipulation">
                                     <Send className="h-4 w-4" />
                                 </Button>
                             </form>

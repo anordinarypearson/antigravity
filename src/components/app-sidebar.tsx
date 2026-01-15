@@ -91,7 +91,7 @@ const mainNav = [
 
 const AppLogo = () => (
   <svg
-    className="h-5 w-5"
+    className="h-full w-full p-2"
     viewBox="0 0 100 100"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -178,10 +178,10 @@ export function AppSidebar() {
     <Sidebar className="bg-black/80 border-r border-neutral-800/50 text-sidebar-foreground backdrop-blur-lg">
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-primary-foreground border border-neutral-700">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-primary-foreground border border-neutral-700 shadow-sm">
             <AppLogo />
           </div>
-          <h1 className="text-lg font-semibold tracking-wider text-gradient">SearnAI</h1>
+          <h1 className="text-2xl font-bold tracking-wider text-gradient">SearnAI</h1>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex-grow flex flex-col">

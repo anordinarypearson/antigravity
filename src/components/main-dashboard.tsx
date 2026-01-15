@@ -150,35 +150,37 @@ export const MainDashboard = React.memo(function MainDashboard() {
 
 
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Get Pro - Icon only on mobile, full button on desktop */}
           <Button
             onClick={() => setShowPricingDialog(true)}
-            className="relative overflow-hidden group bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hidden sm:flex"
+            className="relative overflow-hidden group bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 h-10 w-10 sm:h-auto sm:w-auto touch-manipulation"
+            size="icon"
           >
             <motion.div
               className="absolute top-0 -left-[100%] h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
               animate={{ left: "100%" }}
               transition={{ repeat: Infinity, duration: 3, ease: "linear", delay: 1 }}
             />
-            <Star className="mr-2 h-4 w-4 fill-current animate-[pulse_3s_ease-in-out_infinite]" />
-            <span className="font-semibold tracking-tight">Get Pro</span>
+            <Star className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4 fill-current animate-[pulse_3s_ease-in-out_infinite]" />
+            <span className="hidden sm:inline font-semibold tracking-tight">Get Pro</span>
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={handleNewChat} className="rounded-full hover:bg-muted/60" title="New Chat">
+          <Button variant="ghost" size="icon" onClick={handleNewChat} className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation" title="New Chat">
             <FileEdit className="h-5 w-5" />
             <span className="sr-only">New Chat</span>
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full hover:bg-muted/60">
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation">
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
         </div>
       </header>
 
-      <div className="flex justify-center items-center py-3 bg-transparent z-10">
-        <div className="flex items-center p-1 bg-muted/40 rounded-full border shadow-sm backdrop-blur-md">
+      <div className="flex justify-center items-center py-2 sm:py-3 bg-transparent z-10">
+        <div className="flex items-center gap-6 sm:gap-8 px-4">
           {views.map((view) => {
             const Icon = view.icon;
             const isActive = activeView === view.id;
@@ -187,21 +189,21 @@ export const MainDashboard = React.memo(function MainDashboard() {
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
                 className={cn(
-                  "relative px-4 py-1.5 text-xs font-semibold transition-all duration-200 rounded-full flex items-center gap-2",
-                  isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  "relative py-2 text-sm font-semibold transition-colors duration-200 flex items-center gap-2 group",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
+                <span className="relative z-10 flex items-center gap-2">
+                  <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                  <span>{view.label}</span>
+                </span>
                 {isActive && (
                   <motion.div
-                    layoutId="active-pill"
-                    className="absolute inset-0 bg-primary rounded-full shadow-md"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    layoutId="active-underline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  {view.label}
-                </span>
               </button>
             );
           })}
@@ -226,16 +228,16 @@ export const MainDashboard = React.memo(function MainDashboard() {
           <WebBrowserContent />
         )}
         {activeVideoId && showPlayer && (
-          <div className="fixed bottom-4 right-4 z-50 group">
+          <div className="fixed bottom-16 sm:bottom-4 right-2 sm:right-4 z-50 group">
             <iframe
               ref={iframeRef}
-              className="w-full max-w-sm aspect-video rounded-lg shadow-xl"
+              className="w-[280px] sm:w-full sm:max-w-sm aspect-video rounded-lg shadow-xl"
               src={`https://www.youtube.com/embed/${activeVideoId}?enablejsapi=1&autoplay=1`}
               allow="autoplay; encrypted-media"
               allowFullScreen
               title="YouTube music player"
             ></iframe>
-            <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
+            <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-8 w-8 sm:h-7 sm:w-7 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
           </div>
         )}
         {activeVideoId && !showPlayer && (

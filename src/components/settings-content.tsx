@@ -17,7 +17,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
 
 const SettingsItem = ({ icon, label, href, value }: { icon: React.ReactNode; label: string; href: string; value?: string }) => (
-    <Link href={href} className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-lg transition-colors cursor-pointer">
+    <Link href={href} className="flex items-center justify-between p-4 min-h-[56px] hover:bg-muted/50 rounded-lg transition-colors cursor-pointer touch-manipulation active:scale-[0.99]">
         <div className="flex items-center gap-4">
             {icon}
             <span className="font-medium">{label}</span>
@@ -81,13 +81,13 @@ export function SettingsContent() {
 
                     <div className="flex flex-col items-center text-center">
                         <div className="relative mb-4">
-                            <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-                                <AvatarFallback className="bg-avatar-accent text-3xl font-bold text-white/90">
+                            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-md">
+                                <AvatarFallback className="bg-avatar-accent text-2xl sm:text-3xl font-bold text-white/90">
                                     {userName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <Link href="/settings/personalize">
-                                <Button variant="outline" size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full border-2 bg-background">
+                                <Button variant="outline" size="icon" className="absolute -bottom-2 -right-2 h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 bg-background touch-manipulation">
                                     <Edit className="h-4 w-4" />
                                 </Button>
                             </Link>

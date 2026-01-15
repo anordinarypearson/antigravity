@@ -130,7 +130,7 @@ export function LoginContent() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-secondary/30 blur-3xl animate-pulse delay-500" />
             </div>
 
-            <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl ring-1 ring-border/5">
+            <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl ring-1 ring-border/5 mx-2 sm:mx-0">
                 <CardHeader className="text-center space-y-3 pb-6">
                     <div className="flex justify-center items-center gap-3 mb-2">
                         <div className="relative">
@@ -138,14 +138,14 @@ export function LoginContent() {
                             <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-ring animate-pulse" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl font-bold tracking-tight text-foreground">
+                    <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                         Welcome Back
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">
                         Sign in to continue your learning journey
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6 px-8 pb-8">
+                <CardContent className="space-y-5 sm:space-y-6 px-5 sm:px-8 pb-6 sm:pb-8">
                     {error && (
                         <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2">
                             <AlertCircle className="h-4 w-4" />
@@ -163,6 +163,7 @@ export function LoginContent() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                className="h-11 touch-manipulation"
                             />
                         </div>
                         <div className="space-y-2">
@@ -174,9 +175,10 @@ export function LoginContent() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                className="h-11 touch-manipulation"
                             />
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full h-11 touch-manipulation" disabled={isLoading}>
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                             Sign In
                         </Button>
@@ -191,11 +193,12 @@ export function LoginContent() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <Button
                             onClick={handleGoogleSignIn}
                             variant="outline"
                             disabled={isLoading}
+                            className="h-11 touch-manipulation"
                         >
                             <GoogleIcon className="mr-2 h-4 w-4" />
                             Google
@@ -204,6 +207,7 @@ export function LoginContent() {
                             onClick={handleGithubSignIn}
                             variant="outline"
                             disabled={isLoading}
+                            className="h-11 touch-manipulation"
                         >
                             <Github className="mr-2 h-4 w-4" />
                             GitHub

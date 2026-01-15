@@ -4,7 +4,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Send, Mic, MicOff, Brush, Paperclip, FileText, X } from "lucide-react";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -79,10 +79,11 @@ export function ChatInput({
     };
 
     const isInputDisabled = isTyping || isOcrProcessing;
+    const hasContent = input.trim().length > 0 || !!imageDataUri || !!fileContent;
 
     return (
-        <div className="p-4 border-t bg-background">
-            <div className="mx-auto max-w-3xl">
+        <div className="p-4 sm:p-6 border-t bg-background/80 backdrop-blur-xl pb-safe">
+            <div className="mx-auto max-w-5xl">
                 {isOcrProcessing && (
                     <div className="mb-2">
                         <Progress value={ocrProgress} className="w-full h-1" />
@@ -90,64 +91,101 @@ export function ChatInput({
                     </div>
                 )}
                 {imageDataUri && !isOcrProcessing && (
-                    <div className="relative mb-2 w-fit">
-                        <Image src={imageDataUri} alt="Image preview" width={80} height={80} className="rounded-md border object-cover" />
-                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10" onClick={() => setImageDataUri(null)}>
+                    <div className="relative mb-3 w-fit group">
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors rounded-xl" />
+                        <Image src={imageDataUri} alt="Image preview" width={100} height={100} className="rounded-xl border border-border shadow-sm object-cover" />
+                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-md hover:scale-110 transition-transform" onClick={() => setImageDataUri(null)}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
                 {fileContent && fileName && !isOcrProcessing && (
-                    <div className="relative mb-2 flex items-center gap-2 text-sm text-muted-foreground bg-muted p-2 rounded-md border">
-                        <FileText className="h-4 w-4" />
-                        <span className="flex-1 truncate">{fileName}</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setFileContent(null); setFileName(null); }}>
+                    <div className="relative mb-3 flex items-center gap-3 text-sm text-foreground bg-muted/50 p-3 rounded-xl border border-border/50 shadow-sm max-w-md">
+                        <div className="p-2 bg-background rounded-lg">
+                            <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                        <span className="flex-1 truncate font-medium">{fileName}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => { setFileContent(null); setFileName(null); }}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
                 <form
                     onSubmit={handleFormSubmit}
-                    className="relative flex items-center rounded-xl border bg-card p-2 shadow-lg focus-within:border-primary"
+                    className={cn(
+                        "relative flex items-end gap-2 p-2 rounded-[2rem] border bg-muted/30 shadow-sm transition-all duration-300 focus-within:shadow-md focus-within:border-primary/50 focus-within:bg-background",
+                        hasContent ? "ring-2 ring-primary/5 border-primary/20" : ""
+                    )}
                 >
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button type="button" size="icon" variant="ghost" className="h-9 w-9 flex-shrink-0" disabled={isInputDisabled}>
-                                <Paperclip className="h-5 w-5" />
-                                <span className="sr-only">Attach file</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onSelect={handleOpenImageDialog}>Image</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={handleOpenFileDialog}>Text File</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1 pb-1 pl-1">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" size="icon" variant="ghost" className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" disabled={isInputDisabled}>
+                                    <Paperclip className="h-5 w-5" />
+                                    <span className="sr-only">Attach file</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-48 p-2">
+                                <DropdownMenuItem onSelect={handleOpenImageDialog} className="p-2 cursor-pointer gap-2 rounded-lg">
+                                    <div className="p-1 bg-primary/10 rounded-md"><Image className="h-4 w-4 text-primary" /></div>
+                                    <span>Image</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={handleOpenFileDialog} className="p-2 cursor-pointer gap-2 rounded-lg">
+                                    <div className="p-1 bg-primary/10 rounded-md"><FileText className="h-4 w-4 text-primary" /></div>
+                                    <span>Text File</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
 
-                    <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder={isOcrProcessing ? "Processing image..." : "Message SearnAI..."}
-                        disabled={isInputDisabled}
-                        className="h-10 flex-1 border-0 bg-transparent text-base shadow-none focus-visible:ring-0"
-                    />
-                    <input type="file" ref={fileInputRef} className="hidden" />
-                    <div className="flex items-center gap-1">
+
+                    <div className="flex-1 py-1 min-h-[50px] flex items-center">
+                        <Input
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={isOcrProcessing ? "Processing image..." : "Message SearnAI..."}
+                            disabled={isInputDisabled}
+                            className="h-auto py-2 border-0 bg-transparent text-lg placeholder:text-muted-foreground/50 shadow-none focus-visible:ring-0 px-2"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 pb-1 pr-1">
+                        {input.length > 0 && (
+                            <div className="hidden sm:block text-[10px] uppercase font-bold text-muted-foreground/50 select-none mr-2">
+                                {input.length} chars
+                            </div>
+                        )}
+
                         {toggleEditor && (
-                            <Button type="button" size="icon" variant="ghost" className="h-9 w-9 flex-shrink-0 lg:hidden" onClick={toggleEditor} disabled={isInputDisabled}>
+                            <Button type="button" size="icon" variant="ghost" className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors lg:hidden" onClick={toggleEditor} disabled={isInputDisabled}>
                                 <Brush className="h-5 w-5" />
                                 <span className="sr-only">Open AI Editor</span>
                             </Button>
                         )}
-                        <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-9 w-9 flex-shrink-0" onClick={handleToggleRecording} disabled={isInputDisabled}>
+                        <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className={cn("h-10 w-10 rounded-full transition-all duration-300", isRecording ? "animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-muted")} onClick={handleToggleRecording} disabled={isInputDisabled}>
                             {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                             <span className="sr-only">{isRecording ? "Stop recording" : "Start recording"}</span>
                         </Button>
-                        <Button type="submit" size="icon" className="h-9 w-9 flex-shrink-0" disabled={isInputDisabled || (!input.trim() && !imageDataUri && !fileContent)}>
-                            <Send className="h-5 w-5" />
+                        <Button
+                            type="submit"
+                            size="icon"
+                            className={cn(
+                                "h-11 w-11 rounded-full shadow-sm transition-all duration-300",
+                                hasContent
+                                    ? "bg-primary text-primary-foreground hover:scale-105 hover:shadow-md"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            )}
+                            disabled={isInputDisabled || !hasContent}
+                        >
+                            <Send className={cn("h-5 w-5", hasContent && "translate-x-0.5")} />
                             <span className="sr-only">Send</span>
                         </Button>
                     </div>
                 </form>
+                <div className="text-center mt-3">
+                    <p className="text-[10px] text-muted-foreground/40 font-medium">AI can make mistakes. Check important info.</p>
+                </div>
+                <input type="file" ref={fileInputRef} className="hidden" />
             </div>
         </div>
     );

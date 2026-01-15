@@ -8,7 +8,13 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         request.auth.uid == userId || 
         // Allow updating follower/following counts
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(['followerCount', 'followingCount'])
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['followerCount', 'followingCount']) ||
+        // Allow system to update subscription and usage data
+        request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'subscriptionTier', 'subscriptionStartDate', 'subscriptionEndDate',
+          'stripeCustomerId', 'stripeSubscriptionId',
+          'dailyUsage', 'monthlyUsage', 'lastDailyReset', 'lastMonthlyReset'
+        ])
       );
       allow delete: if request.auth != null && request.auth.uid == userId;
     }

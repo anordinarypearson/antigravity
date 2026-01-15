@@ -32,7 +32,7 @@ export function StudyNowContent() {
   const [title, setTitle] = useState("");
   const [analysis, setAnalysis] = useState<AnalyzeContentOutput | null>(null);
   const [flashcards, setFlashcards] = useState<GenerateFlashcardsOutput['flashcards'] | null>(null);
-  
+
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const [isSynthesizing, setIsSynthesizing] = useState<string | null>(null);
@@ -58,20 +58,20 @@ export function StudyNowContent() {
     // Check for content from PDF Hub
     const pdfContent = localStorage.getItem('pdfStudyContent');
     if (pdfContent) {
-        try {
-            const { title: pdfTitle, content: pdfText } = JSON.parse(pdfContent);
-            setTitle(pdfTitle);
-            setContent(pdfText);
-            toast({
-                title: "PDF Content Loaded",
-                description: `Successfully loaded content from ${pdfTitle}.pdf. Click Analyze to begin.`,
-            });
-        } catch (e) {
-            console.error("Failed to parse PDF content from localStorage", e);
-        } finally {
-            // Clear the item so it's not loaded again on subsequent visits
-            localStorage.removeItem('pdfStudyContent');
-        }
+      try {
+        const { title: pdfTitle, content: pdfText } = JSON.parse(pdfContent);
+        setTitle(pdfTitle);
+        setContent(pdfText);
+        toast({
+          title: "PDF Content Loaded",
+          description: `Successfully loaded content from ${pdfTitle}.pdf. Click Analyze to begin.`,
+        });
+      } catch (e) {
+        console.error("Failed to parse PDF content from localStorage", e);
+      } finally {
+        // Clear the item so it's not loaded again on subsequent visits
+        localStorage.removeItem('pdfStudyContent');
+      }
     }
   }, [toast]);
 
@@ -109,21 +109,21 @@ export function StudyNowContent() {
   }, [toast, finalTranscript]);
 
   const handleToggleRecording = () => {
-      if (!recognitionRef.current) {
-          toast({
-              title: "Browser Not Supported",
-              description: "Your browser does not support voice-to-text.",
-              variant: "destructive",
-          });
-          return;
-      }
-      if (isRecording) {
-          recognitionRef.current.stop();
-      } else {
-          setContent('');
-          setFinalTranscript('');
-          recognitionRef.current.start();
-      }
+    if (!recognitionRef.current) {
+      toast({
+        title: "Browser Not Supported",
+        description: "Your browser does not support voice-to-text.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      setContent('');
+      setFinalTranscript('');
+      recognitionRef.current.start();
+    }
   };
 
 
@@ -137,14 +137,14 @@ export function StudyNowContent() {
       return;
     }
     startAnalyzing(async () => {
-        const result = await analyzeContentAction(content);
-        if (result.error) {
-            toast({ title: "Analysis Failed", description: result.error, variant: "destructive" });
-        } else if (result.data) {
-            setAnalysis(result.data ?? null);
-            setFlashcards(null);
-            setActiveTab("analysis");
-        }
+      const result = await analyzeContentAction(content);
+      if (result.error) {
+        toast({ title: "Analysis Failed", description: result.error, variant: "destructive" });
+      } else if (result.data) {
+        setAnalysis(result.data ?? null);
+        setFlashcards(null);
+        setActiveTab("analysis");
+      }
     });
   }, [content, toast]);
 
@@ -152,9 +152,9 @@ export function StudyNowContent() {
     if (!analysis) return;
     startGeneratingFlashcards(async () => {
       const flashcardContent = `Key Concepts: ${analysis.keyConcepts.map(c => c.concept).join(', ')}. Questions: ${analysis.potentialQuestions?.join(' ')}`;
-      const result = await generateFlashcardsAction({content: flashcardContent});
+      const result = await generateFlashcardsAction({ content: flashcardContent });
       if (result.error) {
-         toast({ title: "Flashcard Generation Failed", description: result.error, variant: "destructive" });
+        toast({ title: "Flashcard Generation Failed", description: result.error, variant: "destructive" });
       } else {
         setFlashcards(result.data?.flashcards ?? []);
         setActiveTab("flashcards");
@@ -165,17 +165,17 @@ export function StudyNowContent() {
   const handleGenerateQuiz = async () => {
     if (!analysis) return;
     try {
-        const quizContent = `Key Concepts: ${analysis.keyConcepts.map(c => c.concept).join(', ')}. Questions: ${analysis.potentialQuestions?.join(' ')}`;
-        localStorage.setItem('quizContent', quizContent);
-        router.push('/quiz/options');
+      const quizContent = `Key Concepts: ${analysis.keyConcepts.map(c => c.concept).join(', ')}. Questions: ${analysis.potentialQuestions?.join(' ')}`;
+      localStorage.setItem('quizContent', quizContent);
+      router.push('/quiz/options');
     } catch (e) {
-        toast({
-            title: "Could not start quiz",
-            description: "There was an error while preparing the quiz content.",
-            variant: "destructive",
-        });
+      toast({
+        title: "Could not start quiz",
+        description: "There was an error while preparing the quiz content.",
+        variant: "destructive",
+      });
     }
-};
+  };
 
   const handleFileUploadClick = () => fileInputRef.current?.click();
   const handleImageUploadClick = () => imageInputRef.current?.click();
@@ -227,41 +227,41 @@ export function StudyNowContent() {
   };
 
   const preprocessImage = (file: File, maxSize: number = 2000): Promise<string> => {
-      return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-              const img = document.createElement("img");
-              img.onload = () => {
-                  let { width, height } = img;
-                  if (width > height) {
-                      if (width > maxSize) {
-                          height *= maxSize / width;
-                          width = maxSize;
-                      }
-                  } else {
-                      if (height > maxSize) {
-                          width *= maxSize / height;
-                          height = maxSize;
-                      }
-                  }
-                  const canvas = document.createElement("canvas");
-                  canvas.width = width;
-                  canvas.height = height;
-                  const ctx = canvas.getContext("2d");
-                  if (!ctx) return reject(new Error("Could not get canvas context"));
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxSize) {
+              height *= maxSize / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width *= maxSize / height;
+              height = maxSize;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Could not get canvas context"));
 
-                  // Grayscale and contrast
-                  ctx.filter = 'grayscale(1) contrast(1.5)';
-                  ctx.drawImage(img, 0, 0, width, height);
+          // Grayscale and contrast
+          ctx.filter = 'grayscale(1) contrast(1.5)';
+          ctx.drawImage(img, 0, 0, width, height);
 
-                  resolve(canvas.toDataURL("image/jpeg", 0.95)); // Use high quality JPEG
-              };
-              img.onerror = reject;
-              img.src = event.target?.result as string;
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-      });
+          resolve(canvas.toDataURL("image/jpeg", 0.95)); // Use high quality JPEG
+        };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,47 +269,47 @@ export function StudyNowContent() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-        toast({ title: "Invalid file type", description: "Please upload an image file (e.g., PNG, JPG).", variant: "destructive" });
-        return;
+      toast({ title: "Invalid file type", description: "Please upload an image file (e.g., PNG, JPG).", variant: "destructive" });
+      return;
     }
 
     startLoadingMaterial(async () => {
-        setIsOcrProcessing(true);
-        setOcrProgress(0);
+      setIsOcrProcessing(true);
+      setOcrProgress(0);
 
-        try {
-            const processedDataUri = await preprocessImage(file);
-            setImageDataUri(processedDataUri);
-            setAnalysis(null);
-            setFlashcards(null);
-            
-            const { data: { text } } = await Tesseract.recognize(
-                processedDataUri,
-                'eng',
-                { 
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            setOcrProgress(Math.round(m.progress * 100));
-                        }
-                    }
-                }
-            );
-            setContent(text);
-            setTitle(file.name);
-            toast({ title: "Image & Text Loaded!", description: "Text has been extracted via OCR. Click Analyze to begin." });
-        } catch (error: any) {
-            toast({ title: "Image processing or OCR failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
-            setImageDataUri(null);
-            setContent("");
-        } finally {
-            setIsOcrProcessing(false);
-        }
+      try {
+        const processedDataUri = await preprocessImage(file);
+        setImageDataUri(processedDataUri);
+        setAnalysis(null);
+        setFlashcards(null);
+
+        const { data: { text } } = await Tesseract.recognize(
+          processedDataUri,
+          'eng',
+          {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                setOcrProgress(Math.round(m.progress * 100));
+              }
+            }
+          }
+        );
+        setContent(text);
+        setTitle(file.name);
+        toast({ title: "Image & Text Loaded!", description: "Text has been extracted via OCR. Click Analyze to begin." });
+      } catch (error: any) {
+        toast({ title: "Image processing or OCR failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
+        setImageDataUri(null);
+        setContent("");
+      } finally {
+        setIsOcrProcessing(false);
+      }
     });
   };
 
   const clearImage = () => {
     setImageDataUri(null); setTitle(""); setContent(""); setAnalysis(null); setFlashcards(null);
-    if(imageInputRef.current) imageInputRef.current.value = "";
+    if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
   const handleTutorChat = async (history: any) => await chatWithTutorAction({ content, history });
@@ -346,7 +346,7 @@ export function StudyNowContent() {
   };
 
   const isLoading = isAnalyzing || isLoadingMaterial || isGeneratingFlashcards || isGeneratingQuiz;
-  
+
   const TABS = [
     { value: "analysis", label: "Analysis", disabled: !analysis },
     { value: "flashcards", label: "Flashcards", disabled: !analysis },
@@ -356,16 +356,16 @@ export function StudyNowContent() {
 
   return (
     <div className="flex h-screen flex-col bg-muted/40">
-       <CameraCaptureDialog 
+      <CameraCaptureDialog
         isOpen={isCameraDialogOpen}
         onOpenChange={setIsCameraDialogOpen}
         onCapture={handleCaptureImage}
       />
       <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
         <div className="flex items-center gap-2">
-            <SidebarTrigger className="lg:hidden" />
-            <BackButton />
-            <h1 className="text-xl font-semibold tracking-tight">Study Session</h1>
+          <SidebarTrigger className="lg:hidden" />
+          <BackButton />
+          <h1 className="text-xl font-semibold tracking-tight">Study Session</h1>
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -379,36 +379,36 @@ export function StudyNowContent() {
               <Input placeholder="Enter a title for your material..." value={title} onChange={(e) => setTitle(e.target.value)} className="text-lg font-semibold" disabled={isLoading} />
               {isLoadingMaterial ? <Skeleton className="w-full h-full min-h-[300px] flex-1" /> : imageDataUri ? (
                 <div className="relative flex-1 min-h-[300px]">
-                    <Image src={imageDataUri} alt="Uploaded content" layout="fill" objectFit="contain" className="rounded-md border" />
-                     {isOcrProcessing && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-md">
-                            <Loader2 className="h-8 w-8 animate-spin text-white" />
-                            <p className="text-white mt-2">Extracting text... {ocrProgress}%</p>
-                            <Progress value={ocrProgress} className="w-40 mt-2 h-1" />
-                        </div>
-                    )}
-                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 z-10 h-8 w-8" onClick={clearImage} disabled={isOcrProcessing}><X className="h-4 w-4" /></Button>
+                  <Image src={imageDataUri} alt="Uploaded content" layout="fill" objectFit="contain" className="rounded-md border" />
+                  {isOcrProcessing && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-md">
+                      <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      <p className="text-white mt-2">Extracting text... {ocrProgress}%</p>
+                      <Progress value={ocrProgress} className="w-40 mt-2 h-1" />
+                    </div>
+                  )}
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 z-10 h-8 w-8" onClick={clearImage} disabled={isOcrProcessing}><X className="h-4 w-4" /></Button>
                 </div>
               ) : (
                 <div className="relative h-full">
-                    <Textarea placeholder="Paste your study content here... (min. 50 characters)" className="h-full min-h-[300px] resize-none pr-10" value={content} onChange={(e) => setContent(e.target.value)} />
-                    <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={handleToggleRecording} className="absolute bottom-3 right-3">
-                        {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                        <span className="sr-only">{isRecording ? 'Stop recording' : 'Start recording'}</span>
-                    </Button>
+                  <Textarea placeholder="Paste your study content here... (min. 50 characters)" className="h-full min-h-[300px] resize-none pr-10" value={content} onChange={(e) => setContent(e.target.value)} />
+                  <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={handleToggleRecording} className="absolute bottom-3 right-3">
+                    {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    <span className="sr-only">{isRecording ? 'Stop recording' : 'Start recording'}</span>
+                  </Button>
                 </div>
               )}
-               {imageDataUri && <Textarea placeholder="Text extracted via OCR will appear here. You can edit it before analysis." className="h-24 resize-none" value={content} onChange={(e) => setContent(e.target.value)} />}
+              {imageDataUri && <Textarea placeholder="Text extracted via OCR will appear here. You can edit it before analysis." className="h-24 resize-none" value={content} onChange={(e) => setContent(e.target.value)} />}
             </CardContent>
-            <CardFooter className="flex flex-col items-stretch gap-2 @sm:flex-row">
-              <Button onClick={handleAnalyze} disabled={isLoading || isOcrProcessing || content.trim().length < 50}>
+            <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-2 @sm:flex-row">
+              <Button onClick={handleAnalyze} disabled={isLoading || isOcrProcessing || content.trim().length < 50} className="w-full sm:w-auto h-11 touch-manipulation">
                 {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                 Analyze
               </Button>
               <div className="flex items-stretch gap-2 flex-1">
-                <Button variant="outline" className="flex-1" onClick={handleFileUploadClick} disabled={isLoading}><FileUp className="mr-2 h-4 w-4" />.txt</Button>
-                <Button variant="outline" className="flex-1" onClick={handleImageUploadClick} disabled={isLoading}><ImageIcon className="mr-2 h-4 w-4" />Image</Button>
-                <Button variant="outline" className="flex-1" onClick={() => setIsCameraDialogOpen(true)} disabled={isLoading}><Camera className="mr-2 h-4 w-4" />Capture</Button>
+                <Button variant="outline" className="flex-1 h-11 touch-manipulation" onClick={handleFileUploadClick} disabled={isLoading}><FileUp className="mr-2 h-4 w-4" /><span className="hidden sm:inline">.txt</span><span className="sm:hidden">Text</span></Button>
+                <Button variant="outline" className="flex-1 h-11 touch-manipulation" onClick={handleImageUploadClick} disabled={isLoading}><ImageIcon className="mr-2 h-4 w-4" />Image</Button>
+                <Button variant="outline" className="flex-1 h-11 touch-manipulation" onClick={() => setIsCameraDialogOpen(true)} disabled={isLoading}><Camera className="mr-2 h-4 w-4" /><span className="hidden sm:inline">Capture</span><span className="sm:hidden">Cam</span></Button>
               </div>
               <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".txt" />
               <input type="file" ref={imageInputRef} onChange={handleImageFileChange} className="hidden" accept="image/*" />
@@ -435,56 +435,56 @@ export function StudyNowContent() {
                 </div>
               ) : (
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-                    {TABS.map(tab => <TabsTrigger key={tab.value} value={tab.value} disabled={tab.disabled}>{tab.label}</TabsTrigger>)}
+                  <TabsList className="grid w-full grid-cols-4 h-auto">
+                    {TABS.map(tab => <TabsTrigger key={tab.value} value={tab.value} disabled={tab.disabled} className="py-2.5 text-xs sm:text-sm touch-manipulation">{tab.label}</TabsTrigger>)}
                   </TabsList>
                   <ScrollArea className="mt-4 flex-1">
-                  <TabsContent value="analysis" className="h-full">
-                    <Accordion type="multiple" defaultValue={['summary', 'key-concepts']} className="w-full space-y-3 pr-4">
+                    <TabsContent value="analysis" className="h-full">
+                      <Accordion type="multiple" defaultValue={['summary', 'key-concepts']} className="w-full space-y-3 pr-4">
                         <AccordionItem value="summary" className="rounded-md border bg-card px-4">
-                            <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><Pilcrow />Summary</div></AccordionTrigger>
-                            <AccordionContent className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-                                <div className="flex justify-end">
-                                    <Button size="icon" variant="ghost" onClick={() => handleTextToSpeech(analysis.summary, 'summary')} disabled={!!isSynthesizing} className="mb-2">
-                                        {isSynthesizing === 'summary' ? <Loader2 className="animate-spin" /> : <Volume2 />}
-                                    </Button>
-                                </div>
-                                {audioDataUri && isSynthesizing === 'summary' && (
-                                    <div className="mb-2">
-                                        <audio controls autoPlay src={audioDataUri} className="w-full" onEnded={() => { setAudioDataUri(null); setIsSynthesizing(null); }} />
-                                    </div>
-                                )}
-                                <p>{analysis.summary}</p>
-                            </AccordionContent>
+                          <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><Pilcrow />Summary</div></AccordionTrigger>
+                          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+                            <div className="flex justify-end">
+                              <Button size="icon" variant="ghost" onClick={() => handleTextToSpeech(analysis.summary, 'summary')} disabled={!!isSynthesizing} className="mb-2">
+                                {isSynthesizing === 'summary' ? <Loader2 className="animate-spin" /> : <Volume2 />}
+                              </Button>
+                            </div>
+                            {audioDataUri && isSynthesizing === 'summary' && (
+                              <div className="mb-2">
+                                <audio controls autoPlay src={audioDataUri} className="w-full" onEnded={() => { setAudioDataUri(null); setIsSynthesizing(null); }} />
+                              </div>
+                            )}
+                            <p>{analysis.summary}</p>
+                          </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="key-concepts" className="rounded-md border bg-card px-4">
-                            <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><BrainCircuit/>Key Concepts</div></AccordionTrigger>
-                            <AccordionContent className="prose prose-sm dark:prose-invert max-w-none">
+                          <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><BrainCircuit />Key Concepts</div></AccordionTrigger>
+                          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none">
                             {analysis.keyConcepts?.map((concept, i) => <div key={i} className="py-2"><p className="font-semibold !my-0">{concept.concept}</p><p className="text-muted-foreground !my-0">{concept.explanation}</p></div>)}
-                            </AccordionContent>
+                          </AccordionContent>
                         </AccordionItem>
                         {analysis.codeExamples?.length > 0 && (
-                            <AccordionItem value="code-examples" className="rounded-md border bg-card px-4">
-                                <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><Code />Code Examples</div></AccordionTrigger>
-                                <AccordionContent className="space-y-4">
-                                {analysis.codeExamples.map((example, i) => <div key={i} className="space-y-2"><p className="text-sm text-muted-foreground">{example.explanation}</p><div className="relative rounded-md bg-muted/50 p-4 font-mono text-xs"><Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6" onClick={() => handleCopyToClipboard(example.code, "Code")}><Copy className="h-4 w-4" /></Button><pre className="whitespace-pre-wrap"><code>{example.code}</code></pre></div></div>)}
-                                </AccordionContent>
-                            </AccordionItem>
+                          <AccordionItem value="code-examples" className="rounded-md border bg-card px-4">
+                            <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><Code />Code Examples</div></AccordionTrigger>
+                            <AccordionContent className="space-y-4">
+                              {analysis.codeExamples.map((example, i) => <div key={i} className="space-y-2"><p className="text-sm text-muted-foreground">{example.explanation}</p><div className="relative rounded-md bg-muted/50 p-4 font-mono text-xs"><Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6" onClick={() => handleCopyToClipboard(example.code, "Code")}><Copy className="h-4 w-4" /></Button><pre className="whitespace-pre-wrap"><code>{example.code}</code></pre></div></div>)}
+                            </AccordionContent>
+                          </AccordionItem>
                         )}
                         <AccordionItem value="potential-questions" className="rounded-md border bg-card px-4">
-                            <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><HelpCircle />Potential Questions</div></AccordionTrigger>
-                            <AccordionContent className="prose-sm dark:prose-invert max-w-none">
+                          <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><HelpCircle />Potential Questions</div></AccordionTrigger>
+                          <AccordionContent className="prose-sm dark:prose-invert max-w-none">
                             <ul className="mt-2 list-disc space-y-2 pl-5 text-muted-foreground">{analysis.potentialQuestions?.map((q, i) => <li key={i}>{q}</li>)}</ul>
-                            </AccordionContent>
+                          </AccordionContent>
                         </AccordionItem>
-                         <AccordionItem value="related-topics" className="rounded-md border bg-card px-4">
-                            <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><ListTree />Related Topics</div></AccordionTrigger>
-                            <AccordionContent className="prose-sm dark:prose-invert max-w-none">
+                        <AccordionItem value="related-topics" className="rounded-md border bg-card px-4">
+                          <AccordionTrigger className="py-4 text-left font-medium hover:no-underline text-base"><div className="flex items-center gap-3"><ListTree />Related Topics</div></AccordionTrigger>
+                          <AccordionContent className="prose-sm dark:prose-invert max-w-none">
                             <ul className="mt-2 list-disc space-y-2 pl-5 text-muted-foreground">{analysis.relatedTopics?.map((q, i) => <li key={i}>{q}</li>)}</ul>
-                            </AccordionContent>
+                          </AccordionContent>
                         </AccordionItem>
-                    </Accordion>
-                  </TabsContent>
+                      </Accordion>
+                    </TabsContent>
                     <TabsContent value="flashcards" className="h-full">
                       {isGeneratingFlashcards ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><Loader2 className="animate-spin" /> <p>Generating flashcards...</p></div> : flashcards ? (
                         <div className="grid grid-cols-1 gap-4 pr-4 @md:grid-cols-2">
@@ -492,19 +492,19 @@ export function StudyNowContent() {
                         </div>
                       ) : (
                         <div className="flex h-full items-center justify-center">
-                          <Button onClick={handleGenerateFlashcards} disabled={isGeneratingFlashcards}><BookCopy className="mr-2 h-4 w-4" />Generate Flashcards</Button>
+                          <Button onClick={handleGenerateFlashcards} disabled={isGeneratingFlashcards} className="h-11 touch-manipulation"><BookCopy className="mr-2 h-4 w-4" />Generate Flashcards</Button>
                         </div>
                       )}
                     </TabsContent>
                     <TabsContent value="quiz" className="h-full">
-                       {isGeneratingQuiz ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><Loader2 className="animate-spin" /> <p>Generating quiz...</p></div> : (
+                      {isGeneratingQuiz ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><Loader2 className="animate-spin" /> <p>Generating quiz...</p></div> : (
                         <div className="flex h-full items-center justify-center">
-                           <Button onClick={handleGenerateQuiz} disabled={isGeneratingQuiz}><HelpCircle className="mr-2 h-4 w-4" />Generate Quiz & Start</Button>
+                          <Button onClick={handleGenerateQuiz} disabled={isGeneratingQuiz} className="h-11 touch-manipulation"><HelpCircle className="mr-2 h-4 w-4" />Generate Quiz & Start</Button>
                         </div>
                       )}
                     </TabsContent>
                     <TabsContent value="tutor" className="h-full">
-                      <TutorChat content={analysis ? (imageDataUri ? `Image name: ${title}. Key Concepts from Image: ${analysis.keyConcepts.map(c => c.concept).join(', ')}. Potential Questions from Image: ${analysis.potentialQuestions?.join(' ')}` : content) : content} onSendMessage={handleTutorChat}/>
+                      <TutorChat content={analysis ? (imageDataUri ? `Image name: ${title}. Key Concepts from Image: ${analysis.keyConcepts.map(c => c.concept).join(', ')}. Potential Questions from Image: ${analysis.potentialQuestions?.join(' ')}` : content) : content} onSendMessage={handleTutorChat} />
                     </TabsContent>
                   </ScrollArea>
                 </Tabs>
@@ -512,7 +512,7 @@ export function StudyNowContent() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
