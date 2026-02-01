@@ -19,7 +19,10 @@ import { Textarea } from "./ui/textarea";
 import { useRouter } from "next/navigation";
 
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
 
 export const MainDashboard = React.memo(function MainDashboard() {
   const { theme, setTheme } = useTheme();
@@ -31,6 +34,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeView, setActiveView] = useState('searnai');
   const [showPricingDialog, setShowPricingDialog] = useState(false);
+
 
   const [answerTypes, setAnswerTypes] = useState({
     auto: true,
@@ -59,7 +63,6 @@ export const MainDashboard = React.memo(function MainDashboard() {
       return newTypes;
     });
   }, []);
-
 
   const handleNewChat = React.useCallback(() => {
     try {
@@ -108,9 +111,9 @@ export const MainDashboard = React.memo(function MainDashboard() {
   ];
 
   return (
-    <div className="flex h-full flex-col font-sans">
+    <div className="flex h-full flex-col font-sans overflow-hidden">
       <PricingDialog isOpen={showPricingDialog} onOpenChange={setShowPricingDialog} />
-      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 sm:px-6 transition-all duration-300">
+      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-sidebar px-4 sm:px-6 transition-all duration-300">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="lg:hidden" />
         </div>
@@ -148,9 +151,11 @@ export const MainDashboard = React.memo(function MainDashboard() {
           </motion.div>
         )}
 
-
-
         <div className="flex items-center gap-2 sm:gap-3">
+
+
+
+
           {/* Get Pro - Icon only on mobile, full button on desktop */}
           <Button
             onClick={() => setShowPricingDialog(true)}
@@ -179,7 +184,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       </header>
 
-      <div className="flex justify-center items-center py-2 sm:py-3 bg-transparent z-10">
+      <div className="flex justify-center items-center py-2 sm:py-3 bg-transparent z-10 w-full">
         <div className="flex items-center gap-6 sm:gap-8 px-4">
           {views.map((view) => {
             const Icon = view.icon;
@@ -210,47 +215,51 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       </div>
 
-      <main className="flex-1 overflow-hidden relative">
-        {activeView === 'searnai' ? (
-          <div className="h-full flex flex-col">
-            <ChatContent
-              answerTypes={answerTypes}
-              onMessageSent={() => {
-                if (localStorage.getItem('isGuest') === 'true') {
-                  localStorage.setItem('has_tested_app', 'true');
-                }
-              }}
-            />
-          </div>
-        ) : activeView === 'stories' ? (
-          <NewsContent />
-        ) : (
-          <WebBrowserContent />
-        )}
-        {activeVideoId && showPlayer && (
-          <div className="fixed bottom-16 sm:bottom-4 right-2 sm:right-4 z-50 group">
+      <div className="flex-1 flex overflow-hidden relative">
+        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+          {activeView === 'searnai' ? (
+            <div className="h-full flex flex-col">
+              <ChatContent
+                answerTypes={answerTypes}
+                onMessageSent={() => {
+                  if (localStorage.getItem('isGuest') === 'true') {
+                    localStorage.setItem('has_tested_app', 'true');
+                  }
+                }}
+              />
+            </div>
+          ) : activeView === 'stories' ? (
+            <NewsContent />
+          ) : (
+            <WebBrowserContent />
+          )}
+          {activeVideoId && showPlayer && (
+            <div className="fixed bottom-16 sm:bottom-4 right-2 sm:right-4 z-50 group">
+              <iframe
+                ref={iframeRef}
+                className="w-[280px] sm:w-full sm:max-w-sm aspect-video rounded-lg shadow-xl"
+                src={`https://www.youtube.com/embed/${activeVideoId}?enablejsapi=1&autoplay=1`}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                title="YouTube music player"
+              ></iframe>
+              <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-8 w-8 sm:h-7 sm:w-7 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
+            </div>
+          )}
+          {activeVideoId && !showPlayer && (
+            // Hidden iframe to control playback even when floating player is not visible
             <iframe
               ref={iframeRef}
-              className="w-[280px] sm:w-full sm:max-w-sm aspect-video rounded-lg shadow-xl"
+              className="hidden"
               src={`https://www.youtube.com/embed/${activeVideoId}?enablejsapi=1&autoplay=1`}
               allow="autoplay; encrypted-media"
-              allowFullScreen
               title="YouTube music player"
             ></iframe>
-            <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-8 w-8 sm:h-7 sm:w-7 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
-          </div>
-        )}
-        {activeVideoId && !showPlayer && (
-          // Hidden iframe to control playback even when floating player is not visible
-          <iframe
-            ref={iframeRef}
-            className="hidden"
-            src={`https://www.youtube.com/embed/${activeVideoId}?enablejsapi=1&autoplay=1`}
-            allow="autoplay; encrypted-media"
-            title="YouTube music player"
-          ></iframe>
-        )}
-      </main>
+          )}
+        </main>
+
+
+      </div>
     </div>
   );
 });

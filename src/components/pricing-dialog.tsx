@@ -71,14 +71,7 @@ export function PricingDialog({ isOpen, onOpenChange, currentTier = 'free' }: Pr
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] bg-black border-neutral-800 text-white p-4 sm:p-6 overflow-hidden flex flex-col">
                 {/* Close button - larger touch target on mobile */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 sm:top-4 sm:right-4 h-10 w-10 sm:h-8 sm:w-8 z-10"
-                    onClick={() => onOpenChange(false)}
-                >
-                    <X className="h-5 w-5 sm:h-4 sm:w-4" />
-                </Button>
+
 
                 <DialogHeader className="text-center mb-4 sm:mb-6 flex-shrink-0 pr-8">
                     <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-semibold">

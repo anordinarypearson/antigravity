@@ -63,10 +63,7 @@ import { ImageSearchCard } from "./image-search-card";
 
 
 
-// Required for pdf.js to work
-if (typeof window !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-}
+
 
 export type Message = {
   id: string;
@@ -411,14 +408,34 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
   }, [finalTranscript, isRecording]);
 
 
-  const handleToggleRecording = () => {
+  const handleToggleRecording = async () => {
     if (!recognitionRef.current) return;
+
     if (isRecording) {
       recognitionRef.current.stop();
     } else {
-      setInput('');
-      setFinalTranscript('');
-      recognitionRef.current.start();
+      try {
+        // Explicitly request permission first to trigger browser prompt reliably
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        setInput('');
+        setFinalTranscript('');
+        recognitionRef.current.start();
+      } catch (err: any) {
+        console.error("Microphone permission error:", err);
+        let errorMessage = "Could not access microphone.";
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          errorMessage = "Microphone permission was denied. Please allow microphone access in your browser settings (look for the camera/mic icon in the address bar).";
+        } else if (err.name === 'NotFoundError') {
+          errorMessage = "No microphone found. Please ensure your microphone is connected.";
+        }
+
+        toast({
+          title: "Microphone Access Denied",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -659,7 +676,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
         whileHover={{ borderColor: "hsla(var(--foreground) / 0.3)" }}
         whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 0 20px -5px hsl(var(--primary) / 0.4)" }}
         transition={{ duration: 0.3 }}
-        className="relative flex flex-col gap-2 rounded-2xl border bg-background/80 backdrop-blur-xl p-3 shadow-sm"
+        className="relative flex flex-col gap-2 max-sm:rounded-none sm:rounded-2xl border max-sm:border-x-0 max-sm:border-b-0 bg-background max-sm:p-2 sm:p-3 max-sm:shadow-none shadow-sm"
       >
         {isCommandOpen && (
           <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border rounded-xl shadow-lg z-50 overflow-hidden">
@@ -811,7 +828,7 @@ const ChatBar = React.memo(({
   };
 
   return (
-    <div className={cn("mx-auto w-full max-w-3xl", isPlayground ? "p-2" : "p-2 pb-4")}>
+    <div className={cn("mx-auto w-full", isPlayground ? "p-2 max-w-3xl" : "max-sm:p-0 max-sm:max-w-none sm:px-4 sm:pb-4 max-w-3xl")}>
       <ChatInput
         onSendMessage={onSendMessage}
         isTyping={isTyping}
@@ -881,6 +898,15 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    // Initialize PDF.js worker safely
+    if (typeof window !== 'undefined' && !pdfjs.GlobalWorkerOptions.workerSrc) {
+      try {
+        pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+      } catch (e) {
+        console.warn("Failed to set PDF worker source", e);
+      }
+    }
+
     try {
       const savedHistory = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
       if (savedHistory) {
@@ -1415,7 +1441,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     const markdownProps = {
       remarkPlugins: [remarkMath, remarkGfm],
       rehypePlugins: [rehypeKatex],
-      className: "prose dark:prose-invert max-w-none text-sm leading-relaxed",
+      className: "prose dark:prose-invert prose-sm sm:prose max-w-full text-sm leading-relaxed break-words text-left hyphens-auto overflow-hidden",
       components: {
         pre: ({ children }: any) => {
           const childArray = React.Children.toArray(children);
@@ -1425,7 +1451,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           // Default styled pre for non-codebox content. We remove the background and border here
           // because if a CodeBox IS rendered (and we missed the check), we don't want a double box.
           // IMPORTANT: We use !bg-transparent !p-0 !border-0 to override Tailwind typography (prose) defaults.
-          return <pre className="!bg-transparent !p-0 !border-0 !m-0 overflow-visible text-sm leading-relaxed">{children}</pre>;
+          return <pre className="!bg-transparent !p-0 !border-0 !m-0 overflow-x-auto text-sm leading-relaxed">{children}</pre>;
         },
         code({ node, inline, className, children, ...props }: any) {
           const match = /language-(\w+)/.exec(className || '');
@@ -1511,7 +1537,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         content={shareContent || ""}
       />
       <div
-        className={cn("flex-1 relative bg-muted/40", isPlayground ? "h-full flex flex-col" : "")}
+        className={cn("flex-1 relative bg-background", isPlayground ? "h-full flex flex-col" : "")}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -1544,8 +1570,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             onUpdateName={handleUpdateName}
           />
         ) : (
-          <ScrollArea className="flex-1" ref={scrollAreaRef} onScrollCapture={handleScroll}>
-            <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-4", isPlayground ? "pb-4" : "pb-48")}>
+          <ScrollArea className="flex-1 w-full" ref={scrollAreaRef} onScrollCapture={handleScroll}>
+            <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-2 sm:px-4 overflow-x-hidden min-w-0", isPlayground ? "pb-4" : "pb-48")}>
               {history.map((message, index) => (
                 <React.Fragment key={`${message.id}-${index}`}>
                   <div
@@ -1556,7 +1582,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                     )}
                   >
                     {message.role === "user" ? (
-                      <div className="flex flex-col items-end gap-1 max-w-md w-full">
+                      <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-md w-full min-w-0">
                         {editingMessageId === message.id ? (
                           <div className="w-full bg-muted p-3 rounded-xl border border-primary/50">
                             <Textarea
@@ -1572,8 +1598,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         ) : (
                           <>
                             <div className="relative group/msg">
-                              <div className="border bg-transparent inline-block rounded-xl p-3">
-                                <p className="text-sm">{message.content}</p>
+                              <div className="border border-primary/20 bg-primary/5 inline-block rounded-xl p-3">
+                                <p className="text-sm text-foreground font-medium line-clamp-none">{message.content}</p>
                               </div>
                               <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
                                 <Button
@@ -1605,7 +1631,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         )}
                       </div>
                     ) : (
-                      <div className="w-full">
+                      <div className="chat-message-content w-full overflow-hidden text-left min-w-0 whitespace-normal break-words overflow-wrap-anywhere">
                         {renderMessageContent(message)}
                         {audioDataUri && isSynthesizing === message.id && (
                           <audio

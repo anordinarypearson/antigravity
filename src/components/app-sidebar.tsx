@@ -98,8 +98,8 @@ const AppLogo = () => (
   >
     <defs>
       <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style={{ stopColor: "hsl(var(--accent-start))", stopOpacity: 1 }} />
-        <stop offset="100%" style={{ stopColor: "hsl(var(--accent-end))", stopOpacity: 1 }} />
+        <stop offset="0%" style={{ stopColor: "#EF4444", stopOpacity: 1 }} />
+        <stop offset="100%" style={{ stopColor: "#991B1B", stopOpacity: 1 }} />
       </linearGradient>
     </defs>
     <path
@@ -162,12 +162,12 @@ export function AppSidebar() {
             className="justify-start w-full gap-2.5 px-3 relative"
           >
             {pathname === item.href && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
             )}
-            <div className="transition-transform duration-200 group-hover/menu-button:scale-110">
+            <div className={cn("transition-transform duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-red-600" : "")}>
               {item.icon}
             </div>
-            <span className="text-sm">{item.name}</span>
+            <span className={cn("text-sm", pathname === item.href ? "text-red-600 font-medium" : "")}>{item.name}</span>
           </SidebarMenuButton>
         </Link>
       </SidebarMenuItem>
@@ -175,7 +175,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="bg-black/80 border-r border-neutral-800/50 text-sidebar-foreground backdrop-blur-lg">
+    <Sidebar className="bg-sidebar border-r border-neutral-800/50 text-sidebar-foreground">
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-primary-foreground border border-neutral-700 shadow-sm">
@@ -200,10 +200,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
                   )}
-                  <Home />
-                  <span className="text-sm">Home</span>
+                  <Home className={pathname === "/" ? "text-red-600" : ""} />
+                  <span className={cn("text-sm", pathname === "/" ? "text-red-600 font-medium" : "")}>Home</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -215,10 +215,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/planner" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
                   )}
-                  <Calendar />
-                  <span className="text-sm">Planner</span>
+                  <Calendar className={pathname === "/planner" ? "text-red-600" : ""} />
+                  <span className={cn("text-sm", pathname === "/planner" ? "text-red-600 font-medium" : "")}>Planner</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -229,10 +229,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/inbox" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
                   )}
-                  <Inbox />
-                  <span className="text-sm">Inbox</span>
+                  <Inbox className={pathname === "/inbox" ? "text-red-600" : ""} />
+                  <span className={cn("text-sm", pathname === "/inbox" ? "text-red-600 font-medium" : "")}>Inbox</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -243,10 +243,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/agent" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
                   )}
-                  <Bot />
-                  <span className="text-sm">Agent</span>
+                  <Bot className={pathname === "/agent" ? "text-red-600" : ""} />
+                  <span className={cn("text-sm", pathname === "/agent" ? "text-red-600 font-medium" : "")}>Agent</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -257,10 +257,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/friends" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
                   )}
-                  <Users />
-                  <span className="text-sm">Friends</span>
+                  <Users className={pathname === "/friends" ? "text-red-600" : ""} />
+                  <span className={cn("text-sm", pathname === "/friends" ? "text-red-600 font-medium" : "")}>Friends</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

@@ -7,7 +7,13 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { User, onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  User, onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider, TwitterAuthProvider, signInWithPopup, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -18,10 +24,14 @@ type AuthContextType = {
   isGuest: boolean;
   signInWithGoogle: () => Promise<User | null>;
   signInWithGithub: () => Promise<User | null>;
+  signInWithFacebook: () => Promise<User | null>;
+  signInWithTwitter: () => Promise<User | null>;
   signInWithEmail: (email: string, password: string) => Promise<User | null>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<User | null>;
   enterGuestMode: () => Promise<boolean>;
   signOut: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,10 +40,14 @@ const AuthContext = createContext<AuthContextType>({
   isGuest: false,
   signInWithGoogle: async () => null,
   signInWithGithub: async () => null,
+  signInWithFacebook: async () => null,
+  signInWithTwitter: async () => null,
   signInWithEmail: async () => null,
   signUpWithEmail: async () => null,
   enterGuestMode: async () => false,
   signOut: async () => { },
+  sendPasswordReset: async () => { },
+  sendVerificationEmail: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -88,16 +102,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     try {
+      console.log("[Auth] Starting Google sign-in...");
       const result = await signInWithPopup(auth, provider);
+      console.log("[Auth] signInWithPopup completed successfully");
       const user = result.user;
       const credential = GoogleAuthProvider.credentialFromResult(result);
       const accessToken = credential?.accessToken;
 
+      console.log("[Auth] Calling handleUserCreation...");
       await handleUserCreation(user, 'google', accessToken);
+      console.log("[Auth] handleUserCreation completed, returning user");
       return user;
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      return null;
+    } catch (error: any) {
+      console.error("[Auth] Google Sign-In Error:", error);
+      console.error("[Auth] Error code:", error.code);
+      console.error("[Auth] Error message:", error.message);
+      // Re-throw the error so the UI can display the actual error message
+      throw error;
     }
   };
 
@@ -110,6 +131,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return user;
     } catch (error) {
       console.error("Github Sign-In Error:", error);
+      return null;
+    }
+  };
+
+  const signInWithFacebook = async (): Promise<User | null> => {
+    const provider = new FacebookAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      await handleUserCreation(user, 'facebook');
+      return user;
+    } catch (error) {
+      console.error("Facebook Sign-In Error:", error);
+      return null;
+    }
+  };
+
+  const signInWithTwitter = async (): Promise<User | null> => {
+    const provider = new TwitterAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      await handleUserCreation(user, 'twitter');
+      return user;
+    } catch (error) {
+      console.error("Twitter Sign-In Error:", error);
       return null;
     }
   };
@@ -139,7 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         photoURL: user.photoURL,
         provider: 'email',
         lastSignIn: serverTimestamp(),
-        username: await generateUniqueUsername(name || email.split('@')[0])
+        username: await generateUniqueUsername(name || email.split('@')[0]),
+        emailVerified: false
       }, { merge: true });
 
       return user;
@@ -212,16 +260,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const sendPasswordReset = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error: any) {
+      console.error("Password Reset Error:", error);
+      throw error;
+    }
+  };
+
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      try {
+        const actionCodeSettings = {
+          url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/login?verified=true`,
+          handleCodeInApp: false,
+        };
+        await sendEmailVerification(auth.currentUser, actionCodeSettings);
+        console.log("Verification email sent successfully to:", auth.currentUser.email);
+      } catch (error: any) {
+        console.error("Email Verification Error:", error);
+        // Provide more specific error messages
+        if (error.code === 'auth/too-many-requests') {
+          throw new Error('Too many requests. Please wait a few minutes and try again.');
+        } else if (error.code === 'auth/invalid-email') {
+          throw new Error('Invalid email address.');
+        } else if (error.code === 'auth/user-disabled') {
+          throw new Error('This account has been disabled.');
+        }
+        throw new Error(error.message || 'Failed to send verification email. Please try again.');
+      }
+    } else {
+      throw new Error("No user signed in to verify");
+    }
+  };
+
   const value = {
     user,
     loading,
     isGuest,
     signInWithGoogle,
     signInWithGithub,
+    signInWithFacebook,
+    signInWithTwitter,
     signInWithEmail,
     signUpWithEmail,
     enterGuestMode,
     signOut,
+    sendPasswordReset,
+    sendVerificationEmail,
   };
 
   return (

@@ -82,7 +82,7 @@ export function ChatInput({
     const hasContent = input.trim().length > 0 || !!imageDataUri || !!fileContent;
 
     return (
-        <div className="p-4 sm:p-6 border-t bg-background/80 backdrop-blur-xl pb-safe">
+        <div className="max-sm:p-0 sm:p-6 border-t bg-background pb-safe">
             <div className="mx-auto max-w-5xl">
                 {isOcrProcessing && (
                     <div className="mb-2">
@@ -113,7 +113,7 @@ export function ChatInput({
                 <form
                     onSubmit={handleFormSubmit}
                     className={cn(
-                        "relative flex items-end gap-2 p-2 rounded-[2rem] border bg-muted/30 shadow-sm transition-all duration-300 focus-within:shadow-md focus-within:border-primary/50 focus-within:bg-background",
+                        "relative flex items-end gap-2 p-2 max-sm:rounded-none sm:rounded-[2rem] max-sm:border-0 border max-sm:bg-transparent bg-muted/30 max-sm:shadow-none shadow-sm transition-all duration-300 focus-within:shadow-md focus-within:border-primary/50 focus-within:bg-background",
                         hasContent ? "ring-2 ring-primary/5 border-primary/20" : ""
                     )}
                 >
@@ -145,7 +145,7 @@ export function ChatInput({
                             onChange={(e) => setInput(e.target.value)}
                             placeholder={isOcrProcessing ? "Processing image..." : "Message SearnAI..."}
                             disabled={isInputDisabled}
-                            className="h-auto py-2 border-0 bg-transparent text-lg placeholder:text-muted-foreground/50 shadow-none focus-visible:ring-0 px-2"
+                            className="h-auto py-2 border-0 bg-transparent text-lg text-foreground placeholder:text-muted-foreground/50 shadow-none focus-visible:ring-0 px-2"
                         />
                     </div>
 

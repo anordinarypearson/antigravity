@@ -47,6 +47,12 @@ const getSystemPrompt = (
 ${fileContent ? `\nContext file provided:\n${fileContent}\n` : ''}
 ${answerStyleInstruction}
 
+AESTHETIC & FORMATTING INSTRUCTIONS:
+- Use relevant emojis throughout your response to make it engaging and visually appealing. 🌟
+- Use horizontal rules (\`---\`) to separate different sections, thoughts, or major points for better readability.
+- Format long answers with clear paragraphs and spacing. Avoid walls of text.
+- When listing items, use bullet points or numbered lists with emojis.
+
 IMPORTANT: If the user requests images, photos, or visual information, assume that relevant images are being displayed to the user by the system. Do NOT state that you cannot generate or show images. Instead, introduce the images, describe the subject matter in detail, or explain the context of what is being shown. Always be helpful and provide information about the visual topics requested.`;
 };
 

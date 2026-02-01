@@ -43,12 +43,12 @@ export function GeneratedImageCard({ imageDataUri, prompt }: GeneratedImageCardP
     };
 
     return (
-        <div className="group relative w-full max-w-[200px] aspect-square rounded-2xl border border-border/20 bg-background overflow-hidden transition-all hover:shadow-xl hover:border-primary/50">
+        <div className="generated-image-card group relative w-full max-w-[120px] sm:max-w-[150px] md:max-w-[200px] aspect-square rounded-2xl border border-border/20 bg-background overflow-hidden transition-all hover:shadow-xl hover:border-primary/50">
             <Image
                 src={imageDataUri}
                 alt={prompt}
                 fill
-                sizes="200px"
+                sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 200px"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
 

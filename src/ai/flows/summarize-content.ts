@@ -10,8 +10,8 @@
  * - SummarizeContentOutput - The return type for the summarizeContent function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { openai } from '@/lib/openai';
+import { z } from 'zod';
 
 const SummarizeContentInputSchema = z.object({
   content: z.string().describe('The content to summarize.'),
@@ -24,32 +24,38 @@ const SummarizeContentOutputSchema = z.object({
 export type SummarizeContentOutput = z.infer<typeof SummarizeContentOutputSchema>;
 
 export async function summarizeContent(input: SummarizeContentInput): Promise<SummarizeContentOutput> {
-  return summarizeContentFlow(input);
-}
+  if (!input.content) {
+    throw new Error("Content is required for summarization.");
+  }
 
-const prompt = ai.definePrompt({
-  name: 'summarizeContentPrompt',
-  input: {schema: SummarizeContentInputSchema},
-  output: {schema: SummarizeContentOutputSchema},
-  prompt: `You are an AI assistant that excels at summarizing complex topics into clear and concise summaries.
+  const prompt = `You are an AI assistant that excels at summarizing complex topics into clear and concise summaries.
 
 Content to summarize:
 ---
-{{{content}}}
+${input.content}
 ---
 
-Please generate a concise summary of the provided content. The summary should capture the main ideas and key points of the text.
-`,
-});
+Please generate a concise summary of the provided content. The summary should capture the main ideas and key points of the text. Return the result as a JSON object with a "summary" key.`;
 
-const summarizeContentFlow = ai.defineFlow(
-  {
-    name: 'summarizeContentFlow',
-    inputSchema: SummarizeContentInputSchema,
-    outputSchema: SummarizeContentOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'Meta-Llama-3.1-8B-Instruct',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' },
+      max_tokens: 1000,
+      temperature: 0.5,
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Empty response from AI model.");
+    }
+
+    const json = JSON.parse(content);
+    return SummarizeContentOutputSchema.parse(json);
+  } catch (error: any) {
+    console.error("Summarization error:", error);
+    // Fallback: if JSON parsing fails, try to return the raw text if it looks like a summary, or throw
+    throw new Error(`Failed to summarize content: ${error.message}`);
   }
-);
+}

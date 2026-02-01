@@ -8,7 +8,7 @@ function extractGoogleResults() {
   const results = [];
   // Try a few common selectors for Google's result containers
   const resultContainers = document.querySelectorAll('div.g, div.xpd, div.MjjYud, div[data-hveid]');
-  
+
   if (!resultContainers.length) {
     return [];
   }
@@ -19,28 +19,28 @@ function extractGoogleResults() {
     try {
       const linkEl = container.querySelector('a[href]');
       const titleEl = container.querySelector('h3');
-      
+
       // Skip if it's not a main result (e.g., "People also ask")
       if (!linkEl || !titleEl || !linkEl.href.startsWith('http')) {
         return;
       }
-      
+
       // Find snippet with multiple potential selectors
-      const snippetEl = 
-        container.querySelector('.VwiC3b, .IsZvec, .MUxGbd, .vIgdZd, .s3v9rd, .GI742c') || 
-        (container.lastChild as HTMLElement)?.querySelector('div[style="-webkit-line-clamp:2"]');
-      
+      const snippetEl =
+        container.querySelector('.VwiC3b, .IsZvec, .MUxGbd, .vIgdZd, .s3v9rd, .GI742c') ||
+        (container.lastChild)?.querySelector('div[style="-webkit-line-clamp:2"]');
+
       const title = titleEl.innerText;
       const link = linkEl.href;
-      const snippet = snippetEl ? (snippetEl as HTMLElement).innerText : '';
-      
+      const snippet = snippetEl ? snippetEl.innerText : '';
+
       let domain = '';
       try {
         domain = new URL(link).hostname.replace('www.', '');
       } catch (e) {
         domain = link.split('/')[2] || '';
       }
-      
+
       // Ensure we don't add duplicates
       if (title && link && !results.some(r => r.link === link)) {
         results.push({

@@ -1,0 +1,112 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Validate file size (max 10MB for images, 50MB for videos)
+    function isValidImageSize() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+    
+    function isValidVideoSize() {
+      return request.resource.size < 50 * 1024 * 1024;
+    }
+    
+    function isValidDocumentSize() {
+      return request.resource.size < 20 * 1024 * 1024;
+    }
+    
+    // Validate content type
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+    
+    function isDocument() {
+      return request.resource.contentType in [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+    }
+    
+    // ============================================
+    // USER PROFILE PICTURES
+    // ============================================
+    match /users/{userId}/profile/{fileName} {
+      // Read: Anyone authenticated
+      allow read: if isAuthenticated();
+      
+      // Write: Only owner, must be image, size limit
+      allow write: if isOwner(userId) &&
+                      isImage() &&
+                      isValidImageSize();
+      
+      // Delete: Only owner
+      allow delete: if isOwner(userId);
+    }
+    
+    // ============================================
+    // CHAT ATTACHMENTS
+    // ============================================
+    match /chats/{chatId}/attachments/{fileName} {
+      // Read: Only chat participants (checked via Firestore)
+      allow read: if isAuthenticated() &&
+                     firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+      
+      // Write: Only participants, validate type and size
+      allow write: if isAuthenticated() &&
+                      firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]) &&
+                      (
+                        (isImage() && isValidImageSize()) ||
+                        (isVideo() && isValidVideoSize()) ||
+                        (isDocument() && isValidDocumentSize())
+                      );
+      
+      // Delete: Only uploader or chat owner
+      allow delete: if isAuthenticated() &&
+                       firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+    }
+    
+    // ============================================
+    // USER UPLOADS (General)
+    // ============================================
+    match /uploads/{userId}/{fileName} {
+      // Read: Only owner
+      allow read: if isOwner(userId);
+      
+      // Write: Only owner, validate size
+      allow write: if isOwner(userId) &&
+                      (
+                        (isImage() && isValidImageSize()) ||
+                        (isVideo() && isValidVideoSize()) ||
+                        (isDocument() && isValidDocumentSize())
+                      );
+      
+      // Delete: Only owner
+      allow delete: if isOwner(userId);
+    }
+    
+    // ============================================
+    // DENY ALL OTHER PATHS
+    // ============================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

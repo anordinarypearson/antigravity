@@ -1,40 +1,55 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Sparkles, Github, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.599-1.521,12.455-4.112l-6.46-4.853C28.205,35.66,26.214,36,24,36c-5.222,0-9.619-3.317-11.28-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.46,4.853C39.818,34.426,44,29.564,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+// Social provider icons as SVG components
+const GoogleIcon = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+);
+
+const FacebookIcon = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#1877F2">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+);
+
+const TwitterIcon = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+);
+
+const GithubIcon = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
     </svg>
 );
 
 const AppLogo = () => (
     <svg
-        className="h-12 w-12 text-primary"
+        className="h-14 w-14 text-primary"
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <defs>
-            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" className="stop-primary" style={{ stopColor: "currentColor", stopOpacity: 1 }} />
-                <stop offset="100%" className="stop-ring" style={{ stopColor: "currentColor", stopOpacity: 0.8 }} />
-            </linearGradient>
-        </defs>
         <path
-            d="M50 2.88675L93.3013 26.4434V73.5566L50 97.1132L6.69873 73.5566V26.4434L50 2.88675Z"
+            d="M50 5L90 28V72L50 95L10 72V28L50 5Z"
             fill="currentColor"
-            className="text-primary/20"
+            className="opacity-10"
         />
         <path
             d="M63 40.5C63 36.3579 59.6421 33 55.5 33H44.5C40.3579 33 37 36.3579 37 40.5V43.5C37 47.6421 40.3579 51 44.5 51H55.5C59.6421 51 63 54.3579 63 58.5V61.5C63 65.6421 59.6421 69 55.5 69H44.5C40.3579 69 37 65.6421 37 61.5"
@@ -48,60 +63,40 @@ const AppLogo = () => (
 );
 
 export function LoginContent() {
-    const { signInWithGoogle, signInWithGithub, signInWithEmail, enterGuestMode } = useAuth();
+    const { signInWithEmail, sendPasswordReset, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithTwitter } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    const handleGoogleSignIn = async () => {
-        setIsLoading(true);
-        setError(null);
-        const user = await signInWithGoogle();
-        if (user) {
-            // Request microphone permission at the same time
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch (err) {
-                console.log("Microphone permission denied or unavailable:", err);
-                // Continue anyway - it's optional
+    const containerVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.4,
+                staggerChildren: 0.05
             }
-            router.push('/');
-        } else {
-            setIsLoading(false);
         }
     };
 
-    const handleGithubSignIn = async () => {
-        setIsLoading(true);
-        setError(null);
-        const user = await signInWithGithub();
-        if (user) {
-            // Request microphone permission at the same time
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch (err) {
-                console.log("Microphone permission denied or unavailable:", err);
-            }
-            router.push('/');
-        } else {
-            setIsLoading(false);
-        }
-    }
+    const itemVariants = {
+        hidden: { opacity: 0, y: 5 },
+        visible: { opacity: 1, y: 0 }
+    };
 
     const handleEmailSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        setSuccessMessage(null);
         try {
             await signInWithEmail(email, password);
-            // Request microphone permission at the same time
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch (err) {
-                console.log("Microphone permission denied or unavailable:", err);
-            }
             router.push('/');
         } catch (err: any) {
             setError(err.message || "Failed to sign in");
@@ -109,137 +104,267 @@ export function LoginContent() {
         }
     }
 
-    const handleGuestMode = async () => {
+    const handleResetPassword = async () => {
+        if (!email) {
+            setError("Please enter your email first to reset password");
+            return;
+        }
         setIsLoading(true);
         setError(null);
-        const success = await enterGuestMode();
-        if (success) {
-            router.push('/');
-        } else {
-            setError("You have already used your one-time test run. Please sign in.");
+        setSuccessMessage(null);
+        try {
+            await sendPasswordReset(email);
+            setSuccessMessage("Password reset email sent.");
+        } catch (err: any) {
+            setError(err.message || "Failed to send reset email");
+        } finally {
             setIsLoading(false);
         }
-    }
+    };
+
+    const handleSocialSignIn = async (provider: 'google' | 'facebook' | 'twitter' | 'github') => {
+        setSocialLoading(provider);
+        setError(null);
+        try {
+            let result;
+            switch (provider) {
+                case 'google':
+                    result = await signInWithGoogle();
+                    break;
+                case 'facebook':
+                    result = await signInWithFacebook();
+                    break;
+                case 'twitter':
+                    result = await signInWithTwitter();
+                    break;
+                case 'github':
+                    result = await signInWithGithub();
+                    break;
+            }
+            if (result) {
+                // Small delay to ensure auth state is updated before navigation
+                await new Promise(resolve => setTimeout(resolve, 500));
+                router.push('/');
+            } else {
+                setError(`Failed to sign in with ${provider}`);
+            }
+        } catch (err: any) {
+            // Silently ignore if user closed the popup
+            if (err.code === 'auth/popup-closed-by-user') {
+                return;
+            }
+            setError(err.message || `Failed to sign in with ${provider}`);
+        } finally {
+            setSocialLoading(null);
+        }
+    };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-                <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-ring/10 blur-3xl animate-pulse delay-1000" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-secondary/30 blur-3xl animate-pulse delay-500" />
-            </div>
-
-            <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl ring-1 ring-border/5 mx-2 sm:mx-0">
-                <CardHeader className="text-center space-y-3 pb-6">
-                    <div className="flex justify-center items-center gap-3 mb-2">
-                        <div className="relative">
+        <div className="relative flex min-h-screen items-center justify-center bg-background p-4 sm:p-6">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="w-full max-w-[400px] z-10"
+            >
+                <Card className="border-border shadow-md bg-card">
+                    <CardHeader className="text-center space-y-4 pt-8 pb-6">
+                        <motion.div variants={itemVariants} className="flex justify-center">
                             <AppLogo />
-                            <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-ring animate-pulse" />
+                        </motion.div>
+                        <div className="space-y-1">
+                            <motion.div variants={itemVariants}>
+                                <CardTitle className="text-2xl font-bold tracking-tight">
+                                    Sign In
+                                </CardTitle>
+                            </motion.div>
+                            <motion.div variants={itemVariants}>
+                                <CardDescription className="text-muted-foreground">
+                                    Continue to your account
+                                </CardDescription>
+                            </motion.div>
                         </div>
-                    </div>
-                    <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                        Welcome Back
-                    </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
-                        Sign in to continue your learning journey
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-5 sm:space-y-6 px-5 sm:px-8 pb-6 sm:pb-8">
-                    {error && (
-                        <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4" />
-                            {error}
-                        </div>
-                    )}
+                    </CardHeader>
 
-                    <form onSubmit={handleEmailSignIn} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="h-11 touch-manipulation"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="h-11 touch-manipulation"
-                            />
-                        </div>
-                        <Button type="submit" className="w-full h-11 touch-manipulation" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            Sign In
-                        </Button>
-                    </form>
+                    <CardContent className="space-y-6 px-6 pb-8">
+                        <AnimatePresence mode="wait">
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-lg flex items-center gap-3"
+                                >
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    <p>{error}</p>
+                                </motion.div>
+                            )}
+                            {successMessage && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="bg-primary/10 border border-primary/20 text-primary text-sm p-3 rounded-lg flex items-center gap-3"
+                                >
+                                    <p>{successMessage}</p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <Separator />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                        </div>
-                    </div>
+                        <motion.div variants={itemVariants} className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 relative"
+                                    onClick={() => handleSocialSignIn('google')}
+                                    disabled={socialLoading !== null}
+                                >
+                                    {socialLoading === 'google' ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <GoogleIcon />
+                                            <span className="ml-2 text-sm">Google</span>
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 relative"
+                                    onClick={() => handleSocialSignIn('facebook')}
+                                    disabled={socialLoading !== null}
+                                >
+                                    {socialLoading === 'facebook' ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <FacebookIcon />
+                                            <span className="ml-2 text-sm">Facebook</span>
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 relative"
+                                    onClick={() => handleSocialSignIn('twitter')}
+                                    disabled={socialLoading !== null}
+                                >
+                                    {socialLoading === 'twitter' ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <TwitterIcon />
+                                            <span className="ml-2 text-sm">Twitter</span>
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 relative"
+                                    onClick={() => handleSocialSignIn('github')}
+                                    disabled={socialLoading !== null}
+                                >
+                                    {socialLoading === 'github' ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <GithubIcon />
+                                            <span className="ml-2 text-sm">GitHub</span>
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </motion.div>
 
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                        <Button
-                            onClick={handleGoogleSignIn}
-                            variant="outline"
-                            disabled={isLoading}
-                            className="h-11 touch-manipulation"
-                        >
-                            <GoogleIcon className="mr-2 h-4 w-4" />
-                            Google
-                        </Button>
-                        <Button
-                            onClick={handleGithubSignIn}
-                            variant="outline"
-                            disabled={isLoading}
-                            className="h-11 touch-manipulation"
-                        >
-                            <Github className="mr-2 h-4 w-4" />
-                            GitHub
-                        </Button>
-                    </div>
+                        <motion.div variants={itemVariants} className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+                            </div>
+                        </motion.div>
 
+                        <form onSubmit={handleEmailSignIn} className="space-y-4">
+                            <motion.div variants={itemVariants} className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="h-10 pl-9 rounded-md"
+                                    />
+                                </div>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                    <button
+                                        type="button"
+                                        className="text-xs text-primary hover:underline"
+                                        onClick={handleResetPassword}
+                                    >
+                                        Forgot?
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="h-10 pl-9 pr-10 rounded-md"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="pt-2">
+                                <Button
+                                    type="submit"
+                                    className="w-full h-10 rounded-md"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <div className="flex items-center">
+                                            <span>Sign In</span>
+                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                        </div>
+                                    )}
+                                </Button>
+                            </motion.div>
+                        </form>
 
-
-                    <div className="text-center text-sm text-muted-foreground mt-4">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="text-primary hover:underline font-medium">
-                            Sign up
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <style jsx global>{`
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-                .animate-pulse {
-                    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                }
-                .delay-500 {
-                    animation-delay: 0.5s;
-                }
-                .delay-1000 {
-                    animation-delay: 1s;
-                }
-            `}</style>
+                        <motion.div variants={itemVariants} className="text-center pt-2">
+                            <p className="text-sm text-muted-foreground">
+                                Don't have an account?{" "}
+                                <Link href="/signup" className="text-primary font-semibold hover:underline">
+                                    Sign up
+                                </Link>
+                            </p>
+                        </motion.div>
+                    </CardContent>
+                </Card>
+            </motion.div>
         </div>
     );
 }

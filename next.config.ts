@@ -51,17 +51,54 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          // Performance headers
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(self), microphone=(self), geolocation=(), interest-cohort=(), payment=(self "https://api.razorpay.com")'
+          },
           { key: 'X-XSS-Protection', value: '1; mode=block' },
+          // HSTS - Force HTTPS
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          },
+          // Content Security Policy - Enhanced
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' data: https: blob:",
+              "media-src 'self' blob: data:",
+              "connect-src 'self' https://*.googleapis.com https://*.google.com https://identitytoolkit.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://razorpay.com https://*.razorpay.com https://api.unsplash.com https://api.pexels.com",
+              "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
+          // Expect-CT header for certificate transparency
+          {
+            key: 'Expect-CT',
+            value: 'max-age=86400, enforce'
+          },
         ],
       },
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
+          // CORS headers for API routes (restrictive)
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_APP_URL || '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-CSRF-Token' },
+          { key: 'Access-Control-Max-Age', value: '86400' },
+          // Additional API security
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
         ]
       }
     ]

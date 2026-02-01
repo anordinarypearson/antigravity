@@ -38,8 +38,8 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
 
     if (loading.status === 'loading') {
         return (
-            <Card className="w-full max-w-3xl">
-                <CardContent className="p-6">
+            <Card className="w-full max-w-[calc(100vw-2rem)] sm:max-w-3xl overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-center gap-3">
                         <Loader2 className="h-5 w-5 animate-spin text-primary" />
                         <p className="text-sm text-muted-foreground">
@@ -53,8 +53,8 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
 
     if (loading.status === 'error' || images.length === 0) {
         return (
-            <Card className="w-full max-w-3xl">
-                <CardContent className="p-6">
+            <Card className="w-full max-w-[calc(100vw-2rem)] sm:max-w-3xl overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
                     <p className="text-sm text-muted-foreground">
                         No images found for "{query}". Try a different search term.
                     </p>
@@ -65,8 +65,8 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
 
     return (
         <>
-            <Card className="w-full max-w-3xl">
-                <CardContent className="p-6">
+            <Card className="w-full max-w-[calc(100vw-2rem)] sm:max-w-3xl overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">
@@ -77,10 +77,10 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                             </p>
                         </div>
 
-                        <Carousel className="w-full">
+                        <Carousel className="w-full max-w-full overflow-hidden">
                             <CarouselContent>
                                 {images.map((image, index) => (
-                                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                                    <CarouselItem key={index} className="basis-[85%] sm:basis-1/2 lg:basis-1/3">
                                         <div className="p-1">
                                             <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                                                 <div
