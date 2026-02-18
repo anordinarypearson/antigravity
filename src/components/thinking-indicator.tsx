@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { SunAIThinkingIndicator } from "./ui/sun-ai-thinking";
 
 const customThinkingText = `Wait, let me think... okay, starting from the beginning. No, wait, I think I've got the main concept. The user is asking for a simple explanation... or should I go deeper? Let me think one more time to be sure. Okay, I've got it. Let's dive into the core of the topic.`;
 
@@ -52,42 +53,11 @@ export function ThinkingIndicator({ text, duration, isDeepThink = false, isSearc
         );
     }
 
-    const [doingMessage, setDoingMessage] = useState("Thinking");
-
-    useEffect(() => {
-        if (!isAnimating) return;
-
-        const messages = [
-            "Analyzing your request",
-            "Consulting scientific databases",
-            "Verifying latest research",
-            "Formulating comprehensive response",
-            "Synthesizing complex information",
-            "Checking for factual accuracy",
-            "Structuring deep-dive answer",
-            "Applying unrestricted logic"
-        ];
-
-        let i = 0;
-        const interval = setInterval(() => {
-            setDoingMessage(messages[i % messages.length]);
-            i++;
-        }, 2000);
-
-        return () => clearInterval(interval);
-    }, [isAnimating]);
-
-    // For normal chat (not DeepThink), show ChatGPT-style blinking "Thinking" text
+    // For normal chat (not DeepThink), show S-curve style blinking animation
     if (!effectiveIsDeepThink) {
         return (
-            <div className="flex items-center gap-2 p-3 transition-all duration-500 animate-in fade-in slide-in-from-left-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
-                    <Loader2 className="h-3 w-3 text-primary animate-spin" />
-                </div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center">
-                    {doingMessage}
-                    <span className="inline-block w-[2px] h-3 ml-1 bg-primary animate-pulse" style={{ animationDuration: '0.8s' }}></span>
-                </span>
+            <div className="flex items-center justify-start p-3 pl-4 transition-all duration-500 animate-in fade-in slide-in-from-left-2">
+                <SunAIThinkingIndicator isThinking={true} color="currentColor" scale={0.5} />
             </div>
         );
     }

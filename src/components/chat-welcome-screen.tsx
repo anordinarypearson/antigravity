@@ -6,11 +6,9 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-
-
 interface ChatWelcomeScreenProps {
     userName: string | null;
-    setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void;
+    setActiveButton: (button: 'tools' | 'music' | 'image' | null) => void;
     handleSendMessage: (message: string) => void;
     onUpdateName: (name: string) => void;
 }
@@ -51,7 +49,7 @@ export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage
                                 </div>
                             ) : (
                                 <span className="group relative flex items-center gap-3">
-                                    <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-800 bg-clip-text text-transparent animate-gradient-x">
+                                    <span className="text-foreground animate-in fade-in zoom-in duration-500">
                                         {userName || 'Creator'}
                                     </span>
                                     <button
@@ -70,7 +68,7 @@ export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage
                     </p>
                 </div>
 
-                {/* Quick Action Pills */}
+                {/* Quick Action Pills - Reverted to 3 simple buttons */}
                 <div className="flex flex-wrap items-center justify-center gap-3">
                     {[
                         { icon: Newspaper, label: 'Latest News', query: 'Search the latest news headlines today' },

@@ -205,11 +205,45 @@ service cloud.firestore {
     }
 
     // ============================================
-    // SECURITY LOGS (READ-ONLY FOR USERS)
+    // SECURITY LOGS — Allow authenticated users to create their own logs
     // ============================================
     match /securityLogs/{logId} {
-      allow read: if isOwner(resource.data.userId);
-      allow write: if false; // Only server can write
+      // Read: Only own logs
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Create: Authenticated users can log their own security events
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['userId', 'type', 'severity', 'message', 'timestamp']) &&
+                       request.resource.data.type is string &&
+                       request.resource.data.severity in ['info', 'warning', 'error', 'critical'] &&
+                       isValidStringLength('message', 1000) &&
+                       isValidDataSize();
+      
+      // No update or delete — logs are immutable
+      allow update, delete: if false;
+    }
+
+    // ============================================
+    // SESSIONS — Authenticated users manage their own sessions
+    // ============================================
+    match /sessions/{sessionId} {
+      // Read: Only own sessions
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Create: Authenticated users can create sessions
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['sessionId', 'userId', 'createdAt', 'active']) &&
+                       isValidDataSize();
+      
+      // Update: Only own sessions (for activity tracking)
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'sessionId']);
+      
+      // Delete: Only own sessions
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     // ============================================

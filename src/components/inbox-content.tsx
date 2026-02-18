@@ -25,6 +25,7 @@ import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
+import { SharedHeader } from "./shared-header";
 import { Send, Search, Loader2, MessageSquare, Plus, Check, CheckCheck, BadgeCheck } from "lucide-react";
 import { format } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
@@ -257,56 +258,55 @@ export function InboxContent() {
 
     return (
         <div className="flex flex-col h-full bg-muted/40">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="lg:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Inbox</h1>
-                </div>
-                <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
-                    <DialogTrigger asChild>
-                        <Button size="sm" onClick={fetchFriends} className="h-10 touch-manipulation">
-                            <Plus className="h-4 w-4 mr-2" /> New Chat
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>New Message</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            {loadingFriends ? (
-                                <div className="flex justify-center p-4">
-                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                </div>
-                            ) : friends.length === 0 ? (
-                                <p className="text-center text-muted-foreground">No friends found. Add some friends first!</p>
-                            ) : (
-                                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                                    {friends.map(friend => (
-                                        <button
-                                            key={friend.id}
-                                            className="flex items-center gap-3 w-full p-2 hover:bg-muted rounded-lg transition-colors text-left"
-                                            onClick={() => startNewChat(friend.id)}
-                                        >
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={friend.avatar} />
-                                                <AvatarFallback>{friend.name[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <div className="flex items-center gap-1">
-                                                    <div className="font-medium">{friend.name}</div>
-                                                    <BadgeCheck className="h-3.5 w-3.5 text-primary fill-primary/10" />
+            <SharedHeader
+                title="Inbox"
+                leftElement={<BackButton />}
+                rightElement={
+                    <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={fetchFriends} className="h-10 touch-manipulation">
+                                <Plus className="h-4 w-4 mr-2" /> New Chat
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>New Message</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                                {loadingFriends ? (
+                                    <div className="flex justify-center p-4">
+                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                    </div>
+                                ) : friends.length === 0 ? (
+                                    <p className="text-center text-muted-foreground">No friends found. Add some friends first!</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                        {friends.map(friend => (
+                                            <button
+                                                key={friend.id}
+                                                className="flex items-center gap-3 w-full p-2 hover:bg-muted rounded-lg transition-colors text-left"
+                                                onClick={() => startNewChat(friend.id)}
+                                            >
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={friend.avatar} />
+                                                    <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="flex items-center gap-1">
+                                                        <div className="font-medium">{friend.name}</div>
+                                                        <BadgeCheck className="h-3.5 w-3.5 text-primary fill-primary/10" />
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground mr-2">{friend.username}</div>
                                                 </div>
-                                                <div className="text-xs text-muted-foreground mr-2">{friend.username}</div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </header>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                }
+            />
 
             <main className="flex-1 overflow-hidden p-4 md:p-6 lg:p-8 flex gap-6">
                 {/* Chat List */}

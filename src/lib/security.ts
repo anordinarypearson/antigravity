@@ -166,13 +166,13 @@ export async function generateSecureToken(length: number = 32): Promise<string> 
         return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
     }
 
-    // Fallback (less secure, for Node.js)
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Node.js fallback using built-in crypto module
+    try {
+        const { randomBytes } = await import('crypto');
+        return randomBytes(length).toString('hex');
+    } catch {
+        throw new Error('No cryptographically secure random number generator available');
     }
-    return result;
 }
 
 // Hash password (client-side hashing before sending)
@@ -186,8 +186,8 @@ export async function hashPassword(password: string): Promise<string> {
             .join('');
     }
 
-    // Fallback - just return password (server should hash it)
-    return password;
+    // Never return raw password — fail loudly
+    throw new Error('crypto.subtle is not available. Ensure you are in a secure context (HTTPS).');
 }
 
 /**
@@ -267,12 +267,28 @@ export function cleanupRateLimitCache(): void {
  */
 
 export function generateCsrfToken(): string {
-    return Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID().replace(/-/g, '');
+    }
+    // Fallback using getRandomValues
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const array = new Uint8Array(16);
+        crypto.getRandomValues(array);
+        return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    }
+    throw new Error('No cryptographically secure random source available for CSRF token generation');
 }
 
 export function validateCsrfToken(token: string, storedToken: string): boolean {
-    return token === storedToken && token.length > 0;
+    if (!token || !storedToken || token.length !== storedToken.length) {
+        return false;
+    }
+    // Timing-safe comparison to prevent timing attacks
+    let result = 0;
+    for (let i = 0; i < token.length; i++) {
+        result |= token.charCodeAt(i) ^ storedToken.charCodeAt(i);
+    }
+    return result === 0;
 }
 
 /**
@@ -355,9 +371,7 @@ export async function encryptData(data: string, key: string): Promise<string> {
         return btoa(String.fromCharCode(...combined));
     }
 
-    // Fallback: no encryption (not recommended for production)
-    console.warn('Encryption not supported in this environment');
-    return btoa(data);
+    throw new Error('crypto.subtle is not available. Data encryption requires a secure context (HTTPS).');
 }
 
 export async function decryptData(encryptedData: string, key: string): Promise<string> {
@@ -385,6 +399,5 @@ export async function decryptData(encryptedData: string, key: string): Promise<s
         return new TextDecoder().decode(decrypted);
     }
 
-    // Fallback
-    return atob(encryptedData);
+    throw new Error('crypto.subtle is not available. Data decryption requires a secure context (HTTPS).');
 }

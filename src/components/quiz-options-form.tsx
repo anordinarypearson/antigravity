@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { BackButton } from "./back-button";
 import { generateQuizAction, GenerateQuizzesInput } from "@/app/actions";
+import { useUsageLimits } from "@/hooks/use-usage-limits";
+import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
 
 export function QuizOptionsForm() {
@@ -23,7 +25,9 @@ export function QuizOptionsForm() {
     const [difficulty, setDifficulty] = useState("medium");
     const [numQuestions, setNumQuestions] = useState("10");
     const [timeLimit, setTimeLimit] = useState("10");
-    
+    const { checkAndIncrementMessageLimit } = useUsageLimits();
+    const [showLimitDialog, setShowLimitDialog] = useState(false);
+
     // On component mount, retrieve the content from localStorage
     useEffect(() => {
         const savedContent = localStorage.getItem('quizContent');
@@ -43,8 +47,14 @@ export function QuizOptionsForm() {
 
     const handleGenerateQuiz = () => {
         if (!content) return;
-        
+
         startGenerating(async () => {
+            const allowed = await checkAndIncrementMessageLimit();
+            if (!allowed) {
+                setShowLimitDialog(true);
+                return;
+            }
+
             const quizInput: GenerateQuizzesInput = {
                 content,
                 difficulty: difficulty as "easy" | "medium" | "hard",
@@ -54,7 +64,7 @@ export function QuizOptionsForm() {
             const result = await generateQuizAction(quizInput);
 
             if (result.error) {
-                 toast({
+                toast({
                     title: "Could not generate quiz",
                     description: result.error,
                     variant: "destructive",
@@ -63,8 +73,8 @@ export function QuizOptionsForm() {
             }
 
             if (result.data) {
-                toast({ title: "Quiz Generated!", description: "Your quiz is ready. Redirecting..."});
-                
+                toast({ title: "Quiz Generated!", description: "Your quiz is ready. Redirecting..." });
+
                 const quizData = {
                     quizzes: result.data.quizzes,
                     options: {
@@ -86,6 +96,7 @@ export function QuizOptionsForm() {
 
     return (
         <div className="flex justify-center items-center p-4 md:p-6">
+            <LimitExhaustedDialog isOpen={showLimitDialog} onOpenChange={setShowLimitDialog} />
             <Card className="w-full max-w-2xl">
                 <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
@@ -134,7 +145,7 @@ export function QuizOptionsForm() {
 
                         <div className="space-y-3">
                             <Label className="font-semibold" htmlFor="time-limit">Time Limit</Label>
-                             <Select value={timeLimit} onValueChange={setTimeLimit}>
+                            <Select value={timeLimit} onValueChange={setTimeLimit}>
                                 <SelectTrigger id="time-limit">
                                     <SelectValue placeholder="Select time limit" />
                                 </SelectTrigger>
@@ -159,4 +170,3 @@ export function QuizOptionsForm() {
     );
 }
 
-    

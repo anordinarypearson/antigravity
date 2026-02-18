@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { BackButton } from "./back-button";
+import { SharedHeader } from "./shared-header";
 import { SidebarTrigger } from "./ui/sidebar";
 import { collection, getDocs, doc, setDoc, deleteDoc, getDoc, runTransaction, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -184,13 +185,10 @@ export function FriendsContent() {
 
     return (
         <div className="flex flex-col h-full bg-muted/40">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="lg:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Friends</h1>
-                </div>
-            </header>
+            <SharedHeader
+                title="Friends"
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 <div className="mx-auto w-full max-w-4xl space-y-8">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

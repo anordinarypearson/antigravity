@@ -15,6 +15,8 @@ import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { cn } from "@/lib/utils";
 
+import { SharedHeader } from "./shared-header";
+
 
 export function MindMapContent() {
     const [content, setContent] = useState("");
@@ -48,13 +50,10 @@ export function MindMapContent() {
 
     return (
         <div className="flex h-full flex-col bg-muted/20 dark:bg-transparent">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="md:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Mind Map Creator</h1>
-                </div>
-            </header>
+            <SharedHeader
+                title="Mind Map Creator"
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 <div className="grid grid-cols-1 gap-8 xl:grid-cols-3 h-full items-start">
                     <Card className="flex flex-col h-full xl:col-span-1">
@@ -78,7 +77,7 @@ export function MindMapContent() {
                         </CardFooter>
                     </Card>
                     <div className="xl:col-span-2 h-full">
-                         <Card className="h-full">
+                        <Card className="h-full">
                             <CardHeader>
                                 <CardTitle>Generated Mind Map</CardTitle>
                                 <CardDescription>Explore your content in a visual, hierarchical structure.</CardDescription>

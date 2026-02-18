@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { useUsageLimits } from "@/hooks/use-usage-limits";
+import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
 const stylePresets = [
     { id: 'colorful', name: 'Colorful', description: 'Bright and vibrant cards.' },
@@ -44,6 +46,8 @@ export function CreateFlashcardsContent() {
     const { toast } = useToast();
     const router = useRouter();
     const recognitionRef = useRef<any>(null);
+    const { checkAndIncrementMessageLimit } = useUsageLimits();
+    const [showLimitDialog, setShowLimitDialog] = useState(false);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -60,7 +64,7 @@ export function CreateFlashcardsContent() {
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => setIsListening(false);
         recognition.onerror = (e: any) => toast({ title: "Voice Error", description: e.error, variant: 'destructive' });
-        
+
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
             setUserInput(transcript);
@@ -103,7 +107,7 @@ export function CreateFlashcardsContent() {
                 setUserInput('');
                 setStep(3);
             } else if (step === 3) { // Number of cards (Handled by button click)
-                 setStep(4);
+                setStep(4);
             } else if (step === 4) { // Style (Handled by button click)
                 setStep(5);
             } else if (step === 5) { // Confirmation
@@ -113,9 +117,15 @@ export function CreateFlashcardsContent() {
         });
     };
 
-    const handleGenerateFlashcards = () => {
+    const handleGenerateFlashcards = async () => {
+        const allowed = await checkAndIncrementMessageLimit();
+        if (!allowed) {
+            setShowLimitDialog(true);
+            return;
+        }
+
         const content = `Subject: ${subject}. Topic: ${topic}. Please generate ${numCards} flashcards about this.`;
-        
+
         startGenerating(async () => {
             const result = await generateFlashcardsAction({ content });
             if (result.error) {
@@ -127,7 +137,7 @@ export function CreateFlashcardsContent() {
             }
         });
     };
-    
+
     const handlePlayQuiz = () => {
         if (!generatedFlashcards) return;
         const quizContent = `The flashcards are about ${subject}: ${topic}. Here are the questions and answers: ${generatedFlashcards.map(f => `${f.front}? ${f.back}`).join('\n')}`;
@@ -135,7 +145,7 @@ export function CreateFlashcardsContent() {
             localStorage.setItem('quizContent', quizContent);
             router.push('/quiz/options');
         } catch (e) {
-             toast({
+            toast({
                 title: "Could not start quiz",
                 description: "There was an error preparing the quiz.",
                 variant: "destructive",
@@ -183,14 +193,14 @@ export function CreateFlashcardsContent() {
         {
             bot: (
                 <div>
-                  <p>Perfect! Here’s what I’ve got:</p>
-                  <ul className="mt-2 text-sm list-disc list-inside bg-white/5 p-4 rounded-lg border border-white/10">
-                      <li><strong>Subject:</strong> {subject}</li>
-                      <li><strong>Topic:</strong> {topic}</li>
-                      <li><strong>Number of Cards:</strong> {numCards}</li>
-                      <li><strong>Style:</strong> <span className="capitalize">{cardStyle}</span></li>
-                  </ul>
-                   <p className="mt-3">Does that look right?</p>
+                    <p>Perfect! Here’s what I’ve got:</p>
+                    <ul className="mt-2 text-sm list-disc list-inside bg-white/5 p-4 rounded-lg border border-white/10">
+                        <li><strong>Subject:</strong> {subject}</li>
+                        <li><strong>Topic:</strong> {topic}</li>
+                        <li><strong>Number of Cards:</strong> {numCards}</li>
+                        <li><strong>Style:</strong> <span className="capitalize">{cardStyle}</span></li>
+                    </ul>
+                    <p className="mt-3">Does that look right?</p>
                 </div>
             ),
             action: <Button onClick={handleNextStep} className="w-full justify-center">Looks Good, Generate! <Wand2 className="ml-2 w-4 h-4" /></Button>
@@ -199,19 +209,20 @@ export function CreateFlashcardsContent() {
 
     return (
         <div className="flex h-full flex-col bg-black bg-grid-white/[0.05]">
-             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <LimitExhaustedDialog isOpen={showLimitDialog} onOpenChange={setShowLimitDialog} />
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-black/50 backdrop-blur-md border-white/10 text-white">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 font-normal text-lg"><Bot className="text-cyan-400"/> Flashcard Assistant</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2 font-normal text-lg"><Bot className="text-cyan-400" /> Flashcard Assistant</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6 py-4 min-h-[20rem] flex flex-col justify-between">
-                       <div className="prose prose-sm prose-invert max-w-none">
+                        <div className="prose prose-sm prose-invert max-w-none">
                             {stepsContent[step]?.bot}
-                       </div>
-                       <div>
+                        </div>
+                        <div>
                             {stepsContent[step]?.input ? (
                                 <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }} className="flex items-center gap-2 mt-4">
-                                    <Input 
+                                    <Input
                                         value={userInput}
                                         onChange={(e) => setUserInput(e.target.value)}
                                         placeholder="Type your answer..."
@@ -222,11 +233,11 @@ export function CreateFlashcardsContent() {
                                         <Mic className={cn("w-4 h-4", isListening && "text-cyan-400 animate-pulse")} />
                                     </Button>
                                     <Button size="icon" type="submit" disabled={isProcessing}>
-                                        <Send className="w-4 h-4"/>
+                                        <Send className="w-4 h-4" />
                                     </Button>
                                 </form>
                             ) : stepsContent[step]?.action}
-                       </div>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -258,7 +269,7 @@ export function CreateFlashcardsContent() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                         >
-                             <div className="mb-8 text-center">
+                            <div className="mb-8 text-center">
                                 <h2 className="text-3xl font-bold text-white">Your "{topic}" Deck is Ready!</h2>
                                 <p className="text-muted-foreground">Click a card to flip it. What would you like to do next?</p>
                                 <div className="mt-6 flex justify-center gap-4">

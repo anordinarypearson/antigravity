@@ -1,12 +1,8 @@
-
-"use client";
-
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { SlidersHorizontal, Database, Bell, Paintbrush, Computer, Calendar, Users, Lock, Info, Globe, ThumbsUp, ChevronRight, Edit, KeyRound, ShieldCheck, BadgeCheck } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { SlidersHorizontal, Database, Bell, Paintbrush, Globe, ThumbsUp, ChevronRight, Edit, KeyRound, ShieldCheck, BadgeCheck, Users, Lock, Info } from "lucide-react";
 import { BackButton } from "./back-button";
-import { SidebarTrigger } from "./ui/sidebar";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import Link from "next/link";
 import { Separator } from "./ui/separator";
@@ -15,6 +11,7 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { SharedHeader } from "./shared-header";
 
 const SettingsItem = ({ icon, label, href, value }: { icon: React.ReactNode; label: string; href: string; value?: string }) => (
     <Link href={href} className="flex items-center justify-between p-4 min-h-[56px] hover:bg-muted/50 rounded-lg transition-colors cursor-pointer touch-manipulation active:scale-[0.99]">
@@ -39,7 +36,7 @@ export function SettingsContent() {
     const [counts, setCounts] = useState({ followers: 0, following: 0 });
 
     useEffect(() => {
-        // 1. Get basic info from local storage (fallback)
+        // ... effect logic ...
         try {
             const storedName = localStorage.getItem("userName");
             const storedStatus = localStorage.getItem("userStatus");
@@ -49,7 +46,6 @@ export function SettingsContent() {
             console.warn("Could not access localStorage for user settings.");
         }
 
-        // 2. Listen to Firestore for real-time counts if user is logged in
         if (user) {
             const unsubscribe = onSnapshot(doc(db, "users", user.uid), (doc) => {
                 if (doc.exists()) {
@@ -58,7 +54,6 @@ export function SettingsContent() {
                         followers: data.followerCount || 0,
                         following: data.followingCount || 0
                     });
-                    // Also update name/status if available to keep in sync
                     if (data.name) setUserName(data.name);
                     if (data.username) setUserHandle(data.username.startsWith('@') ? data.username : `@${data.username}`);
                 }
@@ -69,13 +64,10 @@ export function SettingsContent() {
 
     return (
         <div className="flex flex-col h-full bg-muted/40">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="lg:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
-                </div>
-            </header>
+            <SharedHeader
+                title="Settings"
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 <div className="mx-auto max-w-2xl space-y-8">
 

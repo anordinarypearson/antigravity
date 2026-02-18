@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
+import { SharedHeader } from "./shared-header";
 import { Brush, Wand2, Loader2, Copy } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -48,7 +49,7 @@ export function AiEditorContent({ embedded }: { embedded?: boolean }) {
             }
         });
     };
-    
+
     const handleCopyToClipboard = () => {
         if (!outputContent) return;
         navigator.clipboard.writeText(outputContent);
@@ -56,13 +57,10 @@ export function AiEditorContent({ embedded }: { embedded?: boolean }) {
     };
 
     const header = !embedded && (
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
-            <div className="flex items-center gap-2">
-                <SidebarTrigger className="md:hidden" />
-                <BackButton />
-                <h1 className="text-xl font-semibold tracking-tight">AI Editor</h1>
-            </div>
-        </header>
+        <SharedHeader
+            title="AI Editor"
+            leftElement={<BackButton />}
+        />
     );
 
     return (
@@ -99,7 +97,7 @@ export function AiEditorContent({ embedded }: { embedded?: boolean }) {
                                     />
                                 </CardContent>
                             </Card>
-                            
+
                             <Button onClick={handleGenerate} disabled={isGenerating || !instruction.trim()} className="w-full">
                                 {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                                 Generate

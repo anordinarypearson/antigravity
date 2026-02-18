@@ -14,7 +14,8 @@ import {
   Rewind, FastForward, Presentation, Video, Image as ImageIcon,
   ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles,
   Code, ChevronRight, Palette, Terminal, Zap, Square, ThumbsUp,
-  ThumbsDown, ArrowDown, Pencil, Check, Clipboard, Edit2
+  ThumbsDown, ArrowDown, Pencil, Check, Clipboard, Edit2,
+  Wrench, Timer, Clock, Calculator, Dices
 } from "lucide-react";
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import ReactMarkdown from 'react-markdown';
@@ -60,6 +61,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ImageSearchCard } from "./image-search-card";
+import { useUsageLimits } from "@/hooks/use-usage-limits";
+import { ToolWidgetRouter, type ToolName } from "./tool-widgets";
 
 
 
@@ -86,6 +89,8 @@ type ChatStore = {
   setActiveVideoId: (id: string | null, title: string | null) => void;
   togglePlay: () => void;
   setShowPlayer: (show: boolean) => void;
+  isCommandOpen: boolean;
+  setCommandOpen: (open: boolean) => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -93,9 +98,11 @@ export const useChatStore = create<ChatStore>((set) => ({
   activeVideoTitle: null,
   isPlaying: false,
   showPlayer: false,
+  isCommandOpen: false,
   setActiveVideoId: (id, title) => set({ activeVideoId: id, activeVideoTitle: title, isPlaying: !!id, showPlayer: !!id }),
   togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
   setShowPlayer: (show) => set({ showPlayer: show }),
+  setCommandOpen: (open) => set({ isCommandOpen: open }),
 }));
 
 
@@ -175,7 +182,7 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
       <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+            <div className="h-2.5 w-2.5 rounded-full bg-neutral-400/80" />
             <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
             <div className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
           </div>
@@ -265,8 +272,9 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   );
 };
 
-const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, currentModel, setCurrentModel, onStop, isCommandOpen, setIsCommandOpen }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean, activeButton: 'deepthink' | 'music' | 'image' | null, setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void, currentModel: string, setCurrentModel: (model: string) => void, onStop?: () => void, isCommandOpen?: boolean, setIsCommandOpen?: (open: boolean) => void }) => {
+const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, activeTool, setActiveTool, currentModel, setCurrentModel, onStop, isCommandOpen, setIsCommandOpen }: { onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void, isTyping: boolean, activeButton: 'tools' | 'music' | 'image' | null, setActiveButton: (button: 'tools' | 'music' | 'image' | null) => void, activeTool: ToolName | null, setActiveTool: (tool: ToolName | null) => void, currentModel: string, setCurrentModel: (model: string) => void, onStop?: () => void, isCommandOpen?: boolean, setIsCommandOpen?: (open: boolean) => void }) => {
   const [input, setInput] = useState('');
+  const { theme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -287,27 +295,50 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
     switch (command) {
       case 'image':
         setActiveButton('image');
+        setActiveTool(null);
         break;
       case 'music':
         setActiveButton('music');
+        setActiveTool(null);
         break;
-      case 'deepthink':
-        setActiveButton('deepthink');
+      case 'timer':
+        setActiveButton('tools');
+        setActiveTool('timer');
+        break;
+      case 'stopwatch':
+        setActiveButton('tools');
+        setActiveTool('stopwatch');
+        break;
+      case 'calculator':
+        setActiveButton('tools');
+        setActiveTool('calculator');
+        break;
+      case 'colorpicker':
+        setActiveButton('tools');
+        setActiveTool('colorpicker');
+        break;
+      case 'dice':
+        setActiveButton('tools');
+        setActiveTool('dice');
         break;
       case 'code':
-        // Just a mode example, maybe sets a specialized system prompt or model?
-        // keeping simple for now
         break;
     }
     textareaRef.current?.focus();
   };
 
-  const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
+  const handleToolbarButtonClick = (buttonName: 'tools' | 'music' | 'image') => {
     if (activeButton === buttonName) {
       setActiveButton(null);
+      if (buttonName === 'tools') setActiveTool(null);
     } else {
       setActiveButton(buttonName);
     }
+  };
+
+  const handleSelectTool = (tool: ToolName) => {
+    setActiveButton('tools');
+    setActiveTool(tool);
   };
   const [finalTranscript, setFinalTranscript] = useState('');
 
@@ -672,10 +703,11 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
       <motion.form
         onSubmit={handleFormSubmit}
         initial={false}
-        animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 0 15px -3px hsl(var(--primary) / 0.3)" } : { borderColor: "hsla(var(--foreground) / 0.1)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
-        whileHover={{ borderColor: "hsla(var(--foreground) / 0.3)" }}
+        animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 0 15px -3px hsl(var(--primary) / 0.3)" } : { borderColor: "var(--chat-border-color)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+        whileHover={{ borderColor: "var(--chat-border-hover-color)" }}
         whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 0 20px -5px hsl(var(--primary) / 0.4)" }}
         transition={{ duration: 0.3 }}
+        style={{ "--chat-border-color": theme === 'dark' ? "hsla(var(--foreground) / 0.1)" : "black", "--chat-border-hover-color": theme === 'dark' ? "hsla(var(--foreground) / 0.3)" : "black" } as React.CSSProperties}
         className="relative flex flex-col gap-2 max-sm:rounded-none sm:rounded-2xl border max-sm:border-x-0 max-sm:border-b-0 bg-background max-sm:p-2 sm:p-3 max-sm:shadow-none shadow-sm"
       >
         {isCommandOpen && (
@@ -691,9 +723,27 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
                     <Music className="mr-2 h-4 w-4" />
                     <span>Music Generation</span>
                   </CommandItem>
-                  <CommandItem onSelect={() => handleCommandSelect('deepthink')}>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    <span>DeepThink</span>
+                </CommandGroup>
+                <CommandGroup heading="Tools">
+                  <CommandItem onSelect={() => handleCommandSelect('timer')}>
+                    <Timer className="mr-2 h-4 w-4" />
+                    <span>Timer</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('stopwatch')}>
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>Stopwatch</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('calculator')}>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    <span>Calculator</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('colorpicker')}>
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Color Picker</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('dice')}>
+                    <Dices className="mr-2 h-4 w-4" />
+                    <span>Dice Roller</span>
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -720,17 +770,62 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, cur
           <div className="flex items-center gap-1">
             <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} disabled={isInputDisabled} />
 
-            <Button
-              type="button"
-              variant={activeButton === 'deepthink' ? 'secondary' : 'ghost'}
-              size="icon"
-              className={cn("h-8 w-8 rounded-lg", activeButton === 'deepthink' && "bg-secondary text-secondary-foreground")}
-              onClick={() => handleToolbarButtonClick('deepthink')}
-              disabled={isInputDisabled}
-              title="DeepThink"
-            >
-              <Wand2 className="h-4 w-4" />
-            </Button>
+            <div className={cn("flex items-center h-8 rounded-lg transition-colors border border-transparent", activeButton === 'tools' ? "bg-secondary text-secondary-foreground" : "hover:bg-muted")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn("h-8 w-8 rounded-l-lg rounded-r-none hover:bg-transparent", activeButton === 'tools' && "hover:bg-secondary")}
+                onClick={() => { setActiveButton(null); setActiveTool(null); }}
+                disabled={isInputDisabled}
+                title="Reset Tools"
+              >
+                <Wrench className="h-4 w-4" />
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-8 w-5 rounded-r-lg rounded-l-none px-0 hover:bg-transparent", activeButton === 'tools' && "hover:bg-secondary")}
+                    disabled={isInputDisabled}
+                    title="Open Tools"
+                  >
+                    <ChevronDown className="h-3 w-3 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-1" side="top" align="start">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold text-muted-foreground px-2 py-1.5">Tools</p>
+                    {[
+                      { tool: 'timer' as ToolName, icon: Timer, label: 'Timer' },
+                      { tool: 'stopwatch' as ToolName, icon: Clock, label: 'Stopwatch' },
+                      { tool: 'calculator' as ToolName, icon: Calculator, label: 'Calculator' },
+                      { tool: 'colorpicker' as ToolName, icon: Palette, label: 'Color Picker' },
+                      { tool: 'dice' as ToolName, icon: Dices, label: 'Dice Roller' },
+                    ].map(({ tool, icon: Icon, label }) => (
+                      <button
+                        key={tool}
+                        onClick={() => handleSelectTool(tool)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors",
+                          activeTool === tool && "bg-accent text-accent-foreground"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            {activeTool && (
+              <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize">
+                {activeTool === 'colorpicker' ? 'Color Picker' : activeTool}
+              </span>
+            )}
             <Button
               type="button"
               variant={activeButton === 'music' ? 'secondary' : 'ghost'}
@@ -806,11 +901,15 @@ const ChatBar = React.memo(({
   onStop,
   isCommandOpen,
   setIsCommandOpen,
+  activeTool,
+  setActiveTool,
 }: {
   onSendMessage: (message: string, imageDataUri?: string | null, fileContent?: string | null) => void;
   isTyping: boolean;
-  activeButton: 'deepthink' | 'music' | 'image' | null;
-  setActiveButton: (button: 'deepthink' | 'music' | 'image' | null) => void;
+  activeButton: 'tools' | 'music' | 'image' | null;
+  setActiveButton: (button: 'tools' | 'music' | 'image' | null) => void;
+  activeTool: ToolName | null;
+  setActiveTool: (tool: ToolName | null) => void;
   currentModel: string;
   setCurrentModel: (model: string) => void;
   isPlayground?: boolean;
@@ -819,9 +918,10 @@ const ChatBar = React.memo(({
   setIsCommandOpen?: (open: boolean) => void;
 }) => {
 
-  const handleToolbarButtonClick = (buttonName: 'deepthink' | 'music' | 'image') => {
+  const handleToolbarButtonClick = (buttonName: 'tools' | 'music' | 'image') => {
     if (activeButton === buttonName) {
       setActiveButton(null); // Toggle off
+      if (buttonName === 'tools') setActiveTool(null);
     } else {
       setActiveButton(buttonName);
     }
@@ -834,6 +934,8 @@ const ChatBar = React.memo(({
         isTyping={isTyping}
         activeButton={activeButton}
         setActiveButton={setActiveButton}
+        activeTool={activeTool}
+        setActiveTool={setActiveTool}
         currentModel={currentModel}
         setCurrentModel={setCurrentModel}
         onStop={onStop}
@@ -863,6 +965,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { checkAndIncrementMessageLimit } = useUsageLimits();
 
   const [history, setHistory] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -878,7 +981,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const { setActiveVideoId } = useChatStore();
   const [userName, setUserName] = useState<string | null>(null);
-  const [activeButton, setActiveButton] = useState<'deepthink' | 'music' | 'image' | null>(null);
+  const [activeButton, setActiveButton] = useState<'tools' | 'music' | 'image' | null>(null);
+  const [activeTool, setActiveTool] = useState<ToolName | null>(null);
   const [currentModel, setCurrentModel] = useState(DEFAULT_MODEL_ID);
 
   const handleUpdateName = (newName: string) => {
@@ -888,7 +992,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
-  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const { isCommandOpen, setCommandOpen: setIsCommandOpen } = useChatStore();
   const [isDragOver, setIsDragOver] = useState(false);
   // Using generic "editId" to track which message is being edited
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -1054,7 +1158,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           userName: userName,
           fileContent: currentFileContent,
           imageDataUri: currentImageDataUri,
-          model: activeButton === 'deepthink' ? 'gpt-oss-120b' : currentModel,
+          model: currentModel,
           isMusicMode: activeButton === 'music',
           isPlayground: isPlayground,
           answerTypes: answerTypes,
@@ -1163,7 +1267,14 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   }, [currentModel, activeButton, toast, userName, onCanvasContent, isPlayground, answerTypes]);
 
 
-  const handleSendMessage = useCallback((messageContent: string, imageDataUri?: string | null, fileContent?: string | null) => {
+  const handleSendMessage = useCallback(async (messageContent: string, imageDataUri?: string | null, fileContent?: string | null) => {
+    // Check usage info first
+    const allowed = await checkAndIncrementMessageLimit();
+    if (!allowed) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     const userMessage: Message = {
       id: `${Date.now()}-user`,
       role: "user",
@@ -1174,6 +1285,14 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
     const newHistory = [...history, userMessage];
     setHistory(newHistory);
+
+    // Handle tool interaction — render widget instead of AI response
+    if (activeButton === 'tools' && activeTool) {
+      const toolMessageId = `${Date.now()}-tool`;
+      const toolData = JSON.stringify({ type: 'tool_widget', tool: activeTool, userMessage: messageContent });
+      setHistory(prev => [...prev, { id: toolMessageId, role: "tool" as any, content: toolData }]);
+      return;
+    }
 
     const isImageSearchRequest = activeButton === 'image';
 
@@ -1209,7 +1328,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     } else {
       executeChat(newHistory, imageDataUri, fileContent);
     }
-  }, [activeButton, executeChat, history, toast]);
+  }, [activeButton, activeTool, executeChat, history, toast, checkAndIncrementMessageLimit]);
 
   const handleStopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
@@ -1329,6 +1448,16 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
 
   const renderMessageContent = (message: Message) => {
+    // Handle tool widget messages
+    if (message.role === 'tool') {
+      try {
+        const data = JSON.parse(message.content);
+        if (data.type === 'tool_widget' && data.tool) {
+          return <ToolWidgetRouter tool={data.tool as ToolName} userMessage={data.userMessage || ''} />;
+        }
+      } catch { }
+    }
+
     if (message.role === 'browser') {
       return (
         <motion.div
@@ -1519,6 +1648,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       isTyping={isTyping}
       activeButton={activeButton}
       setActiveButton={setActiveButton}
+      activeTool={activeTool}
+      setActiveTool={setActiveTool}
       currentModel={currentModel}
       setCurrentModel={setCurrentModel}
       isPlayground={isPlayground}
@@ -1571,13 +1702,16 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           />
         ) : (
           <ScrollArea className="flex-1 w-full" ref={scrollAreaRef} onScrollCapture={handleScroll}>
-            <div className={cn("mx-auto w-full max-w-3xl space-y-8 px-2 sm:px-4 overflow-x-hidden min-w-0", isPlayground ? "pb-4" : "pb-48")}>
+            <div className={cn("mx-auto w-full max-w-3xl space-y-6 px-2 sm:px-4 overflow-x-hidden min-w-0", isPlayground ? "pb-4" : "pb-48")}>
               {history.map((message, index) => (
                 <React.Fragment key={`${message.id}-${index}`}>
-                  <div
+                  <motion.div
                     data-message-id={message.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.3), ease: [0.22, 1, 0.36, 1] }}
                     className={cn(
-                      "flex w-full items-start gap-4 group", // Added group for hover capability
+                      "flex w-full items-start gap-4 group",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
@@ -1598,8 +1732,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         ) : (
                           <>
                             <div className="relative group/msg">
-                              <div className="border border-primary/20 bg-primary/5 inline-block rounded-xl p-3">
-                                <p className="text-sm text-foreground font-medium line-clamp-none">{message.content}</p>
+                              <div className="relative inline-block rounded-2xl p-3 bg-neutral-900/80 dark:bg-neutral-800/60 border border-neutral-700/40 shadow-sm backdrop-blur-sm">
+                                <p className="text-sm text-neutral-100 dark:text-neutral-200 font-medium line-clamp-none">{message.content}</p>
                               </div>
                               <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
                                 <Button
@@ -1643,32 +1777,34 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                           />
                         )}
                         {message.role === 'model' && message.role !== 'browser' && (
-                          <div className="mt-2 flex items-center gap-1 transition-opacity">
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopyToClipboard(message.content)}>
-                              <Copy className="h-4 w-4" />
+                          <div className="mt-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleCopyToClipboard(message.content)}>
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleShare(message.content)}>
-                              <Share2 className="h-4 w-4" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleShare(message.content)}>
+                              <Share2 className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 hover:text-green-500 transition-colors" onClick={() => {/* TODO: implement like */ }}>
-                              <ThumbsUp className="h-4 w-4" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60 hover:text-green-500 transition-colors" onClick={() => {/* TODO: implement like */ }}>
+                              <ThumbsUp className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 hover:text-red-500 transition-colors" onClick={() => {/* TODO: implement unlike */ }}>
-                              <ThumbsDown className="h-4 w-4" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60 hover:text-neutral-400 transition-colors" onClick={() => {/* TODO: implement unlike */ }}>
+                              <ThumbsDown className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleTextToSpeech(message.content, message.id)}>
-                              {isSynthesizing === message.id ? <StopCircle className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleTextToSpeech(message.content, message.id)}>
+                              {isSynthesizing === message.id ? <StopCircle className="h-3.5 w-3.5 text-neutral-400" /> : <Volume2 className="h-3.5 w-3.5" />}
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={handleRegenerateResponse} disabled={isTyping}>
-                              <RefreshCw className="h-4 w-4" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={handleRegenerateResponse} disabled={isTyping}>
+                              <RefreshCw className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                   {index < history.length - 1 && (
-                    <Separator className="my-8" />
+                    <div className="mx-auto w-full max-w-lg">
+                      <Separator className="my-2 opacity-20" />
+                    </div>
                   )}
                 </React.Fragment>
               )

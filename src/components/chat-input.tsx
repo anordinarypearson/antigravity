@@ -113,8 +113,8 @@ export function ChatInput({
                 <form
                     onSubmit={handleFormSubmit}
                     className={cn(
-                        "relative flex items-end gap-2 p-2 max-sm:rounded-none sm:rounded-[2rem] max-sm:border-0 border max-sm:bg-transparent bg-muted/30 max-sm:shadow-none shadow-sm transition-all duration-300 focus-within:shadow-md focus-within:border-primary/50 focus-within:bg-background",
-                        hasContent ? "ring-2 ring-primary/5 border-primary/20" : ""
+                        "relative flex items-end gap-2 p-2 max-sm:rounded-none sm:rounded-[2rem] max-sm:border-0 border border-black dark:border-border max-sm:bg-transparent bg-muted/30 max-sm:shadow-none shadow-sm transition-all duration-300 focus-within:shadow-md focus-within:border-black dark:focus-within:border-border focus-within:bg-background",
+                        hasContent ? "ring-2 ring-primary/5 border-black dark:border-border" : ""
                     )}
                 >
                     <div className="flex items-center gap-1 pb-1 pl-1">

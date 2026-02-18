@@ -28,9 +28,11 @@
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 9%;
+    --border: 0 0% 0%;
+    /* Hard black border for light mode */
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+    /* Black ring in light mode */
 
     --radius: 0.75rem;
 
@@ -42,7 +44,7 @@
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 9%;
-    --sidebar-border: 0 0% 89.8%;
+    --sidebar-border: 0 0% 0%;
     --sidebar-accent: 0 0% 96.1%;
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-active: 0 0% 9%;
@@ -64,7 +66,7 @@
   }
 
   ::selection {
-    background-color: hsl(0 85% 35%);
+    background-color: hsl(0 0% 40%);
     color: white;
   }
 
@@ -78,7 +80,7 @@
     --popover: 0 0% 0%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 85% 35%;
+    --primary: 0 0% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 6%;
@@ -95,9 +97,9 @@
 
     --border: 0 0% 10%;
     --input: 0 0% 10%;
-    --ring: 0 85% 35%;
+    --ring: 0 0% 45%;
 
-    --chart-1: 0 85% 35%;
+    --chart-1: 0 0% 45%;
     --chart-2: 0 0% 30%;
     --chart-3: 0 0% 50%;
     --chart-4: 0 0% 70%;
@@ -107,18 +109,18 @@
     --sidebar-foreground: 0 0% 96%;
     --sidebar-border: 0 0% 10%;
     --sidebar-accent: 0 0% 6%;
-    --sidebar-active: 0 85% 35%;
+    --sidebar-active: 0 0% 50%;
     --sidebar-active-foreground: 0 0% 100%;
     --sidebar-group-foreground: 0 0% 63.9%;
 
     --chat-input-background: 0 0% 3%;
     --avatar-accent: 0 0% 40%;
 
-    /* Feature Colors Dark Mode - All Red as requested */
-    --feature-image: 0 85% 35%;
-    --feature-code: 0 85% 35%;
-    --feature-brainstorm: 0 85% 35%;
-    --feature-think: 0 85% 35%;
+    /* Feature Colors Dark Mode - Grey tones */
+    --feature-image: 0 0% 55%;
+    --feature-code: 0 0% 50%;
+    --feature-brainstorm: 0 0% 45%;
+    --feature-think: 0 0% 40%;
   }
 }
 
@@ -131,14 +133,20 @@
     box-sizing: border-box;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground text-base;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: var(--font-inter), "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .prose hr,
   .prose-sm hr {
-    @apply my-8 border-neutral-200;
+    @apply my-8 border-neutral-300;
   }
 
   .dark .prose hr,
@@ -147,15 +155,38 @@
   }
 
   h1,
+  h2,
+  h3,
   .heading {
-    @apply text-xl font-semibold;
+    font-family: 'Outfit', var(--font-inter), sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-xl;
   }
 
   .dark .card {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 8px 32px 0 rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 12px 40px 0 rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color: hsl(var(--border)) !important;
   }
 
   .dark [data-sidebar="sidebar"] {
@@ -217,12 +248,28 @@
   }
 
   .chat-textarea::placeholder {
-    color: rgba(0, 0, 0, 0.4);
-    font-style: italic;
+    color: rgba(0, 0, 0, 0.35);
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
 
   .dark .chat-textarea::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .chat-textarea:focus {
+    box-shadow: 0 0 0 2px rgba(120, 120, 120, 0.08);
+  }
+
+  .dark .chat-textarea:focus {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.04);
+  }
+
+  /* Dark mode text selection */
+  .dark ::selection {
+    background: rgba(255, 255, 255, 0.15);
+    color: inherit;
   }
 
   /* AI Response Colors & Styling */
@@ -319,6 +366,41 @@
     background-size: 200% 200%;
     animation: gradient-x 6s ease infinite;
   }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .hover-lift:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
 }
 
 @keyframes gradient-x {
@@ -333,6 +415,84 @@
   100% {
     background-position: 0% 50%;
   }
+}
+
+/* Custom Animations and Components */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Custom Scrollbar — Dark Mode */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom Scrollbar — Light Mode */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* Custom Animations and Components */

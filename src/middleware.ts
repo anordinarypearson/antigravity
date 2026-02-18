@@ -51,19 +51,17 @@ function checkRateLimit(
 
 /**
  * Clean up old rate limit entries (prevent memory leak)
+ * Called inline during each request instead of setInterval (unsupported in Edge runtime)
  */
 function cleanupRateLimitStore() {
     const now = Date.now();
+    // Only clean up if store has grown large enough to warrant it
+    if (rateLimitStore.size < 100) return;
     for (const [key, value] of rateLimitStore.entries()) {
         if (now > value.resetTime) {
             rateLimitStore.delete(key);
         }
     }
-}
-
-// Run cleanup periodically
-if (typeof setInterval !== 'undefined') {
-    setInterval(cleanupRateLimitStore, 5 * 60 * 1000); // Every 5 minutes
 }
 
 /**
@@ -117,7 +115,9 @@ function getSessionToken(request: NextRequest): string | null {
  */
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        request.headers.get('x-real-ip') ||
+        'unknown';
 
     // ============================================
     // 1. RATE LIMITING
@@ -128,6 +128,9 @@ export function middleware(request: NextRequest) {
         : SECURITY_CONFIG.MAX_REQUESTS_PER_MINUTE;
 
     const rateLimitResult = checkRateLimit(ip, maxRequests);
+
+    // Inline cleanup (Edge runtime does not support setInterval)
+    cleanupRateLimitStore();
 
     if (!rateLimitResult.allowed) {
         return new NextResponse(
@@ -189,13 +192,14 @@ export function middleware(request: NextRequest) {
     // Content Security Policy (strict)
     const csp = [
         "default-src 'self'",
+        // Note: 'unsafe-eval' is required by Next.js in dev mode; remove in production if possible
         "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com https://*.googleapis.com https://checkout.razorpay.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: https: blob:",
         "media-src 'self' blob: data:",
         "connect-src 'self' https://*.googleapis.com https://*.google.com https://identitytoolkit.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://razorpay.com https://*.razorpay.com",
-        "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com",
+        "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com https://www.youtube.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",

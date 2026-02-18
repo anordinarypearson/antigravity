@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { CoreMessage } from "ai";
+import { useUsageLimits } from "@/hooks/use-usage-limits";
+import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
 type Message = {
     role: "user" | "model";
@@ -55,6 +57,8 @@ export function NewsReaderContent() {
     const [history, setHistory] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isTyping, startTyping] = useTransition();
+    const { checkAndIncrementMessageLimit } = useUsageLimits();
+    const [showLimitDialog, setShowLimitDialog] = useState(false);
 
     // Load article from localStorage on mount
     useEffect(() => {
@@ -66,6 +70,11 @@ export function NewsReaderContent() {
 
                 // Generate summary when article is loaded
                 startSummarizing(async () => {
+                    const allowed = await checkAndIncrementMessageLimit();
+                    if (!allowed) {
+                        setShowLimitDialog(true);
+                        return;
+                    }
                     const contentToSummarize = parsedArticle.content || parsedArticle.description;
                     if (!contentToSummarize) {
                         setSummary({ summary: "No content available to summarize." });
@@ -95,6 +104,13 @@ export function NewsReaderContent() {
         if (!messageToSend.trim() || !article) return;
 
         const userMessage: Message = { role: "user", content: messageToSend };
+
+        const allowed = await checkAndIncrementMessageLimit();
+        if (!allowed) {
+            setShowLimitDialog(true);
+            return;
+        }
+
         setHistory((prev) => [...prev, userMessage]);
         setInput("");
 
@@ -141,6 +157,7 @@ export function NewsReaderContent() {
 
     return (
         <div className="flex h-full flex-col">
+            <LimitExhaustedDialog isOpen={showLimitDialog} onOpenChange={setShowLimitDialog} />
             <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
                 <div className="flex items-center gap-2">
                     <SidebarTrigger className="lg:hidden" />

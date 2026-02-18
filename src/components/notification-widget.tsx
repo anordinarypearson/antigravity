@@ -37,8 +37,8 @@ export function NotificationWidget() {
         >
             <div className="p-4 bg-gradient-to-br from-white/5 to-transparent">
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="p-1.5 bg-red-500/10 rounded-lg">
-                        <Bell className="h-4 w-4 text-red-500" />
+                    <div className="p-1.5 bg-neutral-500/10 rounded-lg">
+                        <Bell className="h-4 w-4 text-neutral-400" />
                     </div>
                     <span className="text-sm font-medium text-foreground/80">Recent Activity</span>
                 </div>
@@ -48,7 +48,7 @@ export function NotificationWidget() {
                         <div key={notification.id} className="flex items-start gap-3">
                             <Avatar className="h-8 w-8 border border-white/10">
                                 <AvatarImage src={undefined} />
-                                <AvatarFallback className="text-[10px] bg-red-500/10 text-red-500">{notification.user.initials}</AvatarFallback>
+                                <AvatarFallback className="text-[10px] bg-neutral-500/10 text-neutral-400">{notification.user.initials}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs text-foreground/90 leading-snug">
@@ -57,7 +57,7 @@ export function NotificationWidget() {
                                 <p className="text-[10px] text-muted-foreground mt-0.5">{notification.time}</p>
                             </div>
                             {!notification.read && (
-                                <div className="h-1.5 w-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                                <div className="h-1.5 w-1.5 rounded-full bg-neutral-400 mt-1.5 shrink-0" />
                             )}
                         </div>
                     ))}

@@ -1,11 +1,18 @@
 
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 
 export const metadata: Metadata = {
@@ -34,7 +41,7 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className={cn("min-h-screen bg-background font-body antialiased")} suppressHydrationWarning>
+      <body className={cn("min-h-screen bg-background font-body antialiased", inter.variable)} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

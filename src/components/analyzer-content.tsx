@@ -104,6 +104,7 @@ const preprocessImage = (file: File, maxSize: number = 640): Promise<string> => 
     });
 };
 
+import { SharedHeader } from "./shared-header";
 
 export function AnalyzerContent() {
     const [imageDataUri, setImageDataUri] = useState<string | null>(null);
@@ -285,13 +286,10 @@ export function AnalyzerContent() {
             <div
                 className="absolute inset-0 z-0 opacity-40 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"
             />
-            <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-neutral-800 bg-transparent px-4 md:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="md:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Local Photo Analyzer</h1>
-                </div>
-            </header>
+            <SharedHeader
+                title="Local Photo Analyzer"
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative z-10">
                 <div className="mx-auto max-w-7xl">
                     {!imageDataUri ? (

@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
-  // Image optimization
+  // Image optimization — restricted to trusted domains only
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -25,11 +25,31 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: '*.googleapis.com',
       },
       {
-        protocol: 'http',
-        hostname: '**',
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
       },
     ],
   },
@@ -72,7 +92,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: blob:",
               "media-src 'self' blob: data:",
               "connect-src 'self' https://*.googleapis.com https://*.google.com https://identitytoolkit.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://razorpay.com https://*.razorpay.com https://api.unsplash.com https://api.pexels.com",
-              "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com",
+              "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com https://www.youtube.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -80,11 +100,7 @@ const nextConfig: NextConfig = {
               "upgrade-insecure-requests"
             ].join('; ')
           },
-          // Expect-CT header for certificate transparency
-          {
-            key: 'Expect-CT',
-            value: 'max-age=86400, enforce'
-          },
+          // Expect-CT is deprecated — removed
         ],
       },
       {
@@ -92,7 +108,7 @@ const nextConfig: NextConfig = {
         headers: [
           // CORS headers for API routes (restrictive)
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_APP_URL || '*' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_APP_URL || 'self' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-CSRF-Token' },
           { key: 'Access-Control-Max-Age', value: '86400' },

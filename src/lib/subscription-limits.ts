@@ -8,6 +8,9 @@ export interface UsageLimits {
     // AI Chat messages
     aiMessagesPerMonth: number;
 
+    // Combined Messages (Chat, Flashcards, Quiz, etc.)
+    messagesPerDay: number;
+
     // Flashcards
     flashcardsPerDay: number;
     flashcardsPerMonth: number;
@@ -54,7 +57,8 @@ export interface UsageLimits {
 
 export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, UsageLimits> = {
     free: {
-        aiMessagesPerMonth: 30,
+        aiMessagesPerMonth: 30, // Keeping for backward compat if needed, or can be deprecated
+        messagesPerDay: 30,
         flashcardsPerDay: 6,
         flashcardsPerMonth: 50,
         quizGenerationsPerDay: 6,
@@ -75,6 +79,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, UsageLimits> = {
     },
     go: {
         aiMessagesPerMonth: 500,
+        messagesPerDay: 500,
         flashcardsPerDay: 50,
         flashcardsPerMonth: 1000,
         quizGenerationsPerDay: 50,
@@ -95,6 +100,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, UsageLimits> = {
     },
     plus: {
         aiMessagesPerMonth: -1, // unlimited
+        messagesPerDay: -1, // unlimited
         flashcardsPerDay: -1,
         flashcardsPerMonth: -1,
         quizGenerationsPerDay: -1,
@@ -115,6 +121,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, UsageLimits> = {
     },
     pro: {
         aiMessagesPerMonth: -1, // unlimited
+        messagesPerDay: -1, // unlimited
         flashcardsPerDay: -1,
         flashcardsPerMonth: -1,
         quizGenerationsPerDay: -1,
@@ -182,6 +189,7 @@ export type UsageType = keyof UsageLimits;
 
 export const USAGE_TYPE_LABELS: Record<UsageType, string> = {
     aiMessagesPerMonth: 'AI Messages',
+    messagesPerDay: 'Messages',
     flashcardsPerDay: 'Flashcards',
     flashcardsPerMonth: 'Flashcards (Monthly)',
     quizGenerationsPerDay: 'Quiz Generations',

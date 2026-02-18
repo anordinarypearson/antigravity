@@ -9,11 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileUp, File } from "lucide-react";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
+import { SharedHeader } from "./shared-header";
 import * as pdfjs from 'pdfjs-dist';
 
 // Required for pdf.js to work
 if (typeof window !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 }
 
 
@@ -38,14 +39,14 @@ export function PdfHubContent() {
             toast({ title: 'No file selected', description: 'Please choose a PDF file to upload.', variant: 'destructive' });
             return;
         }
-        
+
         setIsLoading(true);
         toast({ title: 'Processing PDF...', description: 'Extracting text. This may take a moment.' });
-        
+
         try {
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-            
+
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -53,7 +54,7 @@ export function PdfHubContent() {
                 const pageText = textContent.items.map((item: any) => item.str).join(' ');
                 fullText += pageText + '\n\n';
             }
-            
+
             // Store the extracted content and title in localStorage for the Study Session page to pick up.
             localStorage.setItem('pdfStudyContent', JSON.stringify({
                 title: file.name.replace(/\.pdf$/i, ''),
@@ -65,8 +66,8 @@ export function PdfHubContent() {
 
         } catch (error: any) {
             console.error("PDF processing error:", error);
-            toast({ 
-                title: 'PDF Processing Failed', 
+            toast({
+                title: 'PDF Processing Failed',
                 description: error.message || 'Could not extract text from the PDF.',
                 variant: 'destructive'
             });
@@ -77,13 +78,10 @@ export function PdfHubContent() {
 
     return (
         <div className="flex h-full flex-col">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="md:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">PDF Study Hub</h1>
-                </div>
-            </header>
+            <SharedHeader
+                title="PDF Study Hub"
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 flex items-center justify-center">
                 <div className="mx-auto w-full max-w-md space-y-6">
                     <Card className="text-center">
@@ -92,7 +90,7 @@ export function PdfHubContent() {
                             <CardDescription>Upload a PDF document to extract its text and create a study session.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div 
+                            <div
                                 className="flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed border-muted-foreground/30 text-center cursor-pointer hover:bg-muted/50 transition-colors min-h-[200px]"
                                 onClick={() => document.getElementById('pdf-upload')?.click()}
                             >
@@ -108,10 +106,10 @@ export function PdfHubContent() {
                                         <p className="text-sm text-muted-foreground">PDF (max 5MB)</p>
                                     </>
                                 )}
-                                <Input 
+                                <Input
                                     id="pdf-upload"
-                                    type="file" 
-                                    className="hidden" 
+                                    type="file"
+                                    className="hidden"
                                     accept="application/pdf"
                                     onChange={handleFileChange}
                                 />

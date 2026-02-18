@@ -35,8 +35,15 @@ import {
   View,
   FlaskConical,
   Users,
-  Inbox, // Added Inbox icon
+  Inbox,
+  Menu,
+  ChevronDown,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarHeader,
@@ -89,37 +96,11 @@ const mainNav = [
   { name: "Agent", icon: <Bot />, href: "/agent" },
 ]
 
-const AppLogo = () => (
-  <svg
-    className="h-full w-full p-2"
-    viewBox="0 0 100 100"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <defs>
-      <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style={{ stopColor: "#EF4444", stopOpacity: 1 }} />
-        <stop offset="100%" style={{ stopColor: "#991B1B", stopOpacity: 1 }} />
-      </linearGradient>
-    </defs>
-    <path
-      d="M50 2.88675L93.3013 26.4434V73.5566L50 97.1132L6.69873 73.5566V26.4434L50 2.88675Z"
-      fill="currentColor"
-      className="text-primary-foreground"
-    />
-    <path
-      d="M63 40.5C63 36.3579 59.6421 33 55.5 33H44.5C40.3579 33 37 36.3579 37 40.5V43.5C37 47.6421 40.3579 51 44.5 51H55.5C59.6421 51 63 54.3579 63 58.5V61.5C63 65.6421 59.6421 69 55.5 69H44.5C40.3579 69 37 65.6421 37 61.5"
-      stroke="url(#logoGradient)"
-      strokeWidth="8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+
 
 
 export function AppSidebar() {
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, toggleSidebar } = useSidebar();
   const router = useRouter();
   const currentPathname = usePathname();
   const [pathname, setPathname] = useState("");
@@ -162,12 +143,12 @@ export function AppSidebar() {
             className="justify-start w-full gap-2.5 px-3 relative"
           >
             {pathname === item.href && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
             )}
-            <div className={cn("transition-transform duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-red-600" : "")}>
+            <div className={cn("transition-transform duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-neutral-400" : "")}>
               {item.icon}
             </div>
-            <span className={cn("text-sm", pathname === item.href ? "text-red-600 font-medium" : "")}>{item.name}</span>
+            <span className={cn("text-sm", pathname === item.href ? "text-neutral-400 font-medium" : "")}>{item.name}</span>
           </SidebarMenuButton>
         </Link>
       </SidebarMenuItem>
@@ -175,22 +156,73 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="bg-sidebar border-r border-neutral-800/50 text-sidebar-foreground">
-      <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-primary-foreground border border-neutral-700 shadow-sm">
-            <AppLogo />
-          </div>
-          <h1 className="text-2xl font-bold tracking-wider text-gradient">SearnAI</h1>
-        </Link>
+    <Sidebar collapsible="icon" className="bg-sidebar border-r border-black dark:border-sidebar-border text-sidebar-foreground">
+      <SidebarHeader className="h-16 border-b border-black dark:border-sidebar-border p-0 justify-start">
+        <div className="flex items-center justify-between w-full h-full px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <Link href="/" className="flex items-center">
+            <h1 className="text-2xl font-bold tracking-wider text-gradient flex items-baseline gap-0 group-data-[collapsible=icon]:hidden">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 1024 1024"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="shrink-0 -mr-0.5 relative top-[9px]"
+              >
+                <defs>
+                  <linearGradient id="blueGradient" x1="256" y1="128" x2="768" y2="896" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#1a3cff" />
+                    <stop offset="100%" stopColor="#4d6bff" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 320 280 Q 512 120 704 280 L 664 340 Q 512 220 360 340 Q 512 460 664 580 L 624 640 Q 512 540 400 640 Q 512 760 704 640"
+                  stroke="url(#blueGradient)"
+                  strokeWidth="110"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <circle cx="750" cy="250" r="28" fill="#1a3cff" />
+              </svg>
+              <span>earnAI</span>
+            </h1>
+            {/* Logo shown when collapsed */}
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 1024 1024"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="shrink-0 hidden group-data-[collapsible=icon]:block"
+            >
+              <defs>
+                <linearGradient id="blueGradient2" x1="256" y1="128" x2="768" y2="896" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#1a3cff" />
+                  <stop offset="100%" stopColor="#4d6bff" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 320 280 Q 512 120 704 280 L 664 340 Q 512 220 360 340 Q 512 460 664 580 L 624 640 Q 512 540 400 640 Q 512 760 704 640"
+                stroke="url(#blueGradient2)"
+                strokeWidth="110"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <circle cx="750" cy="250" r="28" fill="#1a3cff" />
+            </svg>
+          </Link>
+        </div>
       </SidebarHeader>
-      <SidebarContent className="p-2 flex-grow flex flex-col">
-        <div className="px-2 pb-2">
-          <Button onClick={handleNewChat} className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 transition-colors text-white shadow-md border border-neutral-700">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            <span className="font-semibold">New Chat</span>
+      <SidebarContent className="flex-grow flex flex-col pt-2 group-data-[collapsible=icon]:p-0">
+        <div className="pb-2 group-data-[collapsible=icon]:hidden">
+          <Button onClick={handleNewChat} variant="ghost" className="w-full justify-start transition-colors hover:bg-neutral-800 hover:text-white pl-2">
+            <MessageSquare className="mr-2 h-5 w-5" />
+            <span className="font-semibold group-data-[collapsible=icon]:hidden">New Chat</span>
           </Button>
         </div>
+        <SidebarSeparator className="my-2 border-neutral-800/60 group-data-[collapsible=icon]:hidden" />
         <div className="flex-grow">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -200,10 +232,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
                   )}
-                  <Home className={pathname === "/" ? "text-red-600" : ""} />
-                  <span className={cn("text-sm", pathname === "/" ? "text-red-600 font-medium" : "")}>Home</span>
+                  <Home className={pathname === "/" ? "text-neutral-400" : ""} />
+                  <span className={cn("text-sm", pathname === "/" ? "text-neutral-400 font-medium" : "")}>Home</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -215,10 +247,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/planner" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
                   )}
-                  <Calendar className={pathname === "/planner" ? "text-red-600" : ""} />
-                  <span className={cn("text-sm", pathname === "/planner" ? "text-red-600 font-medium" : "")}>Planner</span>
+                  <Calendar className={pathname === "/planner" ? "text-neutral-400" : ""} />
+                  <span className={cn("text-sm", pathname === "/planner" ? "text-neutral-400 font-medium" : "")}>Planner</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -229,10 +261,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/inbox" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
                   )}
-                  <Inbox className={pathname === "/inbox" ? "text-red-600" : ""} />
-                  <span className={cn("text-sm", pathname === "/inbox" ? "text-red-600 font-medium" : "")}>Inbox</span>
+                  <Inbox className={pathname === "/inbox" ? "text-neutral-400" : ""} />
+                  <span className={cn("text-sm", pathname === "/inbox" ? "text-neutral-400 font-medium" : "")}>Inbox</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -243,10 +275,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/agent" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
                   )}
-                  <Bot className={pathname === "/agent" ? "text-red-600" : ""} />
-                  <span className={cn("text-sm", pathname === "/agent" ? "text-red-600 font-medium" : "")}>Agent</span>
+                  <Bot className={pathname === "/agent" ? "text-neutral-400" : ""} />
+                  <span className={cn("text-sm", pathname === "/agent" ? "text-neutral-400 font-medium" : "")}>Agent</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -257,10 +289,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/friends" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-red-600"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
                   )}
-                  <Users className={pathname === "/friends" ? "text-red-600" : ""} />
-                  <span className={cn("text-sm", pathname === "/friends" ? "text-red-600 font-medium" : "")}>Friends</span>
+                  <Users className={pathname === "/friends" ? "text-neutral-400" : ""} />
+                  <span className={cn("text-sm", pathname === "/friends" ? "text-neutral-400 font-medium" : "")}>Friends</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -268,17 +300,33 @@ export function AppSidebar() {
 
           <SidebarSeparator className="my-4 border-neutral-800/60" />
 
-          <SidebarMenu>
-            <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider px-3 my-2 text-sidebar-group-foreground">Study Tools</SidebarGroupLabel>
-            {renderMenuItems(studyTools)}
-          </SidebarMenu>
+          <Collapsible className="group/study">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 my-2 group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider text-sidebar-group-foreground p-0 m-0">Study Tools</SidebarGroupLabel>
+              <ChevronDown className="h-3.5 w-3.5 text-sidebar-group-foreground transition-transform duration-200 group-data-[state=open]/study:rotate-180" />
+            </CollapsibleTrigger>
+            <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider px-3 my-2 text-sidebar-group-foreground hidden group-data-[collapsible=icon]:block">Tools</SidebarGroupLabel>
+            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SidebarMenu>
+                {renderMenuItems(studyTools)}
+              </SidebarMenu>
+            </CollapsibleContent>
+          </Collapsible>
 
           <SidebarSeparator className="my-4 border-neutral-800/60" />
 
-          <SidebarMenu>
-            <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider px-3 my-2 text-sidebar-group-foreground">Resources</SidebarGroupLabel>
-            {renderMenuItems(resources)}
-          </SidebarMenu>
+          <Collapsible className="group/resources">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 my-2 group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider text-sidebar-group-foreground p-0 m-0">Resources</SidebarGroupLabel>
+              <ChevronDown className="h-3.5 w-3.5 text-sidebar-group-foreground transition-transform duration-200 group-data-[state=open]/resources:rotate-180" />
+            </CollapsibleTrigger>
+            <SidebarGroupLabel className="uppercase text-xs font-semibold tracking-wider px-3 my-2 text-sidebar-group-foreground hidden group-data-[collapsible=icon]:block">More</SidebarGroupLabel>
+            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SidebarMenu>
+                {renderMenuItems(resources)}
+              </SidebarMenu>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
         <SidebarFooter className="p-2 border-t border-neutral-800/60">
           <SidebarMenu>

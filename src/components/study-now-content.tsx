@@ -14,6 +14,7 @@ import { FileUp, Loader2, Wand2, Image as ImageIcon, X, Volume2, Pilcrow, BrainC
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 import { Flashcard } from "./flashcard";
 import { SidebarTrigger } from "./ui/sidebar";
+import { SharedHeader } from "./shared-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { TutorChat } from "./tutor-chat";
 import { useRouter } from "next/navigation";
@@ -361,13 +362,10 @@ export function StudyNowContent() {
         onOpenChange={setIsCameraDialogOpen}
         onCapture={handleCaptureImage}
       />
-      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="lg:hidden" />
-          <BackButton />
-          <h1 className="text-xl font-semibold tracking-tight">Study Session</h1>
-        </div>
-      </header>
+      <SharedHeader
+        title="Study Session"
+        leftElement={<BackButton />}
+      />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-8">
           <Card className="flex flex-col @container">

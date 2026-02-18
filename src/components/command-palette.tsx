@@ -22,9 +22,10 @@ import {
 } from '@/components/ui/command';
 import { useRouter } from 'next/navigation';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useChatStore } from './chat-content';
 
 export function CommandPalette() {
-    const [open, setOpen] = React.useState(false);
+    const { isCommandOpen, setCommandOpen } = useChatStore();
     const router = useRouter();
 
     // Keyboard shortcut to open palette
@@ -32,17 +33,17 @@ export function CommandPalette() {
         {
             key: 'k',
             ctrl: true,
-            action: () => setOpen(true),
+            action: () => setCommandOpen(true),
         },
     ]);
 
     const runCommand = React.useCallback((command: () => void) => {
-        setOpen(false);
+        setCommandOpen(false);
         command();
     }, []);
 
     return (
-        <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandDialog open={isCommandOpen} onOpenChange={setCommandOpen}>
             <CommandInput placeholder="Type a command or search..." />
             <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>

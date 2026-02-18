@@ -11,8 +11,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { NewsContent } from "./news-content";
+import { ActionTooltip } from "./ui/action-tooltip";
+import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { PricingDialog } from "./pricing-dialog";
 import { WebBrowserContent } from "./web-browser-content";
+import { SharedHeader } from "./shared-header";
+import { CommandPalette } from "./command-palette";
 import { AiEditorContent } from "./ai-editor-content";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { Textarea } from "./ui/textarea";
@@ -34,6 +38,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeView, setActiveView] = useState('searnai');
   const [showPricingDialog, setShowPricingDialog] = useState(false);
+  const { getUsageStats, usageData, subscription } = useUsageLimits();
 
 
   const [answerTypes, setAnswerTypes] = useState({
@@ -113,16 +118,31 @@ export const MainDashboard = React.memo(function MainDashboard() {
   return (
     <div className="flex h-full flex-col font-sans overflow-hidden">
       <PricingDialog isOpen={showPricingDialog} onOpenChange={setShowPricingDialog} />
-      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-sidebar px-4 sm:px-6 transition-all duration-300">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="lg:hidden" />
-        </div>
+      <SharedHeader
+        rightElement={
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative flex flex-col items-center justify-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNewChat}
+                className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation"
+                title="New Chat"
+              >
+                <FileEdit className="h-5 w-5" />
+                <span className="sr-only">New Chat</span>
+              </Button>
+            </div>
+          </div>
+        }
+      />
 
-        {activeVideoId && (
+      {activeVideoId && (
+        <div className="px-4 py-2 border-b bg-sidebar/50 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-1.5 rounded-xl bg-card border shadow-sm w-full max-w-md mx-4"
+            className="flex items-center gap-2 p-1.5 rounded-xl bg-card border shadow-sm w-full max-w-md mx-auto"
           >
             <div className="flex-1 min-w-0 px-2">
               <p className="text-sm font-medium truncate text-foreground">{activeVideoTitle || 'Now Playing'}</p>
@@ -149,40 +169,8 @@ export const MainDashboard = React.memo(function MainDashboard() {
               </Button>
             </div>
           </motion.div>
-        )}
-
-        <div className="flex items-center gap-2 sm:gap-3">
-
-
-
-
-          {/* Get Pro - Icon only on mobile, full button on desktop */}
-          <Button
-            onClick={() => setShowPricingDialog(true)}
-            className="relative overflow-hidden group bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 h-10 w-10 sm:h-auto sm:w-auto touch-manipulation"
-            size="icon"
-          >
-            <motion.div
-              className="absolute top-0 -left-[100%] h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
-              animate={{ left: "100%" }}
-              transition={{ repeat: Infinity, duration: 3, ease: "linear", delay: 1 }}
-            />
-            <Star className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4 fill-current animate-[pulse_3s_ease-in-out_infinite]" />
-            <span className="hidden sm:inline font-semibold tracking-tight">Get Pro</span>
-          </Button>
-
-          <Button variant="ghost" size="icon" onClick={handleNewChat} className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation" title="New Chat">
-            <FileEdit className="h-5 w-5" />
-            <span className="sr-only">New Chat</span>
-          </Button>
-
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation">
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
         </div>
-      </header>
+      )}
 
       <div className="flex justify-center items-center py-2 sm:py-3 bg-transparent z-10 w-full">
         <div className="flex items-center gap-6 sm:gap-8 px-4">
@@ -259,7 +247,8 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </main>
 
 
-      </div>
-    </div>
+      </div >
+      <CommandPalette />
+    </div >
   );
 });

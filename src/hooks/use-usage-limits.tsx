@@ -241,6 +241,7 @@ export function useUsageLimits() {
         incrementUsage,
         getUsageStats,
         isUnlimited: subscription?.tier === 'plus' || subscription?.tier === 'pro',
+        checkAndIncrementMessageLimit: async () => incrementUsage('messagesPerDay'),
     };
 }
 
