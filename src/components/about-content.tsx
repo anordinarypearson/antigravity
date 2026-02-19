@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SharedHeader } from "./shared-header";
+import { BackButton } from "./back-button";
 
 export function AboutContent() {
     return (

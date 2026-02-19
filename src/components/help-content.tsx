@@ -4,6 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HelpChatbot } from "./help-chatbot";
 import { SharedHeader } from "./shared-header";
+import { BackButton } from "./back-button";
 
 export function HelpContent() {
     return (
