@@ -83,6 +83,7 @@ export function EbooksContent() {
             ))}
           </div>
         </div>
+      </main>
     </div>
   );
 }
