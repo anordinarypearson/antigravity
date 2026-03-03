@@ -1603,8 +1603,19 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           return <blockquote {...props}>{children}</blockquote>;
         },
         img: ({ node, ...props }: any) => (
-          <div className="my-4 not-prose inline-block">
-            <GeneratedImageCard imageDataUri={String(props.src || '')} prompt={String(props.alt || 'Generated Image')} />
+          <div className="my-4 not-prose inline-block max-w-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={String(props.src || '')}
+              alt={String(props.alt || 'Image')}
+              className="rounded-xl border border-border/30 shadow-sm max-w-full h-auto object-contain cursor-pointer hover:shadow-lg transition-shadow"
+              loading="lazy"
+              onClick={() => window.open(String(props.src || ''), '_blank')}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+            {props.alt && props.alt !== 'Image' && (
+              <p className="text-xs text-muted-foreground mt-1.5 px-1 truncate">{String(props.alt)}</p>
+            )}
           </div>
         ),
         p: ({ node, ...props }: any) => <div className="mb-4" {...props} />,
@@ -1732,14 +1743,24 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         ) : (
                           <>
                             <div className="relative group/msg">
-                              <div className="relative inline-block rounded-2xl p-3 bg-neutral-900/80 dark:bg-neutral-800/60 border border-neutral-700/40 shadow-sm backdrop-blur-sm">
-                                <p className="text-sm text-neutral-100 dark:text-neutral-200 font-medium line-clamp-none">{message.content}</p>
+                              <div className="relative inline-block rounded-2xl px-4 py-3 bg-primary text-primary-foreground shadow-sm">
+                                {message.image && (
+                                  <div className="mb-2 -mx-1 -mt-1">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={message.image}
+                                      alt="Attached image"
+                                      className="rounded-xl max-w-[200px] max-h-[200px] object-cover border border-white/20"
+                                    />
+                                  </div>
+                                )}
+                                <p className="text-sm font-medium line-clamp-none leading-relaxed">{message.content}</p>
                               </div>
-                              <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                              <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover/msg:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6"
+                                  className="h-7 w-7 rounded-lg hover:bg-muted/60"
                                   onClick={() => handleEditMessage(message.id, message.content)}
                                   title="Edit message"
                                 >
@@ -1748,7 +1769,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 hover:text-destructive"
+                                  className="h-7 w-7 rounded-lg hover:bg-muted/60 hover:text-destructive"
                                   onClick={() => handleDeleteMessage(message.id)}
                                   title="Delete message"
                                 >
@@ -1777,23 +1798,25 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                           />
                         )}
                         {message.role === 'model' && message.role !== 'browser' && (
-                          <div className="mt-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleCopyToClipboard(message.content)}>
+                          <div className="mt-3 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleCopyToClipboard(message.content)} title="Copy">
                               <Copy className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleShare(message.content)}>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleShare(message.content)} title="Share">
                               <Share2 className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60 hover:text-green-500 transition-colors" onClick={() => {/* TODO: implement like */ }}>
+                            <div className="w-px h-4 bg-border mx-1" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors" onClick={() => {/* TODO: implement like */ }} title="Good response">
                               <ThumbsUp className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60 hover:text-neutral-400 transition-colors" onClick={() => {/* TODO: implement unlike */ }}>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10 transition-colors" onClick={() => {/* TODO: implement unlike */ }} title="Bad response">
                               <ThumbsDown className="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={() => handleTextToSpeech(message.content, message.id)}>
-                              {isSynthesizing === message.id ? <StopCircle className="h-3.5 w-3.5 text-neutral-400" /> : <Volume2 className="h-3.5 w-3.5" />}
+                            <div className="w-px h-4 bg-border mx-1" />
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleTextToSpeech(message.content, message.id)} title="Read aloud">
+                              {isSynthesizing === message.id ? <StopCircle className="h-3.5 w-3.5 text-primary" /> : <Volume2 className="h-3.5 w-3.5" />}
                             </Button>
-                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted/60" onClick={handleRegenerateResponse} disabled={isTyping}>
+                            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={handleRegenerateResponse} disabled={isTyping} title="Regenerate">
                               <RefreshCw className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -1801,11 +1824,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                       </div>
                     )}
                   </motion.div>
-                  {index < history.length - 1 && (
-                    <div className="mx-auto w-full max-w-lg">
-                      <Separator className="my-2 opacity-20" />
-                    </div>
-                  )}
+
                 </React.Fragment>
               )
               )}
@@ -1822,14 +1841,15 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       ) : (
         <div className={cn("fixed bottom-0 left-0 lg:left-auto right-0 w-full lg:w-[calc(100%-16rem)] group-data-[collapsible=icon]:lg:w-[calc(100%-3rem)] transition-all bg-transparent")}>
           {showScrollBottom && (
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20">
+            <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-20">
               <Button
                 variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full shadow-md bg-background/80 backdrop-blur-sm animate-bounce"
+                size="sm"
+                className="h-9 px-4 rounded-full shadow-lg bg-background/90 backdrop-blur-md border-border/50 hover:shadow-xl transition-all gap-2 animate-bounce"
                 onClick={scrollToBottom}
               >
-                <ArrowDown className="h-4 w-4" />
+                <ArrowDown className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">New messages</span>
               </Button>
             </div>
           )}

@@ -1,7 +1,8 @@
 /**
  * API Route: Search Images
  * 
- * Handles image search requests from the client
+ * Handles image search requests from the client.
+ * Searches legal, Creative Commons sources with caching.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,17 +11,20 @@ import { searchImages } from '@/lib/file-processors/image-scraper';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { query, maxResults = 12, sources } = body;
+        const { query, maxResults = 20, sources } = body;
 
         if (!query || typeof query !== 'string') {
             return NextResponse.json(
-                { error: 'Query is required' },
+                { success: false, error: 'Query is required', results: [] },
                 { status: 400 }
             );
         }
 
-        const results = await searchImages(query, {
-            maxResults,
+        // Sanitize query — prevent excessively long queries
+        const sanitizedQuery = query.trim().slice(0, 200);
+
+        const results = await searchImages(sanitizedQuery, {
+            maxResults: Math.min(maxResults, 50),
             sources,
             useCache: true
         });
@@ -28,12 +32,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             results,
-            count: results.length
+            count: results.length,
+            query: sanitizedQuery
         });
     } catch (error) {
         console.error('Image search error:', error);
         return NextResponse.json(
-            { error: 'Failed to search images' },
+            { success: false, error: 'Failed to search images. Please try again.', results: [] },
             { status: 500 }
         );
     }
@@ -42,30 +47,33 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query');
-    const maxResults = parseInt(searchParams.get('maxResults') || '12');
+    const maxResults = parseInt(searchParams.get('maxResults') || '20');
 
     if (!query) {
         return NextResponse.json(
-            { error: 'Query parameter is required' },
+            { success: false, error: 'Query parameter is required', results: [] },
             { status: 400 }
         );
     }
 
     try {
-        const results = await searchImages(query, {
-            maxResults,
+        const sanitizedQuery = query.trim().slice(0, 200);
+
+        const results = await searchImages(sanitizedQuery, {
+            maxResults: Math.min(maxResults, 50),
             useCache: true
         });
 
         return NextResponse.json({
             success: true,
             results,
-            count: results.length
+            count: results.length,
+            query: sanitizedQuery
         });
     } catch (error) {
         console.error('Image search error:', error);
         return NextResponse.json(
-            { error: 'Failed to search images' },
+            { success: false, error: 'Failed to search images. Please try again.', results: [] },
             { status: 500 }
         );
     }

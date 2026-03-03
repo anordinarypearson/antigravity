@@ -172,8 +172,8 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       )}
 
-      <div className="flex justify-center items-center py-2 sm:py-3 bg-transparent z-10 w-full">
-        <div className="flex items-center gap-6 sm:gap-8 px-4">
+      <div className="flex justify-center items-center py-2.5 sm:py-3 z-10 w-full border-b border-border/30">
+        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1">
           {views.map((view) => {
             const Icon = view.icon;
             const isActive = activeView === view.id;
@@ -182,21 +182,21 @@ export const MainDashboard = React.memo(function MainDashboard() {
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
                 className={cn(
-                  "relative py-2 text-sm font-semibold transition-colors duration-200 flex items-center gap-2 group",
-                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  "relative px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center gap-2 rounded-lg",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                  <span>{view.label}</span>
-                </span>
                 {isActive && (
                   <motion.div
-                    layoutId="active-underline"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    layoutId="active-tab-bg"
+                    className="absolute inset-0 bg-background rounded-lg shadow-sm border border-border/50"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
+                <span className="relative z-10 flex items-center gap-2">
+                  <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <span>{view.label}</span>
+                </span>
               </button>
             );
           })}

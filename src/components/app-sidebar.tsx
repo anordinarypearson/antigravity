@@ -143,12 +143,12 @@ export function AppSidebar() {
             className="justify-start w-full gap-2.5 px-3 relative"
           >
             {pathname === item.href && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
             )}
-            <div className={cn("transition-transform duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-neutral-400" : "")}>
+            <div className={cn("transition-all duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-primary" : "")}>
               {item.icon}
             </div>
-            <span className={cn("text-sm", pathname === item.href ? "text-neutral-400 font-medium" : "")}>{item.name}</span>
+            <span className={cn("text-sm", pathname === item.href ? "text-primary font-semibold" : "")}>{item.name}</span>
           </SidebarMenuButton>
         </Link>
       </SidebarMenuItem>
@@ -232,10 +232,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
                   )}
-                  <Home className={pathname === "/" ? "text-neutral-400" : ""} />
-                  <span className={cn("text-sm", pathname === "/" ? "text-neutral-400 font-medium" : "")}>Home</span>
+                  <Home className={pathname === "/" ? "text-primary" : ""} />
+                  <span className={cn("text-sm", pathname === "/" ? "text-primary font-semibold" : "")}>Home</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -247,10 +247,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/planner" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
                   )}
-                  <Calendar className={pathname === "/planner" ? "text-neutral-400" : ""} />
-                  <span className={cn("text-sm", pathname === "/planner" ? "text-neutral-400 font-medium" : "")}>Planner</span>
+                  <Calendar className={pathname === "/planner" ? "text-primary" : ""} />
+                  <span className={cn("text-sm", pathname === "/planner" ? "text-primary font-semibold" : "")}>Planner</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -261,10 +261,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/inbox" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
                   )}
-                  <Inbox className={pathname === "/inbox" ? "text-neutral-400" : ""} />
-                  <span className={cn("text-sm", pathname === "/inbox" ? "text-neutral-400 font-medium" : "")}>Inbox</span>
+                  <Inbox className={pathname === "/inbox" ? "text-primary" : ""} />
+                  <span className={cn("text-sm", pathname === "/inbox" ? "text-primary font-semibold" : "")}>Inbox</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -275,10 +275,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/agent" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
                   )}
-                  <Bot className={pathname === "/agent" ? "text-neutral-400" : ""} />
-                  <span className={cn("text-sm", pathname === "/agent" ? "text-neutral-400 font-medium" : "")}>Agent</span>
+                  <Bot className={pathname === "/agent" ? "text-primary" : ""} />
+                  <span className={cn("text-sm", pathname === "/agent" ? "text-primary font-semibold" : "")}>Agent</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -289,10 +289,10 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/friends" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-neutral-400"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
                   )}
-                  <Users className={pathname === "/friends" ? "text-neutral-400" : ""} />
-                  <span className={cn("text-sm", pathname === "/friends" ? "text-neutral-400 font-medium" : "")}>Friends</span>
+                  <Users className={pathname === "/friends" ? "text-primary" : ""} />
+                  <span className={cn("text-sm", pathname === "/friends" ? "text-primary font-semibold" : "")}>Friends</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
