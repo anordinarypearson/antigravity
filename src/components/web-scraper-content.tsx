@@ -53,9 +53,21 @@ export function WebScraperContent() {
     const [showTakeaways, setShowTakeaways] = useState(true);
     const [sortBy, setSortBy] = useState<'quality' | 'speed' | 'words'>('quality');
     const [carouselIndex, setCarouselIndex] = useState(0);
+    const [activeTab, setActiveTab] = useState<'summary' | 'answer' | 'sources'>('summary');
+    const [expandAll, setExpandAll] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const loadingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [elapsedTime, setElapsedTime] = useState(0);
+
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); inputRef.current?.focus(); }
+            if (e.key === 'Escape' && document.activeElement === inputRef.current) { setQuery(''); inputRef.current?.blur(); }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, []);
 
     useEffect(() => {
         try {
@@ -168,6 +180,24 @@ export function WebScraperContent() {
     const getQualityColor = (s: number) => s >= 80 ? "text-emerald-500" : s >= 60 ? "text-blue-500" : s >= 40 ? "text-amber-500" : "text-red-500";
     const getQualityBg = (s: number) => s >= 80 ? "bg-emerald-500/10 border-emerald-500/20" : s >= 60 ? "bg-blue-500/10 border-blue-500/20" : s >= 40 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
 
+    // Confidence score: how many sources scraped vs found + avg quality
+    const confidenceScore = useMemo(() => {
+        if (!result) return 0;
+        const scrapeRatio = result.stats.sourcesScraped / Math.max(result.stats.totalSourcesFound, 1);
+        const qualityFactor = result.stats.averageQuality / 100;
+        const sourceBonus = Math.min(result.stats.sourcesScraped / 8, 1);
+        return Math.round((scrapeRatio * 30 + qualityFactor * 40 + sourceBonus * 30));
+    }, [result]);
+
+    const getConfidenceLabel = (s: number) => s >= 80 ? 'High' : s >= 55 ? 'Medium' : 'Low';
+    const getConfidenceColor = (s: number) => s >= 80 ? 'text-emerald-500' : s >= 55 ? 'text-amber-500' : 'text-red-500';
+
+    // Answer reading time
+    const answerReadingTime = useMemo(() => {
+        if (!result?.answer) return 0;
+        return Math.max(1, Math.round(result.answer.split(/\s+/).length / 200));
+    }, [result?.answer]);
+
     // Sources with OG images for the carousel
     const sourcesWithImages = useMemo(() => {
         if (!result?.sources) return [];
@@ -220,9 +250,11 @@ export function WebScraperContent() {
                             </h1>
                             <p className="text-muted-foreground text-sm max-w-lg mx-auto">
                                 Scrapes <span className="text-primary font-semibold">10-12 sources</span> across{' '}
-                                <span className="font-medium">DuckDuckGo</span>, <span className="text-violet-500 font-medium">Brave</span> &{' '}
-                                <span className="text-blue-500 font-medium">Wikipedia</span> in under 5 seconds.
+                                <span className="font-medium">DuckDuckGo</span>, <span className="text-violet-500 font-medium">Brave</span>,{' '}
+                                <span className="text-blue-500 font-medium">Wikipedia</span> &{' '}
+                                <span className="text-rose-500 font-medium">Google News</span> in under 5 seconds.
                             </p>
+                            <p className="text-[10px] text-muted-foreground/60">Ctrl+K to focus • Enter to scrape</p>
                         </div>
 
                         {/* Search Form */}
@@ -392,10 +424,35 @@ export function WebScraperContent() {
                                         {(result.stats.searchEngines as any).googleNews > 0 && <span>News:{(result.stats.searchEngines as any).googleNews}</span>}
                                     </div>
                                 )}
+                                {confidenceScore > 0 && (
+                                    <div className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border", confidenceScore >= 80 ? "bg-emerald-500/5 border-emerald-500/10" : confidenceScore >= 55 ? "bg-amber-500/5 border-amber-500/10" : "bg-red-500/5 border-red-500/10")}>
+                                        <Activity className={cn("h-3 w-3", getConfidenceColor(confidenceScore))} />
+                                        <span className={getConfidenceColor(confidenceScore)}>{getConfidenceLabel(confidenceScore)} Confidence</span>
+                                    </div>
+                                )}
+                                {answerReadingTime > 0 && (
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 border border-border/30 text-muted-foreground">
+                                        <BookOpen className="h-3 w-3" />{answerReadingTime}m read
+                                    </div>
+                                )}
                             </div>
 
-                            {/* ═══ NEWS IMAGE CAROUSEL ═══ */}
-                            {sourcesWithImages.length > 0 && (
+                            {/* ── Tab Navigation ── */}
+                            <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-muted/50 border border-border/30 max-w-md mx-auto">
+                                {([
+                                    { key: 'summary' as const, icon: <Lightbulb className="h-3.5 w-3.5" />, label: 'Summary' },
+                                    { key: 'answer' as const, icon: <Sparkles className="h-3.5 w-3.5" />, label: 'Full Answer' },
+                                    { key: 'sources' as const, icon: <BookOpen className="h-3.5 w-3.5" />, label: `Sources (${result.sources.length})` },
+                                ]).map(tab => (
+                                    <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                                        className={cn("flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                                            activeTab === tab.key ? "bg-background text-foreground shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"
+                                        )}>{tab.icon}{tab.label}</button>
+                                ))}
+                            </div>
+
+                            {/* ═══ SUMMARY TAB ═══ */}
+                            {(activeTab === 'summary' || activeTab === 'answer') && sourcesWithImages.length > 0 && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
                                     <div className="flex items-center gap-2 mb-3">
                                         <Newspaper className="h-4 w-4 text-primary" />
@@ -496,7 +553,7 @@ export function WebScraperContent() {
                             )}
 
                             {/* ── Quick Summary (TL;DR) ── */}
-                            {result.quickSummary && (
+                            {activeTab === 'summary' && result.quickSummary && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                                     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-violet-500/5 overflow-hidden">
                                         <CardContent className="pt-4 pb-4">
@@ -513,7 +570,7 @@ export function WebScraperContent() {
                             )}
 
                             {/* ── Key Takeaways ── */}
-                            {result.keyTakeaways && result.keyTakeaways.length > 0 && (
+                            {activeTab === 'summary' && result.keyTakeaways && result.keyTakeaways.length > 0 && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                                     <div className="cursor-pointer" onClick={() => setShowTakeaways(!showTakeaways)}>
                                         <div className="flex items-center gap-2 mb-2">
@@ -545,7 +602,7 @@ export function WebScraperContent() {
                             )}
 
                             {/* ── Full Answer ── */}
-                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                            {(activeTab === 'summary' || activeTab === 'answer') && <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                                 <Card className="border-border/40 shadow-lg overflow-hidden">
                                     <div className="h-1 bg-gradient-to-r from-primary via-violet-500 to-primary/20" />
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -578,14 +635,17 @@ export function WebScraperContent() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </motion.div>
+                            </motion.div>}
 
                             {/* ── Sources List ── */}
-                            {result.sources.length > 0 && (
+                            {(activeTab === 'summary' || activeTab === 'sources') && result.sources.length > 0 && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-base font-semibold flex items-center gap-2"><BookOpen className="h-4 w-4 text-primary" /> All Sources ({result.sources.length})</h2>
                                         <div className="flex items-center gap-1">
+                                            <button onClick={() => setExpandAll(!expandAll)}
+                                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors mr-1"
+                                            >{expandAll ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}{expandAll ? 'Collapse All' : 'Expand All'}</button>
                                             <span className="text-[10px] text-muted-foreground mr-1">Sort:</span>
                                             {([
                                                 { key: 'quality' as const, icon: <Award className="h-3 w-3" />, label: 'Quality' },
@@ -602,7 +662,7 @@ export function WebScraperContent() {
                                     <div className="grid gap-3">
                                         {sortedSources.map((source, index) => (
                                             <SourceCard key={source.url} source={source} index={index}
-                                                isExpanded={expandedSource === index} onToggle={() => setExpandedSource(expandedSource === index ? null : index)} />
+                                                isExpanded={expandAll || expandedSource === index} onToggle={() => setExpandedSource(expandedSource === index ? null : index)} />
                                         ))}
                                     </div>
                                 </motion.div>
