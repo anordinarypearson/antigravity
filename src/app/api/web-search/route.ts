@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { webSearch } from '@/ai/tools/web-search';
 import * as cheerio from 'cheerio';
 
-export const runtime = 'edge';
-export const maxDuration = 60; // Increase duration for content fetching
+export const maxDuration = 60;
 
 interface SearchResult {
     title: string;
     link: string;
     snippet: string;
     favicon: string;
-    content?: string; // Extracted content
+    content?: string;
     source?: string;
 }
 
@@ -38,26 +38,57 @@ async function fetchWithTimeout(url: string, timeout = 3000): Promise<Response> 
     }
 }
 
+// Boilerplate phrases to filter out
+const BOILERPLATE_PHRASES = [
+    'cookie', 'privacy policy', 'terms of service', 'subscribe', 'newsletter',
+    'sign up', 'log in', 'accept cookies', 'we use cookies', 'consent',
+    'all rights reserved', 'copyright', 'advertisement', 'sponsored',
+];
+
 async function extractPageContent(url: string): Promise<string | undefined> {
     try {
-        const response = await fetchWithTimeout(url, 1500); // 1.5s max per page
+        const response = await fetchWithTimeout(url, 2000);
         if (!response.ok) return undefined;
         const html = await response.text();
         const $ = cheerio.load(html);
 
-        // Remove scripts, styles, etc.
-        $('script, style, nav, footer, header, aside, .ad, .advertisement').remove();
+        // Remove scripts, styles, noise
+        $('script, style, nav, footer, header, aside, .ad, .advertisement, .cookie-banner, .popup, .modal, .sidebar, .comments, form, iframe, noscript').remove();
 
-        // Get paragraph text
         let content = '';
-        $('p').each((i, el) => {
+
+        // Extract headings for context
+        $('h1, h2, h3').each((i: number, el: any) => {
             const text = $(el).text().trim();
-            if (text.length > 50) { // Only substantial paragraphs
+            if (text.length > 5 && text.length < 150) {
+                content += text + '. ';
+            }
+        });
+
+        // Get paragraph text with quality filtering
+        $('p').each((i: number, el: any) => {
+            const text = $(el).text().trim();
+            // Only substantial paragraphs, skip boilerplate
+            if (text.length > 50) {
+                const lowerText = text.toLowerCase();
+                const isBoilerplate = BOILERPLATE_PHRASES.some(phrase => lowerText.includes(phrase));
+                if (!isBoilerplate) {
+                    content += text + ' ';
+                }
+            }
+        });
+
+        // Also extract list items for structured content
+        $('li').each((i: number, el: any) => {
+            const text = $(el).text().trim();
+            if (text.length > 30 && text.length < 300 && content.length < 1800) {
                 content += text + ' ';
             }
         });
 
-        return content.substring(0, 500) + (content.length > 500 ? '...' : '');
+        if (content.trim().length < 50) return undefined;
+
+        return content.substring(0, 2000) + (content.length > 2000 ? '...' : '');
     } catch (e) {
         return undefined;
     }
@@ -68,86 +99,29 @@ async function performWebSearch(query: string): Promise<{
     images: ImageResult[];
 }> {
     try {
+        // Use the shared multi-engine search (DDG + Brave + Wikipedia + Google News + Bing)
+        const searchData = await webSearch({ query, maxResults: 12 });
+
         const results: SearchResult[] = [];
 
-        try {
-            // 1. Perform Search (DuckDuckGo HTML)
-            // Attempt to scrape DuckDuckGo for rich results
-            const textSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            const textResponse = await fetch(textSearchUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                }
-            });
-
-            if (textResponse.ok) {
-                const html = await textResponse.text();
-                const $ = cheerio.load(html);
-
-                $('.result').each((i, el) => {
-                    if (results.length >= 8) return;
-                    const titleLink = $(el).find('.result__a');
-                    const snippetElement = $(el).find('.result__snippet');
-
-                    const title = titleLink.text().trim();
-                    let link = titleLink.attr('href');
-                    const snippet = snippetElement.text().trim();
-
-                    if (link && link.startsWith('//duckduckgo.com/l/?uddg=')) {
-                        link = decodeURIComponent(link.replace('//duckduckgo.com/l/?uddg=', '').split('&')[0]);
-                    }
-
-                    if (title && link && link.startsWith('http')) {
-                        results.push({
-                            title,
-                            link,
-                            snippet,
-                            favicon: `https://www.google.com/s2/favicons?domain=${new URL(link).hostname}&sz=32`,
-                            source: new URL(link).hostname
-                        });
-                    }
-                });
-            }
-        } catch (ddgError) {
-            console.error("DuckDuckGo text search failed:", ddgError);
-        }
-
-        // 2. Fallback: Wikipedia if results are empty
-        if (results.length === 0) {
-            try {
-                const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=6&namespace=0&format=json`;
-                const wikiResponse = await fetch(wikiSearchUrl);
-                if (wikiResponse.ok) {
-                    const wikiData = await wikiResponse.json();
-                    // Wikipedia API returns: [query, [titles], [descriptions], [urls]]
-                    const titles = wikiData[1] || [];
-                    const descriptions = wikiData[2] || [];
-                    const urls = wikiData[3] || [];
-
-                    for (let i = 0; i < titles.length; i++) {
-                        if (titles[i] && urls[i]) {
-                            results.push({
-                                title: titles[i],
-                                link: urls[i],
-                                snippet: descriptions[i] || 'Wikipedia entry',
-                                favicon: 'https://www.wikipedia.org/static/favicon/wikipedia.ico',
-                                source: 'Wikipedia'
-                            });
-                        }
-                    }
-                }
-            } catch (wikiError) {
-                console.error("Wikipedia fallback failed:", wikiError);
+        if (searchData.results && searchData.results.length > 0) {
+            for (const item of searchData.results.slice(0, 8)) {
+                try {
+                    const hostname = new URL(item.url).hostname;
+                    results.push({
+                        title: item.title,
+                        link: item.url,
+                        snippet: item.snippet,
+                        favicon: `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`,
+                        source: hostname.replace('www.', ''),
+                    });
+                } catch { }
             }
         }
 
-        // 3. Extract Content from Top results (whether DDG or Wiki)
-        // Only extract if we have results. Limit to 3 to be faster.
+        // Extract content from top 4 results for richer context
         if (results.length > 0) {
-            const contentPromises = results.slice(0, 3).map(async (result) => {
-                // If it's a wikipedia link, extractContent might work well, or we can use specific wiki API
-                // For now, use generic extractor
+            const contentPromises = results.slice(0, 4).map(async (result) => {
                 const content = await extractPageContent(result.link);
                 if (content && content.length > 100) {
                     result.content = content;
@@ -157,10 +131,9 @@ async function performWebSearch(query: string): Promise<{
             await Promise.allSettled(contentPromises);
         }
 
-        // 4. Fetch Images
+        // Fetch images
         const images: ImageResult[] = [];
         try {
-            // Try DuckDuckGo API for images
             const imageApiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&t=h_`;
             const imageResponse = await fetch(imageApiUrl);
             const imageData = await imageResponse.json();
@@ -180,10 +153,10 @@ async function performWebSearch(query: string): Promise<{
                 }
             }
         } catch (e) {
-            // Image API failed, continue to fallback
+            // Image API failed
         }
 
-        // Always ensure we have at least 4 images using Pollinations as reliable fallback
+        // Ensure at least 4 images
         if (images.length < 4) {
             const extras = [
                 { suffix: 'visual', seed: 42 },
@@ -206,8 +179,6 @@ async function performWebSearch(query: string): Promise<{
 
     } catch (error) {
         console.error('Web search fatal error:', error);
-        // Return empty structure rather than throwing to prevent UI crash, 
-        // allowing chat to explain it couldn't find anything.
         return { results: [], images: [] };
     }
 }
@@ -236,3 +207,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

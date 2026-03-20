@@ -58,17 +58,17 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
 
     return (
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-black dark:border-border bg-sidebar px-4 sm:px-6 transition-all duration-300">
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4 min-w-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                     <SidebarTrigger />
                     {leftElement}
                 </div>
 
-                <div className="flex items-center gap-3">
-                    {title && <h1 className="text-xl font-semibold tracking-tight">{title}</h1>}
+                <div className="flex items-center gap-3 min-w-0">
+                    {title && <h1 className="text-xl font-semibold tracking-tight truncate max-w-[120px] sm:max-w-xs md:max-w-md">{title}</h1>}
 
                     {remainingMessages !== null && remainingMessages !== -1 && (
-                        <div className="flex h-7 items-center gap-2 px-3 rounded-full bg-muted/50 border border-border/50 transition-colors hover:bg-muted">
+                        <div className="flex h-7 items-center gap-2 px-3 rounded-full bg-muted/50 border border-border/50 transition-colors hover:bg-muted flex-shrink-0">
                             <span className="text-xs font-bold text-foreground tabular-nums">
                                 {remainingMessages}
                             </span>

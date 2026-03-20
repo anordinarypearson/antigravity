@@ -172,8 +172,8 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       )}
 
-      <div className="flex justify-center items-center py-2.5 sm:py-3 z-10 w-full border-b border-border/30">
-        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1">
+      <div className="flex justify-center items-center py-2.5 sm:py-3 z-10 w-full border-b border-border/30 overflow-hidden">
+        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-2">
           {views.map((view) => {
             const Icon = view.icon;
             const isActive = activeView === view.id;
@@ -222,7 +222,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
             <WebBrowserContent />
           )}
           {activeVideoId && showPlayer && (
-            <div className="fixed bottom-16 sm:bottom-4 right-2 sm:right-4 z-50 group">
+            <div className="fixed bottom-24 sm:bottom-4 right-2 sm:right-4 z-50 group">
               <iframe
                 ref={iframeRef}
                 className="w-[280px] sm:w-full sm:max-w-sm aspect-video rounded-lg shadow-xl"

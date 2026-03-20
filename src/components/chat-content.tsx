@@ -30,7 +30,6 @@ import { ShareDialog } from "./share-dialog";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
-import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 import { useRouter } from "next/navigation";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
@@ -61,7 +60,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ImageSearchCard } from "./image-search-card";
-import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { ToolWidgetRouter, type ToolName } from "./tool-widgets";
 
 
@@ -78,6 +76,7 @@ export type Message = {
 };
 
 const CHAT_HISTORY_STORAGE_KEY = 'chatHistory';
+const CHAT_HISTORY_DATE_KEY = 'chatHistoryDate';
 const USER_NAME_STORAGE_KEY = 'userName';
 
 
@@ -124,7 +123,58 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   const [isEditing, setIsEditing] = useState(false);
   const [code, setCode] = useState(initialCode);
   const [copied, setCopied] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isWrapped, setIsWrapped] = useState(false);
+  const [output, setOutput] = useState<string | null>(null);
+  const [outputError, setOutputError] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
   const { theme } = useTheme();
+
+  const lineCount = code.split('\n').length;
+  const lang = language?.toLowerCase() || 'text';
+
+  const LANG_COLORS: Record<string, string> = {
+    javascript: '#f7df1e', js: '#f7df1e',
+    typescript: '#3178c6', ts: '#3178c6',
+    python: '#3572A5', py: '#3572A5',
+    html: '#e34c26', css: '#563d7c', rust: '#dea584',
+    go: '#00ADD8', java: '#b07219', cpp: '#f34b7d', c: '#555555',
+    sql: '#e38c00', bash: '#89e051', shell: '#89e051', sh: '#89e051',
+    json: '#292929', yaml: '#cb171e', yml: '#cb171e', markdown: '#083fa1', md: '#083fa1',
+  };
+  const langColor = LANG_COLORS[lang] || '#888888';
+  const canRun = ['javascript', 'js', 'html', 'python', 'py'].includes(lang);
+
+  const handleRun = async () => {
+    setIsRunning(true);
+    setOutput(null);
+    setOutputError(false);
+    await new Promise(r => setTimeout(r, 300));
+    try {
+      if (lang === 'html') {
+        const win = window.open('', '_blank', 'width=800,height=600,resizable=yes');
+        if (win) { win.document.open(); win.document.write(code); win.document.close(); setOutput('\u2705 HTML opened in new window'); }
+        else { setOutput('\u26a0\ufe0f Popup blocked. Please allow popups.'); setOutputError(true); }
+      } else if (lang === 'javascript' || lang === 'js') {
+        const logs: string[] = [];
+        const nativeLog = console.log, nativeError = console.error, nativeWarn = console.warn;
+        console.log = (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' '));
+        console.error = (...args) => logs.push('\u274c ' + args.map(a => String(a)).join(' '));
+        console.warn = (...args) => logs.push('\u26a0\ufe0f ' + args.map(a => String(a)).join(' '));
+        try {
+          // eslint-disable-next-line no-new-func
+          const result = new Function(code)();
+          if (result !== undefined) logs.push('\u2192 ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)));
+        } finally {
+          console.log = nativeLog; console.error = nativeError; console.warn = nativeWarn;
+        }
+        setOutput(logs.length > 0 ? logs.join('\n') : '\u2705 Executed successfully (no output)');
+      } else if (lang === 'python' || lang === 'py') {
+        setOutput('\ud83d\udc0d Python execution requires a backend runtime.\n\ud83d\udca1 Copy and run locally with `python code.py`');
+      }
+    } catch (err: any) { setOutput(`\u274c Error: ${err.message}`); setOutputError(true); }
+    finally { setIsRunning(false); }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -171,104 +221,137 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
     toast({ title: "Downloaded!", description: `Code saved as code.${extension}` });
   };
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-  };
-
   const isDark = theme === 'dark';
 
-  return (
-    <div className="group relative my-4 rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-neutral-400/80" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
-            <div className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
+  const CodeContent = ({ compact }: { compact: boolean }) => (
+    <div className="relative">
+      {isEditing ? (
+        <Textarea
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className={cn(
+            "w-full resize-none rounded-none border-0 bg-background p-4 font-mono text-sm leading-relaxed focus-visible:ring-0",
+            compact ? "min-h-[200px]" : "min-h-[300px]"
+          )}
+          spellCheck={false}
+        />
+      ) : (
+        <div className={cn("overflow-auto custom-scrollbar", compact ? "max-h-[400px]" : "max-h-[65vh]")}>
+          {SyntaxHighlighter ? (
+            <SyntaxHighlighter
+              language={lang}
+              style={isDark ? (vscDarkPlus || {}) : (prism || {})}
+              customStyle={{
+                margin: 0, padding: '1.25rem', background: 'transparent',
+                fontSize: '0.8125rem', lineHeight: '1.65', borderRadius: 0,
+                whiteSpace: isWrapped ? 'pre-wrap' : 'pre',
+              }}
+              wrapLines={isWrapped}
+              showLineNumbers={!compact || lineCount > 3}
+              lineNumberStyle={{ minWidth: '2.25em', paddingRight: '1em', color: 'hsl(var(--muted-foreground))', textAlign: 'right', opacity: 0.4, fontSize: '0.7rem' }}
+            >
+              {code}
+            </SyntaxHighlighter>
+          ) : (
+            <pre className="p-5 overflow-auto font-mono text-sm leading-relaxed"><code>{code}</code></pre>
+          )}
+        </div>
+      )}
+      {output !== null && (
+        <div className={cn(
+          "border-t font-mono text-xs p-3 max-h-40 overflow-auto custom-scrollbar whitespace-pre-wrap leading-relaxed",
+          outputError
+            ? "bg-red-950/30 text-red-300 border-red-800/40"
+            : "bg-emerald-950/30 text-emerald-300 border-emerald-800/40"
+        )}>
+          <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-sans uppercase tracking-wider opacity-60">
+            <Terminal className="h-2.5 w-2.5" />output
+            <button onClick={() => setOutput(null)} className="ml-auto hover:opacity-100 opacity-60 transition-opacity">✕</button>
           </div>
-          <span className="ml-2 text-xs font-medium text-muted-foreground uppercase tracking-wider font-mono">
-            {language || 'text'}
-          </span>
+          {output}
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-            onClick={handleCopy}
-            title="Copy code"
-          >
-            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Clipboard className="h-3.5 w-3.5" />}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-            onClick={handleEditToggle}
-            title={isEditing ? "Save code" : "Edit code"}
-          >
-            {isEditing ? <Check className="h-3.5 w-3.5" /> : <Edit2 className="h-3.5 w-3.5" />}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-            onClick={handleDownload}
-            title="Download code"
-          >
-            <Download className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </div>
+      )}
+    </div>
+  );
 
-      <div className="relative">
-        {isEditing ? (
-          <div className="relative">
-            <Textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="min-h-[300px] w-full resize-none rounded-none border-0 bg-background p-4 font-mono text-sm leading-relaxed focus-visible:ring-0"
-              spellCheck={false}
-            />
-          </div>
-        ) : (
-          <div className="max-h-[500px] overflow-auto custom-scrollbar">
-            {SyntaxHighlighter ? (
-              <SyntaxHighlighter
-                language={language?.toLowerCase() || 'text'}
-                style={isDark ? (vscDarkPlus || {}) : (prism || {})}
-                customStyle={{
-                  margin: 0,
-                  padding: '1.5rem',
-                  background: 'transparent',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.6',
-                  borderRadius: 0,
-                }}
-                wrapLines={true}
-                showLineNumbers={true}
-                lineNumberStyle={{
-                  minWidth: '2.5em',
-                  paddingRight: '1em',
-                  color: 'hsl(var(--muted-foreground))',
-                  textAlign: 'right',
-                  opacity: 0.5
-                }}
-              >
-                {code}
-              </SyntaxHighlighter>
-            ) : (
-              <pre className="p-6 overflow-auto font-mono text-sm leading-relaxed">
-                <code>{code}</code>
-              </pre>
-            )}
-          </div>
+  const CodeHeader = ({ isModal }: { isModal: boolean }) => (
+    <div className={cn("flex items-center justify-between border-b bg-muted/40 px-3 py-2", isModal && "sticky top-0 z-10 backdrop-blur-sm bg-card/90")}>
+      <div className="flex items-center gap-2.5">
+        <div className="flex gap-1.5">
+          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80 hover:bg-[#ff5f57] transition-colors cursor-default" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80 hover:bg-[#febc2e] transition-colors cursor-default" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80 hover:bg-[#28c840] transition-colors cursor-default" />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full font-mono"
+          style={{ background: langColor + '22', color: langColor }}>
+          {lang}
+        </span>
+        <span className="text-[10px] text-muted-foreground/40 font-mono hidden sm:inline">
+          {lineCount} {lineCount === 1 ? 'line' : 'lines'}
+        </span>
+      </div>
+      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {canRun && (
+          <Button type="button" variant="ghost" size="sm"
+            className="h-6 px-2 text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 gap-1"
+            onClick={handleRun} disabled={isRunning || isEditing} title="Run code">
+            {isRunning
+              ? <span className="inline-block animate-spin text-xs">↻</span>
+              : <Play className="h-2.5 w-2.5 fill-current" />}
+            {isRunning ? 'Running…' : 'Run'}
+          </Button>
+        )}
+        <Button type="button" variant="ghost" size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={() => setIsWrapped(w => !w)} title={isWrapped ? 'Disable wrap' : 'Wrap lines'}>
+          <ChevronRight className={cn("h-3 w-3 transition-transform duration-200", isWrapped && "rotate-90")} />
+        </Button>
+        <Button type="button" variant="ghost" size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={handleCopy} title="Copy code">
+          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Clipboard className="h-3 w-3" />}
+        </Button>
+        <Button type="button" variant="ghost" size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={() => setIsEditing(e => !e)} title={isEditing ? 'Done editing' : 'Edit code'}>
+          {isEditing ? <Check className="h-3 w-3 text-green-500" /> : <Edit2 className="h-3 w-3" />}
+        </Button>
+        <Button type="button" variant="ghost" size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={handleDownload} title="Download">
+          <Download className="h-3 w-3" />
+        </Button>
+        {!isModal && (
+          <Button type="button" variant="ghost" size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            onClick={() => setIsFullscreen(true)} title="Expand fullscreen">
+            <Presentation className="h-3 w-3" />
+          </Button>
         )}
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={(e) => e.target === e.currentTarget && setIsFullscreen(false)}>
+          <div className="group relative w-full max-w-5xl rounded-xl border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <CodeHeader isModal={true} />
+            <div className="flex-1 overflow-auto"><CodeContent compact={false} /></div>
+            <button onClick={() => setIsFullscreen(false)}
+              className="absolute top-2.5 right-2.5 text-muted-foreground hover:text-foreground bg-muted/80 hover:bg-muted rounded-lg h-7 w-7 flex items-center justify-center text-xs transition-colors z-20 font-bold">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="group relative my-4 rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <CodeHeader isModal={false} />
+        <CodeContent compact={true} />
+      </div>
+    </>
   );
 };
 
@@ -284,6 +367,8 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
       setIsCommandOpen?.(false);
     }
   }, [input, setIsCommandOpen]);
+
+
 
   // Handle Slash Command Selection
   const handleCommandSelect = (command: string) => {
@@ -321,6 +406,10 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
         setActiveButton('tools');
         setActiveTool('dice');
         break;
+      case 'search':
+        setActiveButton('tools');
+        setActiveTool('websearch');
+        break;
       case 'code':
         break;
     }
@@ -343,17 +432,16 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
   const [finalTranscript, setFinalTranscript] = useState('');
 
   const handleLocalSendMessage = (messageToSend?: string) => {
-    const message = (messageToSend || input || finalTranscript).trim();
+    const message = (messageToSend || input).trim();
     if (!message && !imageDataUri && !fileContent) return;
 
     if (isRecording) {
-      recognitionRef.current?.stop();
+      handleToggleRecording(); // forcefully stop
     }
 
     onSendMessage(message, imageDataUri, fileContent);
 
     setInput('');
-    setFinalTranscript('');
     setImageDataUri(null);
     setFileContent(null);
     setFileName(null);
@@ -366,8 +454,8 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
 
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const audioSendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
@@ -377,86 +465,39 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      console.warn('Speech recognition not supported in this browser.');
-      return;
-    }
-
-    recognitionRef.current = new SpeechRecognition();
-    const recognition = recognitionRef.current;
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-      setIsRecording(true);
-      setFinalTranscript('');
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      toast({
-        title: 'Speech Recognition Error',
-        description: event.error,
-        variant: 'destructive',
-      });
-      setIsRecording(false);
-    };
-
-    recognition.onresult = (event: any) => {
-      if (audioSendTimeoutRef.current) {
-        clearTimeout(audioSendTimeoutRef.current);
-      }
-
-      let interimTranscript = '';
-      let currentFinalTranscript = finalTranscript;
-
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          currentFinalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
-        }
-      }
-
-      setFinalTranscript(currentFinalTranscript);
-      setInput(currentFinalTranscript + interimTranscript);
-
-      audioSendTimeoutRef.current = setTimeout(() => {
-        if (isRecording) {
-          recognitionRef.current?.stop();
-        }
-        if ((currentFinalTranscript + interimTranscript).trim()) {
-          handleLocalSendMessage(currentFinalTranscript + interimTranscript);
-        }
-      }, 1500); // Send after 1.5 seconds of silence
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalTranscript, isRecording]);
-
-
   const handleToggleRecording = async () => {
-    if (!recognitionRef.current) return;
-
     if (isRecording) {
-      recognitionRef.current.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+      setIsRecording(false);
     } else {
       try {
-        // Explicitly request permission first to trigger browser prompt reliably
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
 
-        setInput('');
-        setFinalTranscript('');
-        recognitionRef.current.start();
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const audioFile = new File([audioBlob], "Voice-Note.webm", { type: 'audio/webm' });
+          stream.getTracks().forEach(track => track.stop());
+          handleAudioFileChange(audioFile);
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
       } catch (err: any) {
         console.error("Microphone permission error:", err);
         let errorMessage = "Could not access microphone.";
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          errorMessage = "Microphone permission was denied. Please allow microphone access in your browser settings (look for the camera/mic icon in the address bar).";
+          errorMessage = "Microphone permission was denied. Please allow microphone access in your browser settings.";
         } else if (err.name === 'NotFoundError') {
           errorMessage = "No microphone found. Please ensure your microphone is connected.";
         }
@@ -466,6 +507,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
           description: errorMessage,
           variant: "destructive",
         });
+        setIsRecording(false);
       }
     }
   };
@@ -536,9 +578,14 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
       const { pipeline } = await import('@xenova/transformers');
       const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
 
-      const audio = await AudioDecoder.decode(file);
+      // Use standard Web Audio API to decode the audio file to 16kHz Float32Array for Whisper
+      const arrayBuffer = await file.arrayBuffer();
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass({ sampleRate: 16000 });
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const audioData = audioBuffer.getChannelData(0); // Get mono audio data
 
-      const transcript = await transcriber(audio, {
+      const transcript = await transcriber(audioData, {
         chunk_length_s: 30,
         stride_length_s: 5,
         callback_function: (beams: any[]) => {
@@ -547,14 +594,24 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
         },
       });
 
-      setFileContent((transcript as any).text);
-      toast({ title: "Audio Transcribed!", description: "The extracted text will be sent with your next message." });
+      const transcribedText = (transcript as any).text;
+      
+      if (file.name === "Voice-Note.webm") {
+        setInput(prev => prev + (prev ? " " : "") + transcribedText);
+        toast({ title: "Audio Transcribed!", description: "Voice note converted to text." });
+        setFileName(null);
+      } else {
+        setFileContent(transcribedText);
+        toast({ title: "Audio Transcribed!", description: "The extracted text will be sent with your next message." });
+      }
 
     } catch (error) {
       console.error("Audio transcription error:", error);
       toast({ title: "Audio Transcription Failed", description: "Could not process the audio file. This may be due to a network issue.", variant: "destructive" });
-      setFileContent(null);
-      setFileName(null);
+      if (file.name !== "Voice-Note.webm") {
+        setFileContent(null);
+        setFileName(null);
+      }
     } finally {
       setIsOcrProcessing(false);
     }
@@ -662,6 +719,36 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
 
   const isInputDisabled = isOcrProcessing || isTyping;
 
+  useEffect(() => {
+    const handleDropEvent = (e: any) => {
+      const file = e.detail?.file as File | undefined;
+      if (file) {
+        if (file.type.startsWith("image/")) {
+          const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+          handleImageFileChange(fakeEvent);
+        } else if (file.type === "text/plain") {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            setFileContent(ev.target?.result as string);
+            setFileName(file.name);
+            setImageDataUri(null);
+            toast({ title: "Text File Attached", description: "The content is ready to be sent with your next message." });
+          };
+          reader.readAsText(file);
+        } else if (file.type.startsWith("audio/")) {
+          handleAudioFileChange(file);
+        } else if (file.type === "application/pdf") {
+          handlePdfFileChange(file);
+        } else {
+          toast({ title: "Invalid file type", description: "Unsupported file type dropped.", variant: "destructive" });
+        }
+      }
+    };
+    window.addEventListener('handle-chat-drop', handleDropEvent);
+    return () => window.removeEventListener('handle-chat-drop', handleDropEvent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -703,13 +790,14 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
       <motion.form
         onSubmit={handleFormSubmit}
         initial={false}
-        animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 0 15px -3px hsl(var(--primary) / 0.3)" } : { borderColor: "var(--chat-border-color)", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+        animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.3)" } : { borderColor: "var(--chat-border-color)", boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.4)" }}
         whileHover={{ borderColor: "var(--chat-border-hover-color)" }}
-        whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 0 20px -5px hsl(var(--primary) / 0.4)" }}
+        whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.5)" }}
         transition={{ duration: 0.3 }}
-        style={{ "--chat-border-color": theme === 'dark' ? "hsla(var(--foreground) / 0.1)" : "black", "--chat-border-hover-color": theme === 'dark' ? "hsla(var(--foreground) / 0.3)" : "black" } as React.CSSProperties}
-        className="relative flex flex-col gap-2 max-sm:rounded-none sm:rounded-2xl border max-sm:border-x-0 max-sm:border-b-0 bg-background max-sm:p-2 sm:p-3 max-sm:shadow-none shadow-sm"
+        style={{ "--chat-border-color": theme === 'dark' ? "hsla(var(--foreground) / 0.08)" : "rgba(0,0,0,0.1)", "--chat-border-hover-color": theme === 'dark' ? "hsla(var(--foreground) / 0.2)" : "rgba(0,0,0,0.2)" } as React.CSSProperties}
+        className="relative flex flex-col gap-2 rounded-[24px] border bg-chat-input-background/60 backdrop-blur-2xl p-2 sm:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none" />
         {isCommandOpen && (
           <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border rounded-xl shadow-lg z-50 overflow-hidden">
             <Command>
@@ -745,6 +833,10 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
                     <Dices className="mr-2 h-4 w-4" />
                     <span>Dice Roller</span>
                   </CommandItem>
+                  <CommandItem onSelect={() => handleCommandSelect('search')}>
+                    <Search className="mr-2 h-4 w-4" />
+                    <span>Web Search</span>
+                  </CommandItem>
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -766,8 +858,8 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
           }}
         />
 
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between px-1 gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 -mb-1">
             <ModelSwitcher selectedModel={currentModel} onModelChange={setCurrentModel} disabled={isInputDisabled} />
 
             <div className={cn("flex items-center h-8 rounded-lg transition-colors border border-transparent", activeButton === 'tools' ? "bg-secondary text-secondary-foreground" : "hover:bg-muted")}>
@@ -804,6 +896,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
                       { tool: 'calculator' as ToolName, icon: Calculator, label: 'Calculator' },
                       { tool: 'colorpicker' as ToolName, icon: Palette, label: 'Color Picker' },
                       { tool: 'dice' as ToolName, icon: Dices, label: 'Dice Roller' },
+                      { tool: 'websearch' as ToolName, icon: Search, label: 'Web Search' },
                     ].map(({ tool, icon: Icon, label }) => (
                       <button
                         key={tool}
@@ -848,9 +941,27 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
             >
               <ImageIcon className="h-4 w-4" />
             </Button>
+            <Button
+              type="button"
+              variant={activeTool === 'websearch' ? 'secondary' : 'ghost'}
+              size="icon"
+              className={cn("h-8 w-8 rounded-lg", activeTool === 'websearch' && "bg-blue-500/15 text-blue-500")}
+              onClick={() => {
+                if (activeTool === 'websearch') {
+                  setActiveTool(null);
+                  setActiveButton(null);
+                } else {
+                  handleSelectTool('websearch' as ToolName);
+                }
+              }}
+              disabled={isInputDisabled}
+              title="Web Search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" disabled={isInputDisabled}>
@@ -875,11 +986,11 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
             <Button
               type={isTyping ? "button" : "submit"}
               size="icon"
-              className="h-8 w-8 rounded-full bg-primary text-primary-foreground shadow hover:bg-primary/90"
+              className="h-8 w-8 rounded-full bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground shadow-md border border-primary/20 hover:scale-105 active:scale-95 transition-all duration-200"
               disabled={isOcrProcessing || (!isTyping && !input.trim() && !imageDataUri && !fileContent)}
               onClick={isTyping ? onStop : undefined}
             >
-              {isTyping ? <Square className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
+              {isTyping ? <Square className="h-4 w-4" /> : <ArrowUp className="h-4 w-4 drop-shadow" />}
               <span className="sr-only">{isTyping ? "Stop" : "Send"}</span>
             </Button>
           </div>
@@ -928,7 +1039,7 @@ const ChatBar = React.memo(({
   };
 
   return (
-    <div className={cn("mx-auto w-full", isPlayground ? "p-2 max-w-3xl" : "max-sm:p-0 max-sm:max-w-none sm:px-4 sm:pb-4 max-w-3xl")}>
+    <div className={cn("mx-auto w-full", isPlayground ? "p-2 max-w-3xl" : "px-2 pb-2 sm:px-4 sm:pb-4 max-w-3xl")}>
       <ChatInput
         onSendMessage={onSendMessage}
         isTyping={isTyping}
@@ -965,7 +1076,6 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { checkAndIncrementMessageLimit } = useUsageLimits();
 
   const [history, setHistory] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -973,8 +1083,6 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const [isSynthesizing, setIsSynthesizing] = useState<string | null>(null);
   const [shareContent, setShareContent] = useState<string | null>(null);
-
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1012,10 +1120,21 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
     try {
-      const savedHistory = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
-      if (savedHistory) {
-        setHistory(JSON.parse(savedHistory));
+      // Daily reset: check if the saved history is from today
+      const today = new Date().toDateString();
+      const savedDate = localStorage.getItem(CHAT_HISTORY_DATE_KEY);
+
+      if (savedDate !== today) {
+        // New day — clear old history
+        localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+        localStorage.setItem(CHAT_HISTORY_DATE_KEY, today);
+      } else {
+        const savedHistory = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+        if (savedHistory) {
+          setHistory(JSON.parse(savedHistory));
+        }
       }
+
       const savedName = localStorage.getItem(USER_NAME_STORAGE_KEY);
       if (savedName) {
         setUserName(savedName);
@@ -1030,6 +1149,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   useEffect(() => {
     try {
       localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(history));
+      localStorage.setItem(CHAT_HISTORY_DATE_KEY, new Date().toDateString());
     } catch (error) {
       console.error("Failed to save chat history to localStorage", error);
     }
@@ -1170,7 +1290,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         const errorData = await response.json().catch(() => ({}));
 
         if (response.status === 429 || errorData.error === '__LIMIT_EXHAUSTED__') {
-          setShowLimitDialog(true);
+          toast({ title: "Rate Limited", description: "Too many requests. Please wait a moment and try again.", variant: "destructive" });
           setIsTyping(false);
           return;
         }
@@ -1213,25 +1333,49 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       // Add a placeholder message that we'll update
       setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: '' }]);
 
+      let lastUpdateTime = 0;
+      let rafId: number | null = null;
+      let pendingContent = accumulatedContent;
+
+      const flushToUI = (text: string) => {
+        setHistory(prev =>
+          prev.map(msg =>
+            msg.id === modelMessageId
+              ? { ...msg, content: text }
+              : msg
+          )
+        );
+      };
+
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
+          if (rafId !== null) cancelAnimationFrame(rafId);
           break;
         }
 
         const chunk = decoder.decode(value, { stream: true });
         accumulatedContent += chunk;
+        pendingContent = accumulatedContent;
 
-        // Update the message in history with the accumulated content
-        setHistory(prev =>
-          prev.map(msg =>
-            msg.id === modelMessageId
-              ? { ...msg, content: accumulatedContent }
-              : msg
-          )
-        );
+        const now = Date.now();
+        // Update at ~120 FPS (every 8ms) for a smooth letter-by-letter feel
+        if (now - lastUpdateTime > 8) {
+          lastUpdateTime = now;
+          const snap = pendingContent;
+          flushToUI(snap);
+        }
       }
+
+      // Ensure the very last chunk is always rendered when the stream finishes
+      setHistory(prev =>
+        prev.map(msg =>
+          msg.id === modelMessageId
+            ? { ...msg, content: accumulatedContent }
+            : msg
+        )
+      );
 
       const endTime = Date.now();
       const duration = (endTime - startTime) / 1000;
@@ -1268,13 +1412,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
 
   const handleSendMessage = useCallback(async (messageContent: string, imageDataUri?: string | null, fileContent?: string | null) => {
-    // Check usage info first
-    const allowed = await checkAndIncrementMessageLimit();
-    if (!allowed) {
-      setShowLimitDialog(true);
-      return;
-    }
-
+    // Optimistic UI: show the user message IMMEDIATELY
     const userMessage: Message = {
       id: `${Date.now()}-user`,
       role: "user",
@@ -1328,7 +1466,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     } else {
       executeChat(newHistory, imageDataUri, fileContent);
     }
-  }, [activeButton, activeTool, executeChat, history, toast, checkAndIncrementMessageLimit]);
+  }, [activeButton, activeTool, executeChat, history, toast]);
 
   const handleStopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
@@ -1394,20 +1532,10 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      // Reuse existing file handling logic
       const file = files[0]; // Handle first file for now
-      if (file.type.startsWith('image/')) {
-        // Mocking event for handleImageFileChange
-        // We'd need to refactor handleImageFileChange to accept File directly, 
-        // or just recreate logic here. Let's refactor slightly effectively by direct call.
-        // Actually, let's just create a synthetic event or call logic directly.
-        // Better: extract logic to `processImageFile` and `processOtherFile`.
-        // For expediency, we'll manually call the input ref logic or similar.
-        // TODO: Handle file drop correctly by passing it to ChatInput or processing here
-        toast({ title: "Drop detected", description: "File upload via drop is being improved." });
-      }
+      window.dispatchEvent(new CustomEvent('handle-chat-drop', { detail: { file } }));
     }
-  }, [toast]);
+  }, []);
 
   // Edit Message Handlers
   const handleEditMessage = (messageId: string, content: string) => {
@@ -1619,14 +1747,22 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           </div>
         ),
         p: ({ node, ...props }: any) => <div className="mb-4" {...props} />,
-        table: ({ node, ...props }: any) => <table className="table-auto w-full my-4" {...props} />,
+        table: ({ node, ...props }: any) => (
+          <div className="overflow-x-auto pb-4 my-4">
+            <table className="table-auto w-full" {...props} />
+          </div>
+        ),
         thead: ({ node, ...props }: any) => <thead className="bg-muted/50" {...props} />,
         tbody: ({ node, ...props }: any) => <tbody {...props} />,
         tr: ({ node, ...props }: any) => <tr className="border-b border-border" {...props} />,
         th: ({ node, ...props }: any) => <th className="p-2 text-left font-semibold" {...props} />,
         td: ({ node, ...props }: any) => <td className="p-2" {...props} />,
+        a: ({ node, ...props }: any) => <a target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline underline-offset-4 decoration-primary/50" {...props} />,
       }
     };
+
+    // Determine if this message is actively streaming
+    const isActivelyStreaming = isTyping && message.role === 'model' && message.id === history[history.length - 1]?.id;
 
     return (
       <>
@@ -1649,6 +1785,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         <ReactMarkdown {...markdownProps}>
           {restOfContent}
         </ReactMarkdown>
+        {isActivelyStreaming && restOfContent.length > 0 && (
+          <span className="streaming-cursor" aria-hidden="true">▌</span>
+        )}
       </>
     );
   };
@@ -1672,7 +1811,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   return (
     <div className={cn("flex h-full flex-col", isPlayground ? "" : "relative")}>
-      <LimitExhaustedDialog isOpen={showLimitDialog} onOpenChange={setShowLimitDialog} />
+
       <ShareDialog
         isOpen={!!shareContent}
         onOpenChange={(open) => !open && setShareContent(null)}
@@ -1710,6 +1849,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             setActiveButton={setActiveButton}
             handleSendMessage={handleSendMessage}
             onUpdateName={handleUpdateName}
+            chatBar={chatBar}
           />
         ) : (
           <ScrollArea className="flex-1 w-full" ref={scrollAreaRef} onScrollCapture={handleScroll}>
@@ -1727,7 +1867,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                     )}
                   >
                     {message.role === "user" ? (
-                      <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-md w-full min-w-0">
+                      <div className="flex flex-col items-end gap-1 max-w-[90%] sm:max-w-lg w-full min-w-0">
                         {editingMessageId === message.id ? (
                           <div className="w-full bg-muted p-3 rounded-xl border border-primary/50">
                             <Textarea
@@ -1743,7 +1883,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         ) : (
                           <>
                             <div className="relative group/msg">
-                              <div className="relative inline-block rounded-2xl px-4 py-3 bg-primary text-primary-foreground shadow-sm">
+                              <div className="relative inline-block rounded-2xl px-5 py-3.5 bg-gradient-to-br from-primary via-primary/95 to-primary/85 text-primary-foreground shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-primary/20 backdrop-blur-md">
                                 {message.image && (
                                   <div className="mb-2 -mx-1 -mt-1">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1756,7 +1896,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                                 )}
                                 <p className="text-sm font-medium line-clamp-none leading-relaxed">{message.content}</p>
                               </div>
-                              <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                              <div className="sm:absolute sm:-left-16 sm:top-1/2 sm:-translate-y-1/2 flex justify-end gap-0.5 mt-1 sm:mt-0 opacity-100 sm:opacity-0 sm:group-hover/msg:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -1798,7 +1938,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                           />
                         )}
                         {message.role === 'model' && message.role !== 'browser' && (
-                          <div className="mt-3 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="mt-3 flex flex-wrap items-center gap-1 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                             <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleCopyToClipboard(message.content)} title="Copy">
                               <Copy className="h-3.5 w-3.5" />
                             </Button>
@@ -1839,22 +1979,24 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           {chatBar}
         </div>
       ) : (
-        <div className={cn("fixed bottom-0 left-0 lg:left-auto right-0 w-full lg:w-[calc(100%-16rem)] group-data-[collapsible=icon]:lg:w-[calc(100%-3rem)] transition-all bg-transparent")}>
-          {showScrollBottom && (
-            <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-20">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4 rounded-full shadow-lg bg-background/90 backdrop-blur-md border-border/50 hover:shadow-xl transition-all gap-2 animate-bounce"
-                onClick={scrollToBottom}
-              >
-                <ArrowDown className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">New messages</span>
-              </Button>
-            </div>
-          )}
-          {chatBar}
-        </div>
+        !showWelcome && (
+          <div className={cn("fixed bottom-0 left-0 lg:left-auto right-0 w-full lg:w-[calc(100%-16rem)] group-data-[collapsible=icon]:lg:w-[calc(100%-3rem)] transition-all bg-transparent")}>
+            {showScrollBottom && (
+              <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-20">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-4 rounded-full shadow-lg bg-background/90 backdrop-blur-md border-border/50 hover:shadow-xl transition-all gap-2 animate-bounce"
+                  onClick={scrollToBottom}
+                >
+                  <ArrowDown className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">New messages</span>
+                </Button>
+              </div>
+            )}
+            {chatBar}
+          </div>
+        )
       )}
 
     </div>

@@ -1,0 +1,781 @@
+.next/types/app/ebooks/[slug]/page.ts(34,29): error TS2344: Type '{ params: { slug: string; }; }' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ slug: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/settings/api/page.ts(12,13): error TS2344: Type 'OmitWithTag<typeof import("C:/Users/rk908/Downloads/whiteneon2_ac6cb57135_VSTHEMES-ORG/sidebar-1/src/app/settings/api/page"), "config" | "generateStaticParams" | "revalidate" | "dynamic" | ... 10 more ... | "experimental_ppr", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'SettingsApiContent' is incompatible with index signature.
+    Type '() => Element' is not assignable to type 'never'.
+src/app/actions.ts(19,31): error TS2724: '"@/ai/flows/analyze-image-content"' has no exported member named 'AnalyzeImageContentInput'. Did you mean 'analyzeImageContent'?
+src/app/actions.ts(19,57): error TS2724: '"@/ai/flows/analyze-image-content"' has no exported member named 'AnalyzeImageContentOutput'. Did you mean 'analyzeImageContent'?
+src/app/actions.ts(373,9): error TS2322: Type '{ content: ({ type: "text"; text: string; } | { type: "image"; image: string; })[]; role: "system"; experimental_providerMetadata?: ProviderMetadata; }' is not assignable to type 'CoreMessage'.
+  Types of property 'content' are incompatible.
+    Type '({ type: "text"; text: string; } | { type: "image"; image: string; })[]' is not assignable to type 'string'.
+src/app/actions.ts(401,44): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/app/api/example-secure/route.ts(101,28): error TS2339: Property 'ip' does not exist on type 'NextRequest'.
+src/app/api/example-secure/route.ts(202,28): error TS2339: Property 'ip' does not exist on type 'NextRequest'.
+src/app/api/razorpay/create-subscription/route.ts(64,13): error TS2353: Object literal may only specify known properties, and 'customer_id' does not exist in type 'RazorpaySubscriptionCreateRequestBody | RazorpaySubscriptionLinkCreateRequestBody'.
+src/app/api/razorpay/create-subscription/route.ts(74,42): error TS2339: Property 'id' does not exist on type 'Promise<RazorpaySubscription> & void'.
+src/app/settings/api/page.tsx(7,20): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/app/settings/api/page.tsx(7,26): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/app/web-scraper.ts(250,49): error TS2339: Property 'tagName' does not exist on type 'Element'.
+  Property 'tagName' does not exist on type 'TextElement'.
+src/app/web-scraper.ts(275,17): error TS2315: Type 'Cheerio' is not generic.
+src/app/web-scraper.ts(275,41): error TS2694: Namespace 'cheerio' has no exported member 'AnyNode'.
+src/app/web-scraper.ts(299,105): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/app/web-scraper.ts(299,108): error TS7006: Parameter 'el' implicitly has an 'any' type.
+src/app/web-scraper.ts(301,49): error TS2339: Property 'tagName' does not exist on type 'Element'.
+  Property 'tagName' does not exist on type 'TextElement'.
+src/app/web-scraper.ts(370,52): error TS2345: Argument of type 'Root' is not assignable to parameter of type 'CheerioAPI'.
+  Type 'Root' is missing the following properties from type 'CheerioAPI': version, load
+src/app/web-scraper.ts(371,53): error TS2345: Argument of type 'Root' is not assignable to parameter of type 'CheerioAPI'.
+  Type 'Root' is missing the following properties from type 'CheerioAPI': version, load
+src/app/web-scraper.ts(857,25): error TS2741: Property 'searxng' is missing in type '{ duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; }' but required in type '{ duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; searxng: number; }'.
+src/app/web-scraper.ts(993,21): error TS2741: Property 'searxng' is missing in type '{ duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; }' but required in type '{ duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; searxng: number; }'.
+src/components/agent-content.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/ai-editor-content.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'Brush'.
+src/components/ai-editor-content.tsx(10,17): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/ai-editor-content.tsx(10,24): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/ai-editor-content.tsx(10,33): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/ai-training-content.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Cpu'.
+src/components/ai-training-content.tsx(5,15): error TS2305: Module '"lucide-react"' has no exported member 'Database'.
+src/components/ai-training-content.tsx(5,25): error TS2305: Module '"lucide-react"' has no exported member 'ToyBrick'.
+src/components/ai-training-content.tsx(5,35): error TS2305: Module '"lucide-react"' has no exported member 'LineChart'.
+src/components/ai-training-content.tsx(5,46): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/ai-training-content.tsx(5,57): error TS2305: Module '"lucide-react"' has no exported member 'Milestone'.
+src/components/analyzer-content.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/analyzer-content.tsx(8,19): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/analyzer-content.tsx(8,39): error TS2305: Module '"lucide-react"' has no exported member 'UploadCloud'.
+src/components/analyzer-content.tsx(8,55): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/analyzer-content.tsx(8,60): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/analyzer-content.tsx(8,65): error TS2305: Module '"lucide-react"' has no exported member 'ScanText'.
+src/components/analyzer-content.tsx(8,75): error TS2305: Module '"lucide-react"' has no exported member 'Tag'.
+src/components/analyzer-content.tsx(8,80): error TS2305: Module '"lucide-react"' has no exported member 'Trash2'.
+src/components/analyzer-content.tsx(8,88): error TS2305: Module '"lucide-react"' has no exported member 'Info'.
+src/components/app-sidebar.tsx(4,3): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/app-sidebar.tsx(5,3): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/app-sidebar.tsx(6,3): error TS2305: Module '"lucide-react"' has no exported member 'HelpCircle'.
+src/components/app-sidebar.tsx(7,3): error TS2305: Module '"lucide-react"' has no exported member 'Home'.
+src/components/app-sidebar.tsx(8,3): error TS2305: Module '"lucide-react"' has no exported member 'Info'.
+src/components/app-sidebar.tsx(9,3): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/app-sidebar.tsx(10,3): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/app-sidebar.tsx(11,3): error TS2305: Module '"lucide-react"' has no exported member 'Settings'.
+src/components/app-sidebar.tsx(12,3): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/app-sidebar.tsx(13,3): error TS2305: Module '"lucide-react"' has no exported member 'FileQuestion'.
+src/components/app-sidebar.tsx(14,3): error TS2305: Module '"lucide-react"' has no exported member 'Youtube'.
+src/components/app-sidebar.tsx(15,3): error TS2305: Module '"lucide-react"' has no exported member 'Rss'.
+src/components/app-sidebar.tsx(16,3): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/app-sidebar.tsx(17,3): error TS2305: Module '"lucide-react"' has no exported member 'MoreHorizontal'.
+src/components/app-sidebar.tsx(18,3): error TS2305: Module '"lucide-react"' has no exported member 'GraduationCap'.
+src/components/app-sidebar.tsx(19,3): error TS2305: Module '"lucide-react"' has no exported member 'BrainCircuit'.
+src/components/app-sidebar.tsx(20,3): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/app-sidebar.tsx(21,3): error TS2305: Module '"lucide-react"' has no exported member 'Layers'.
+src/components/app-sidebar.tsx(23,3): error TS2305: Module '"lucide-react"' has no exported member 'Cpu'.
+src/components/app-sidebar.tsx(24,3): error TS2305: Module '"lucide-react"' has no exported member 'Presentation'.
+src/components/app-sidebar.tsx(25,3): error TS2305: Module '"lucide-react"' has no exported member 'File'.
+src/components/app-sidebar.tsx(26,3): error TS2305: Module '"lucide-react"' has no exported member 'Brush'.
+src/components/app-sidebar.tsx(27,3): error TS2305: Module '"lucide-react"' has no exported member 'Volume2'.
+src/components/app-sidebar.tsx(28,3): error TS2305: Module '"lucide-react"' has no exported member 'FileEdit'.
+src/components/app-sidebar.tsx(29,3): error TS2305: Module '"lucide-react"' has no exported member 'LogOut'.
+src/components/app-sidebar.tsx(30,3): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/app-sidebar.tsx(31,3): error TS2305: Module '"lucide-react"' has no exported member 'Calendar'.
+src/components/app-sidebar.tsx(32,3): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/app-sidebar.tsx(33,3): error TS2305: Module '"lucide-react"' has no exported member 'Music'.
+src/components/app-sidebar.tsx(34,3): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/app-sidebar.tsx(35,3): error TS2305: Module '"lucide-react"' has no exported member 'View'.
+src/components/app-sidebar.tsx(36,3): error TS2305: Module '"lucide-react"' has no exported member 'FlaskConical'.
+src/components/app-sidebar.tsx(37,3): error TS2305: Module '"lucide-react"' has no exported member 'Users'.
+src/components/app-sidebar.tsx(38,3): error TS2305: Module '"lucide-react"' has no exported member 'Inbox'.
+src/components/app-sidebar.tsx(39,3): error TS2305: Module '"lucide-react"' has no exported member 'Menu'.
+src/components/app-sidebar.tsx(40,3): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/auth-showcase.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/auth-showcase.tsx(5,18): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/auth-showcase.tsx(5,24): error TS2305: Module '"lucide-react"' has no exported member 'Youtube'.
+src/components/auth-showcase.tsx(5,33): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/auth-showcase.tsx(5,43): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/auth-showcase.tsx(5,53): error TS2305: Module '"lucide-react"' has no exported member 'Brain'.
+src/components/auth-showcase.tsx(5,60): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/auth-showcase.tsx(5,65): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/back-button.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'ArrowLeft'.
+src/components/camera-capture-dialog.tsx(14,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/camera-capture-dialog.tsx(14,19): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/chat-content.tsx(11,3): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/chat-content.tsx(11,8): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/chat-content.tsx(11,14): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/chat-content.tsx(11,20): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/chat-content.tsx(11,28): error TS2305: Module '"lucide-react"' has no exported member 'Volume2'.
+src/components/chat-content.tsx(11,37): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/chat-content.tsx(11,48): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/chat-content.tsx(11,61): error TS2305: Module '"lucide-react"' has no exported member 'Edit'.
+src/components/chat-content.tsx(11,67): error TS2305: Module '"lucide-react"' has no exported member 'Save'.
+src/components/chat-content.tsx(12,3): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/chat-content.tsx(12,25): error TS2305: Module '"lucide-react"' has no exported member 'Paperclip'.
+src/components/chat-content.tsx(12,36): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/chat-content.tsx(12,41): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/chat-content.tsx(12,49): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/chat-content.tsx(12,55): error TS2305: Module '"lucide-react"' has no exported member 'Layers'.
+src/components/chat-content.tsx(12,63): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/chat-content.tsx(13,3): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/chat-content.tsx(13,11): error TS2305: Module '"lucide-react"' has no exported member 'ArrowUp'.
+src/components/chat-content.tsx(13,20): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/chat-content.tsx(13,27): error TS2305: Module '"lucide-react"' has no exported member 'Music'.
+src/components/chat-content.tsx(13,34): error TS2305: Module '"lucide-react"' has no exported member 'Youtube'.
+src/components/chat-content.tsx(13,43): error TS2305: Module '"lucide-react"' has no exported member 'MoreVertical'.
+src/components/chat-content.tsx(13,57): error TS2305: Module '"lucide-react"' has no exported member 'Play'.
+src/components/chat-content.tsx(13,63): error TS2305: Module '"lucide-react"' has no exported member 'Pause'.
+src/components/chat-content.tsx(14,3): error TS2305: Module '"lucide-react"' has no exported member 'Rewind'.
+src/components/chat-content.tsx(14,11): error TS2305: Module '"lucide-react"' has no exported member 'FastForward'.
+src/components/chat-content.tsx(14,24): error TS2305: Module '"lucide-react"' has no exported member 'Presentation'.
+src/components/chat-content.tsx(14,38): error TS2305: Module '"lucide-react"' has no exported member 'Video'.
+src/components/chat-content.tsx(14,45): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/chat-content.tsx(15,3): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/chat-content.tsx(15,16): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/chat-content.tsx(15,23): error TS2305: Module '"lucide-react"' has no exported member 'FileUp'.
+src/components/chat-content.tsx(15,31): error TS2305: Module '"lucide-react"' has no exported member 'FileAudio'.
+src/components/chat-content.tsx(15,42): error TS2305: Module '"lucide-react"' has no exported member 'File'.
+src/components/chat-content.tsx(15,60): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/chat-content.tsx(16,3): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/chat-content.tsx(16,9): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/chat-content.tsx(16,23): error TS2305: Module '"lucide-react"' has no exported member 'Palette'.
+src/components/chat-content.tsx(16,32): error TS2305: Module '"lucide-react"' has no exported member 'Terminal'.
+src/components/chat-content.tsx(16,42): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/chat-content.tsx(16,47): error TS2305: Module '"lucide-react"' has no exported member 'Square'.
+src/components/chat-content.tsx(16,55): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsUp'.
+src/components/chat-content.tsx(17,3): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsDown'.
+src/components/chat-content.tsx(17,15): error TS2305: Module '"lucide-react"' has no exported member 'ArrowDown'.
+src/components/chat-content.tsx(17,26): error TS2305: Module '"lucide-react"' has no exported member 'Pencil'.
+src/components/chat-content.tsx(17,34): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/chat-content.tsx(17,41): error TS2305: Module '"lucide-react"' has no exported member 'Clipboard'.
+src/components/chat-content.tsx(17,52): error TS2305: Module '"lucide-react"' has no exported member 'Edit2'.
+src/components/chat-content.tsx(18,3): error TS2305: Module '"lucide-react"' has no exported member 'Wrench'.
+src/components/chat-content.tsx(18,11): error TS2305: Module '"lucide-react"' has no exported member 'Timer'.
+src/components/chat-content.tsx(18,18): error TS2305: Module '"lucide-react"' has no exported member 'Clock'.
+src/components/chat-content.tsx(18,25): error TS2305: Module '"lucide-react"' has no exported member 'Calculator'.
+src/components/chat-content.tsx(18,37): error TS2305: Module '"lucide-react"' has no exported member 'Dices'.
+src/components/chat-content.tsx(502,9): error TS2353: Object literal may only specify known properties, and 'callback_function' does not exist in type 'AutomaticSpeechRecognitionConfig'.
+src/components/chat-content.tsx(618,7): error TS2322: Type '(event: React.ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(this: GlobalEventHandlers, ev: Event) => any'.
+  Types of parameters 'event' and 'ev' are incompatible.
+    Type 'Event' is missing the following properties from type 'ChangeEvent<HTMLInputElement>': nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/chat-content.tsx(626,7): error TS2322: Type '(event: React.ChangeEvent<HTMLInputElement>) => Promise<void>' is not assignable to type '(this: GlobalEventHandlers, ev: Event) => any'.
+  Types of parameters 'event' and 'ev' are incompatible.
+    Type 'Event' is missing the following properties from type 'ChangeEvent<HTMLInputElement>': nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/chat-content.tsx(706,9): error TS2322: Type '{ children: (false | Element | undefined)[]; onSubmit: (e: FormEvent<Element>) => void; initial: false; animate: { borderColor: "hsl(var(--primary))"; boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.3)"; } | { ...; }; ... 4 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLMotionProps<"form">, "ref"> & RefAttributes<HTMLFormElement>'.
+  Property 'whileFocusWithin' does not exist on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"form">, "ref"> & RefAttributes<HTMLFormElement>'.
+src/components/chat-content.tsx(1168,11): error TS2322: Type '{ role: "user" | "tool" | "model"; content: string; }[]' is not assignable to type 'CoreMessage[]'.
+  Type '{ role: "user" | "model" | "tool"; content: string; }' is not assignable to type 'CoreMessage'.
+    Type '{ role: "user" | "model" | "tool"; content: string; }' is not assignable to type 'CoreUserMessage | CoreToolMessage'.
+      Type '{ role: "user" | "model" | "tool"; content: string; }' is not assignable to type 'CoreToolMessage'.
+        Types of property 'role' are incompatible.
+          Type '"user" | "tool" | "model"' is not assignable to type '"tool"'.
+            Type '"user"' is not assignable to type '"tool"'.
+src/components/chat-content.tsx(1687,65): error TS2322: Type 'number | undefined' is not assignable to type 'number | null'.
+  Type 'undefined' is not assignable to type 'number | null'.
+src/components/chat-content.tsx(1844,54): error TS2367: This comparison appears to be unintentional because the types '"model"' and '"browser"' have no overlap.
+src/components/chat-input.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/chat-input.tsx(6,16): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/chat-input.tsx(6,21): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/chat-input.tsx(6,29): error TS2305: Module '"lucide-react"' has no exported member 'Brush'.
+src/components/chat-input.tsx(6,36): error TS2305: Module '"lucide-react"' has no exported member 'Paperclip'.
+src/components/chat-input.tsx(6,47): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/chat-input.tsx(68,13): error TS2322: Type '(event: React.ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(this: GlobalEventHandlers, ev: Event) => any'.
+  Types of parameters 'event' and 'ev' are incompatible.
+    Type 'Event' is missing the following properties from type 'ChangeEvent<HTMLInputElement>': nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/chat-input.tsx(76,13): error TS2322: Type '(event: ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(this: GlobalEventHandlers, ev: Event) => any'.
+  Types of parameters 'event' and 'ev' are incompatible.
+    Type 'Event' is missing the following properties from type 'ChangeEvent<HTMLInputElement>': nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/chat-input.tsx(130,84): error TS2739: Type '{ className: string; }' is missing the following properties from type '{ src: string | StaticImport; alt: string; width?: number | `${number}` | undefined; height?: number | `${number}` | undefined; fill?: boolean | undefined; loader?: ImageLoader | undefined; ... 12 more ...; lazyRoot?: string | undefined; }': src, alt
+src/components/chat-welcome-screen.tsx(3,10): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/chat-welcome-screen.tsx(3,26): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/chat-welcome-screen.tsx(3,33): error TS2305: Module '"lucide-react"' has no exported member 'Pencil'.
+src/components/chat-welcome-screen.tsx(3,41): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/chat-welcome-screen.tsx(3,48): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/chat-welcome-screen.tsx(3,54): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/chat-welcome-screen.tsx(3,74): error TS2305: Module '"lucide-react"' has no exported member 'Brain'.
+src/components/chat-welcome-screen.tsx(3,81): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/chat-welcome-screen.tsx(3,91): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/chat-welcome-screen.tsx(3,103): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/chat-welcome-screen.tsx(3,111): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/chat-welcome-screen.tsx(3,121): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/code-analyzer-content.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/code-analyzer-content.tsx(9,19): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/code-analyzer-content.tsx(9,26): error TS2305: Module '"lucide-react"' has no exported member 'Bug'.
+src/components/code-analyzer-content.tsx(9,31): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/code-analyzer-content.tsx(9,36): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/code-analyzer-content.tsx(9,42): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/command-palette.tsx(5,5): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/command-palette.tsx(6,5): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/command-palette.tsx(7,5): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/command-palette.tsx(8,5): error TS2305: Module '"lucide-react"' has no exported member 'Settings'.
+src/components/command-palette.tsx(9,5): error TS2305: Module '"lucide-react"' has no exported member 'Keyboard'.
+src/components/command-palette.tsx(11,5): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/command-palette.tsx(12,5): error TS2305: Module '"lucide-react"' has no exported member 'Home'.
+src/components/create-flashcards-content.tsx(4,36): error TS2459: Module '"@/app/actions"' declares 'GenerateFlashcardsSambaOutput' locally, but it is not exported.
+src/components/create-flashcards-content.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/create-flashcards-content.tsx(8,19): error TS2305: Module '"lucide-react"' has no exported member 'PlusSquare'.
+src/components/create-flashcards-content.tsx(8,31): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/create-flashcards-content.tsx(8,38): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/create-flashcards-content.tsx(8,43): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/create-flashcards-content.tsx(8,53): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/create-flashcards-content.tsx(8,58): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/create-flashcards-content.tsx(8,64): error TS2305: Module '"lucide-react"' has no exported member 'BookCopy'.
+src/components/create-flashcards-content.tsx(8,74): error TS2305: Module '"lucide-react"' has no exported member 'FileQuestion'.
+src/components/create-flashcards-content.tsx(53,42): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/create-flashcards-content.tsx(53,70): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/create-flashcards-content.tsx(143,139): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/components/create-flashcards-content.tsx(286,63): error TS7006: Parameter 'card' implicitly has an 'any' type.
+src/components/create-flashcards-content.tsx(286,69): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/ebook-reader.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'ArrowLeft'.
+src/components/ebook-reader.tsx(5,21): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/ebook-reader.tsx(5,33): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/ebook-reader.tsx(59,62): error TS18048: 'result.data' is possibly 'undefined'.
+src/components/ebooks-content.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/enhanced-file-upload.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'Upload'.
+src/components/enhanced-file-upload.tsx(4,18): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/enhanced-file-upload.tsx(4,28): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/enhanced-file-upload.tsx(4,48): error TS2305: Module '"lucide-react"' has no exported member 'FileType'.
+src/components/enhanced-file-upload.tsx(4,61): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/error-boundary.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'CircleAlert'.
+src/components/error-boundary.tsx(4,23): error TS2305: Module '"lucide-react"' has no exported member 'RotateCw'.
+src/components/flashcard.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'RotateCcw'.
+src/components/flashcard.tsx(7,21): error TS2305: Module '"lucide-react"' has no exported member 'Tag'.
+src/components/floating-browser.tsx(8,13): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/floating-browser.tsx(8,27): error TS2305: Module '"lucide-react"' has no exported member 'Minus'.
+src/components/floating-browser.tsx(14,13): error TS2339: Property 'activeBrowserUrl' does not exist on type 'ChatStore'.
+src/components/floating-browser.tsx(14,31): error TS2339: Property 'activeBrowserTitle' does not exist on type 'ChatStore'.
+src/components/floating-browser.tsx(14,51): error TS2339: Property 'setActiveBrowserUrl' does not exist on type 'ChatStore'.
+src/components/floating-browser.tsx(14,72): error TS2339: Property 'setShowBrowser' does not exist on type 'ChatStore'.
+src/components/floating-youtube-player.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'FileEdit'.
+src/components/floating-youtube-player.tsx(4,20): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/floating-youtube-player.tsx(4,26): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/floating-youtube-player.tsx(4,31): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/floating-youtube-player.tsx(4,39): error TS2305: Module '"lucide-react"' has no exported member 'MoreVertical'.
+src/components/floating-youtube-player.tsx(82,11): error TS2741: Property 'answerTypes' is missing in type '{}' but required in type 'ChatContentProps'.
+src/components/friends-content.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Users'.
+src/components/friends-content.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/friends-content.tsx(5,40): error TS2305: Module '"lucide-react"' has no exported member 'BadgeCheck'.
+src/components/friends-content.tsx(18,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/generated-image-card.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/generated-image-card.tsx(6,20): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/GoogleAIAgent.tsx(113,33): error TS7006: Parameter 'el' implicitly has an 'any' type.
+src/components/GoogleAIAgent.tsx(116,27): error TS2339: Property 'isContentEditable' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(116,52): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(116,78): error TS2339: Property 'value' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(116,112): error TS2339: Property 'value' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(119,32): error TS2339: Property 'click' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(127,98): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(130,23): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(130,69): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(133,117): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/GoogleAIAgent.tsx(174,48): error TS2322: Type 'string | undefined' is not assignable to type 'string | TrustedHTML'.
+  Type 'undefined' is not assignable to type 'string | TrustedHTML'.
+src/components/help-chatbot.tsx(4,26): error TS2459: Module '"@/app/actions"' declares 'HelpChatInput' locally, but it is not exported.
+src/components/help-chatbot.tsx(11,10): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/help-chatbot.tsx(11,15): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/help-chatbot.tsx(11,24): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/help-chatbot.tsx(11,30): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/help-chatbot.tsx(11,36): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/help-chatbot.tsx(11,41): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/help-chatbot.tsx(71,38): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/help-chatbot.tsx(71,66): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/home-search-widget.tsx(7,5): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/home-search-widget.tsx(7,13): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/home-search-widget.tsx(7,20): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/home-search-widget.tsx(7,34): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/home-search-widget.tsx(7,44): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/home-search-widget.tsx(7,52): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/home-search-widget.tsx(8,5): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/home-search-widget.tsx(8,17): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/home-search-widget.tsx(8,26): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/home-search-widget.tsx(8,32): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/home-search-widget.tsx(8,39): error TS2305: Module '"lucide-react"' has no exported member 'Clock'.
+src/components/home-search-widget.tsx(8,46): error TS2305: Module '"lucide-react"' has no exported member 'TrendingUp'.
+src/components/home-search-widget.tsx(9,8): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/home-search-widget.tsx(9,13): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/home-search-widget.tsx(9,27): error TS2305: Module '"lucide-react"' has no exported member 'RotateCcw'.
+src/components/home-search-widget.tsx(9,38): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/home-search-widget.tsx(9,43): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/home-search-widget.tsx(10,5): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/home-search-widget.tsx(10,25): error TS2305: Module '"lucide-react"' has no exported member 'Hash'.
+src/components/home-search-widget.tsx(10,37): error TS2305: Module '"lucide-react"' has no exported member 'ArrowUpRight'.
+src/components/home-search-widget.tsx(11,16): error TS2305: Module '"lucide-react"' has no exported member 'Brain'.
+src/components/home-search-widget.tsx(11,23): error TS2305: Module '"lucide-react"' has no exported member 'Lightbulb'.
+src/components/home-search-widget.tsx(11,34): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/home-search-widget.tsx(11,45): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/home-search-widget.tsx(12,5): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsUp'.
+src/components/home-search-widget.tsx(12,15): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsDown'.
+src/components/home-search-widget.tsx(12,27): error TS2305: Module '"lucide-react"' has no exported member 'Bookmark'.
+src/components/home-search-widget.tsx(12,37): error TS2305: Module '"lucide-react"' has no exported member 'Filter'.
+src/components/home-search-widget.tsx(12,45): error TS2305: Module '"lucide-react"' has no exported member 'LayoutGrid'.
+src/components/home-search-widget.tsx(13,5): error TS2305: Module '"lucide-react"' has no exported member 'List'.
+src/components/home-search-widget.tsx(13,11): error TS2305: Module '"lucide-react"' has no exported member 'Eye'.
+src/components/home-search-widget.tsx(13,16): error TS2305: Module '"lucide-react"' has no exported member 'Timer'.
+src/components/home-search-widget.tsx(13,23): error TS2305: Module '"lucide-react"' has no exported member 'AlertCircle'.
+src/components/home-search-widget.tsx(13,36): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/home-search-widget.tsx(13,49): error TS2305: Module '"lucide-react"' has no exported member 'ChevronUp'.
+src/components/home-search-widget.tsx(14,5): error TS2305: Module '"lucide-react"' has no exported member 'Compass'.
+src/components/home-search-widget.tsx(14,14): error TS2305: Module '"lucide-react"' has no exported member 'MousePointerClick'.
+src/components/home-search-widget.tsx(14,33): error TS2305: Module '"lucide-react"' has no exported member 'Flame'.
+src/components/home-search-widget.tsx(14,40): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/image-generator.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/image-generator.tsx(4,19): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/image-generator.tsx(4,29): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/image-search-card.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/image-search-card.tsx(5,24): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/image-search-card.tsx(5,33): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/image-search-card.tsx(5,46): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/image-search-card.tsx(5,52): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/image-search-card.tsx(5,59): error TS2305: Module '"lucide-react"' has no exported member 'ChevronLeft'.
+src/components/image-search-card.tsx(5,72): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/image-search-card.tsx(5,86): error TS2305: Module '"lucide-react"' has no exported member 'ImageIcon'.
+src/components/image-search-content.tsx(8,5): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/image-search-content.tsx(8,14): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/image-search-content.tsx(8,22): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/image-search-content.tsx(8,42): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/image-search-content.tsx(8,57): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/image-search-content.tsx(9,5): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/image-search-content.tsx(9,22): error TS2305: Module '"lucide-react"' has no exported member 'ZoomIn'.
+src/components/image-search-content.tsx(9,30): error TS2305: Module '"lucide-react"' has no exported member 'Filter'.
+src/components/image-search-content.tsx(9,38): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/image-search-content.tsx(9,48): error TS2305: Module '"lucide-react"' has no exported member 'Grid3X3'.
+src/components/image-search-content.tsx(9,57): error TS2305: Module '"lucide-react"' has no exported member 'LayoutGrid'.
+src/components/image-search-content.tsx(10,5): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/image-search-content.tsx(10,18): error TS2305: Module '"lucide-react"' has no exported member 'Heart'.
+src/components/image-search-content.tsx(10,25): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/image-search-content.tsx(10,33): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/image-search-content.tsx(10,39): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/image-search.tsx(11,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/image-search.tsx(11,18): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/image-search.tsx(11,28): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/image-search.tsx(11,42): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/image-search.tsx(11,51): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/image-search.tsx(11,71): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/image-search.tsx(11,84): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/image-search.tsx(11,90): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/image-search.tsx(11,97): error TS2305: Module '"lucide-react"' has no exported member 'Heart'.
+src/components/image-search.tsx(11,104): error TS2305: Module '"lucide-react"' has no exported member 'Filter'.
+src/components/inbox-content.tsx(29,10): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/inbox-content.tsx(29,16): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/inbox-content.tsx(29,24): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/inbox-content.tsx(29,48): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/inbox-content.tsx(29,54): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/inbox-content.tsx(29,61): error TS2305: Module '"lucide-react"' has no exported member 'CheckCheck'.
+src/components/inbox-content.tsx(29,73): error TS2305: Module '"lucide-react"' has no exported member 'BadgeCheck'.
+src/components/limit-exhausted-dialog.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/login-content.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/login-content.tsx(8,19): error TS2305: Module '"lucide-react"' has no exported member 'AlertCircle'.
+src/components/login-content.tsx(8,32): error TS2305: Module '"lucide-react"' has no exported member 'Eye'.
+src/components/login-content.tsx(8,37): error TS2305: Module '"lucide-react"' has no exported member 'EyeOff'.
+src/components/login-content.tsx(8,45): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/login-content.tsx(8,57): error TS2305: Module '"lucide-react"' has no exported member 'Mail'.
+src/components/login-content.tsx(8,63): error TS2305: Module '"lucide-react"' has no exported member 'Lock'.
+src/components/main-dashboard.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'FileEdit'.
+src/components/main-dashboard.tsx(5,20): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/main-dashboard.tsx(5,26): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/main-dashboard.tsx(5,34): error TS2305: Module '"lucide-react"' has no exported member 'MoreVertical'.
+src/components/main-dashboard.tsx(5,48): error TS2305: Module '"lucide-react"' has no exported member 'Play'.
+src/components/main-dashboard.tsx(5,54): error TS2305: Module '"lucide-react"' has no exported member 'Pause'.
+src/components/main-dashboard.tsx(5,61): error TS2305: Module '"lucide-react"' has no exported member 'Rewind'.
+src/components/main-dashboard.tsx(5,69): error TS2305: Module '"lucide-react"' has no exported member 'FastForward'.
+src/components/main-dashboard.tsx(5,82): error TS2305: Module '"lucide-react"' has no exported member 'Video'.
+src/components/main-dashboard.tsx(5,121): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/main-dashboard.tsx(5,128): error TS2305: Module '"lucide-react"' has no exported member 'Users'.
+src/components/main-dashboard.tsx(5,135): error TS2305: Module '"lucide-react"' has no exported member 'FlaskConical'.
+src/components/main-dashboard.tsx(5,149): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/main-dashboard.tsx(5,155): error TS2305: Module '"lucide-react"' has no exported member 'Trash2'.
+src/components/main-dashboard.tsx(5,163): error TS2305: Module '"lucide-react"' has no exported member 'PlayCircle'.
+src/components/main-dashboard.tsx(5,175): error TS2305: Module '"lucide-react"' has no exported member 'Pilcrow'.
+src/components/main-dashboard.tsx(5,184): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/main-dashboard.tsx(14,31): error TS2307: Cannot find module './ui/action-tooltip' or its corresponding type declarations.
+src/components/materials-content.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Library'.
+src/components/mind-map-content.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/mind-map-content.tsx(9,19): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/mind-map-content.tsx(9,26): error TS2305: Module '"lucide-react"' has no exported member 'BrainCircuit'.
+src/components/mind-map-content.tsx(9,40): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/mind-map-content.tsx(12,33): error TS2459: Module '"@/app/actions"' declares 'GenerateMindMapOutput' locally, but it is not exported.
+src/components/model-switcher-dialog.tsx(9,10): error TS2305: Module '"@/app/actions"' has no exported member 'ModelKey'.
+src/components/model-switcher-dialog.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'WifiOff'.
+src/components/model-switcher.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'BrainCircuit'.
+src/components/news-content.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/news-content.tsx(7,21): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/news-content.tsx(7,30): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/news-content.tsx(7,44): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/news-content.tsx(7,52): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/news-reader-content.tsx(4,22): error TS2459: Module '"@/app/actions"' declares 'SummarizeContentOutput' locally, but it is not exported.
+src/components/news-reader-content.tsx(11,10): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/news-reader-content.tsx(11,15): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/news-reader-content.tsx(11,24): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/news-reader-content.tsx(11,30): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/news-reader-content.tsx(11,36): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/news-reader-content.tsx(11,46): error TS2305: Module '"lucide-react"' has no exported member 'Sidebar'.
+src/components/news-reader-content.tsx(11,55): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/news-reader-content.tsx(11,61): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/news-reader-content.tsx(118,19): error TS2322: Type '{ role: "user" | "model"; content: string; }[]' is not assignable to type 'CoreMessage[]'.
+  Type '{ role: "user" | "model"; content: string; }' is not assignable to type 'CoreMessage'.
+    Type '{ role: "user" | "model"; content: string; }' is not assignable to type 'CoreUserMessage'.
+      Types of property 'role' are incompatible.
+        Type '"user" | "model"' is not assignable to type '"user"'.
+          Type '"model"' is not assignable to type '"user"'.
+src/components/news-reader-content.tsx(122,45): error TS2345: Argument of type '{ history: CoreMessage[]; fileContent: string; model: string; }' is not assignable to parameter of type '{ history: CoreMessage[]; userName?: string | null | undefined; fileContent?: string | null | undefined; imageDataUri?: string | null | undefined; model?: string | undefined; isMusicMode?: boolean | undefined; isPlayground?: boolean | undefined; answerTypes: { ...; }; }'.
+  Property 'answerTypes' is missing in type '{ history: CoreMessage[]; fileContent: string; model: string; }' but required in type '{ history: CoreMessage[]; userName?: string | null | undefined; fileContent?: string | null | undefined; imageDataUri?: string | null | undefined; model?: string | undefined; isMusicMode?: boolean | undefined; isPlayground?: boolean | undefined; answerTypes: { ...; }; }'.
+src/components/news-reader-content.tsx(132,85): error TS2339: Property 'response' does not exist on type '{ type: "chat" | "canvas"; content: string; }'.
+src/components/news-reader-content.tsx(222,150): error TS2322: Type 'string | Promise<string>' is not assignable to type 'string | TrustedHTML'.
+  Type 'Promise<string>' is not assignable to type 'string | TrustedHTML'.
+src/components/notification-panel.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'UserPlus'.
+src/components/notification-panel.tsx(6,20): error TS2305: Module '"lucide-react"' has no exported member 'Heart'.
+src/components/notification-panel.tsx(6,27): error TS2305: Module '"lucide-react"' has no exported member 'MessageCircle'.
+src/components/notification-panel.tsx(6,45): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/notification-widget.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/page-loader.tsx(6,23): error TS7016: Could not find a declaration file for module 'nprogress'. 'C:/Users/rk908/Downloads/whiteneon2_ac6cb57135_VSTHEMES-ORG/sidebar-1/node_modules/nprogress/nprogress.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/nprogress` if it exists or add a new declaration (.d.ts) file containing `declare module 'nprogress';`
+src/components/pdf-hub-content.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/pdf-hub-content.tsx(9,19): error TS2305: Module '"lucide-react"' has no exported member 'FileUp'.
+src/components/pdf-hub-content.tsx(9,27): error TS2305: Module '"lucide-react"' has no exported member 'File'.
+src/components/planner-content.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/playground-content.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/playground-content.tsx(6,16): error TS2305: Module '"lucide-react"' has no exported member 'FlaskConical'.
+src/components/playground-content.tsx(6,30): error TS2305: Module '"lucide-react"' has no exported member 'PlayCircle'.
+src/components/playground-content.tsx(6,42): error TS2305: Module '"lucide-react"' has no exported member 'Trash2'.
+src/components/playground-content.tsx(6,50): error TS2305: Module '"lucide-react"' has no exported member 'Edit'.
+src/components/playground-content.tsx(133,26): error TS2741: Property 'answerTypes' is missing in type '{ ref: RefObject<{ handleReceiveCanvasContent: (content: string) => void; }>; isPlayground: true; onCanvasContent: (content: string) => void; }' but required in type 'ChatContentProps'.
+src/components/presentation-maker-content.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/presentation-maker-content.tsx(10,19): error TS2305: Module '"lucide-react"' has no exported member 'Presentation'.
+src/components/presentation-maker-content.tsx(10,33): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/presentation-maker-content.tsx(10,40): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/presentation-maker-content.tsx(10,50): error TS2305: Module '"lucide-react"' has no exported member 'Milestone'.
+src/components/presentation-maker-content.tsx(10,61): error TS2305: Module '"lucide-react"' has no exported member 'Lightbulb'.
+src/components/presentation-maker-content.tsx(10,72): error TS2305: Module '"lucide-react"' has no exported member 'ListOrdered'.
+src/components/presentation-maker-content.tsx(10,85): error TS2305: Module '"lucide-react"' has no exported member 'CheckCircle'.
+src/components/presentation-maker-content.tsx(10,98): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/presentation-maker-content.tsx(14,38): error TS2724: '"@/app/actions"' has no exported member named 'GeneratePresentationOutput'. Did you mean 'generatePresentationAction'?
+src/components/presentation-maker-content.tsx(66,102): error TS2322: Type 'string' is not assignable to type '"colorful" | "simple"'.
+src/components/presentation-maker-content.tsx(79,81): error TS7006: Parameter 'slide' implicitly has an 'any' type.
+src/components/presentation-maker-content.tsx(83,21): error TS7006: Parameter 'point' implicitly has an 'any' type.
+src/components/presentation-maker-content.tsx(194,59): error TS7006: Parameter 'slide' implicitly has an 'any' type.
+src/components/presentation-maker-content.tsx(194,66): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/presentation-maker-content.tsx(214,85): error TS7006: Parameter 'point' implicitly has an 'any' type.
+src/components/presentation-maker-content.tsx(214,92): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/pricing-dialog.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/pricing-dialog.tsx(6,20): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/pricing-dialog.tsx(6,30): error TS2305: Module '"lucide-react"' has no exported member 'TrendingUp'.
+src/components/pricing-dialog.tsx(6,42): error TS2305: Module '"lucide-react"' has no exported member 'Crown'.
+src/components/profile-content.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/question-paper-content.tsx(11,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/question-paper-content.tsx(11,19): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/question-paper-content.tsx(11,29): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/question-paper-content.tsx(11,36): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/question-paper-viewer.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'Printer'.
+src/components/question-paper-viewer.tsx(9,19): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/question-paper-viewer.tsx(12,10): error TS2724: '"@/app/actions"' has no exported member named 'GenerateQuestionPaperOutput'. Did you mean 'generateQuestionPaperAction'?
+src/components/question-paper-viewer.tsx(77,65): error TS7006: Parameter 'inst' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(77,71): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(84,50): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(84,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(97,50): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(97,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(102,50): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(102,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(107,50): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(107,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(112,50): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(112,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(115,51): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/question-paper-viewer.tsx(115,54): error TS7006: Parameter 'qi' implicitly has an 'any' type.
+src/components/quiz-generator.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'FileQuestion'.
+src/components/quiz-generator.tsx(8,24): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/quiz-generator.tsx(8,31): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/quiz-generator.tsx(8,36): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/quiz-generator.tsx(20,38): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/quiz-generator.tsx(20,66): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/quiz-interface.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Clock'.
+src/components/quiz-interface.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/quiz-interface.tsx(5,27): error TS2305: Module '"lucide-react"' has no exported member 'Hash'.
+src/components/quiz-interface.tsx(5,33): error TS2305: Module '"lucide-react"' has no exported member 'ArrowLeft'.
+src/components/quiz-interface.tsx(5,44): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/quiz-options-form.tsx(12,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/quiz-options-form.tsx(14,30): error TS2305: Module '"@/app/actions"' has no exported member 'GenerateQuizzesInput'.
+src/components/quiz-results-content.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'CheckCircle2'.
+src/components/quiz-results-content.tsx(9,30): error TS2305: Module '"lucide-react"' has no exported member 'XCircle'.
+src/components/quiz-results-content.tsx(14,10): error TS2305: Module '"@/app/actions"' has no exported member 'GenerateQuizzesOutput'.
+src/components/quiz-results-content.tsx(84,41): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/quiz-results-content.tsx(84,44): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/quiz-start-content.tsx(5,10): error TS2305: Module '"@/app/actions"' has no exported member 'GenerateQuizzesOutput'.
+src/components/quiz-start-content.tsx(70,48): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/components/quiz-start-content.tsx(70,53): error TS7006: Parameter 'quiz' implicitly has an 'any' type.
+src/components/quiz-start-content.tsx(70,59): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/settings-accounts.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Users'.
+src/components/settings-accounts.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'UserX'.
+src/components/settings-api-content.tsx(7,20): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/settings-api-content.tsx(7,26): error TS2305: Module '"lucide-react"' has no exported member 'Plus'.
+src/components/settings-api-content.tsx(7,32): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/settings-api-content.tsx(7,47): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/settings-appearance.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/settings-appearance.tsx(7,17): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/settings-appearance.tsx(7,23): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/settings-appearance.tsx(7,28): error TS2305: Module '"lucide-react"' has no exported member 'Paintbrush'.
+src/components/settings-appearance.tsx(7,40): error TS2305: Module '"lucide-react"' has no exported member 'Palette'.
+src/components/settings-content.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'SlidersHorizontal'.
+src/components/settings-content.tsx(4,29): error TS2305: Module '"lucide-react"' has no exported member 'Database'.
+src/components/settings-content.tsx(4,39): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/settings-content.tsx(4,45): error TS2305: Module '"lucide-react"' has no exported member 'Paintbrush'.
+src/components/settings-content.tsx(4,57): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/settings-content.tsx(4,64): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsUp'.
+src/components/settings-content.tsx(4,74): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/settings-content.tsx(4,88): error TS2305: Module '"lucide-react"' has no exported member 'Edit'.
+src/components/settings-content.tsx(4,104): error TS2305: Module '"lucide-react"' has no exported member 'ShieldCheck'.
+src/components/settings-content.tsx(4,117): error TS2305: Module '"lucide-react"' has no exported member 'BadgeCheck'.
+src/components/settings-content.tsx(4,129): error TS2305: Module '"lucide-react"' has no exported member 'Users'.
+src/components/settings-content.tsx(4,136): error TS2305: Module '"lucide-react"' has no exported member 'Lock'.
+src/components/settings-content.tsx(4,142): error TS2305: Module '"lucide-react"' has no exported member 'Info'.
+src/components/settings-data.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Database'.
+src/components/settings-data.tsx(6,20): error TS2305: Module '"lucide-react"' has no exported member 'Trash2'.
+src/components/settings-data.tsx(6,28): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/settings-feedback.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'ThumbsUp'.
+src/components/settings-feedback.tsx(7,20): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/settings-feedback.tsx(7,26): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/settings-language.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/settings-notifications.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/settings-notifications.tsx(6,16): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/settings-notifications.tsx(6,21): error TS2305: Module '"lucide-react"' has no exported member 'BrainCircuit'.
+src/components/settings-permissions.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'ShieldCheck'.
+src/components/settings-permissions.tsx(5,23): error TS2305: Module '"lucide-react"' has no exported member 'Mail'.
+src/components/settings-permissions.tsx(5,29): error TS2305: Module '"lucide-react"' has no exported member 'FolderKanban'.
+src/components/settings-permissions.tsx(5,43): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/settings-personalize.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/settings-personalize.tsx(9,16): error TS2305: Module '"lucide-react"' has no exported member 'Save'.
+src/components/settings-personalize.tsx(9,22): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/settings-personalize.tsx(9,31): error TS2305: Module '"lucide-react"' has no exported member 'AtSign'.
+src/components/settings-security.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Lock'.
+src/components/settings-security.tsx(6,16): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/settings-security.tsx(6,24): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/settings-security.tsx(6,32): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/settings-security.tsx(6,47): error TS2305: Module '"lucide-react"' has no exported member 'CheckCircle2'.
+src/components/settings-security.tsx(6,61): error TS2305: Module '"lucide-react"' has no exported member 'Key'.
+src/components/settings-security.tsx(6,66): error TS2305: Module '"lucide-react"' has no exported member 'Activity'.
+src/components/settings-security.tsx(6,76): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/settings-security.tsx(6,82): error TS2305: Module '"lucide-react"' has no exported member 'Bell'.
+src/components/share-dialog.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/share-dialog.tsx(7,16): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/share-dialog.tsx(7,24): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/share-dialog.tsx(7,30): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/share-dialog.tsx(7,39): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/shared-header.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/shared-header.tsx(8,15): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/shared-header.tsx(8,21): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/shared-header.tsx(8,29): error TS2305: Module '"lucide-react"' has no exported member 'Command'.
+src/components/shared-header.tsx(8,38): error TS2305: Module '"lucide-react"' has no exported member 'LogOut'.
+src/components/shared-header.tsx(8,46): error TS2305: Module '"lucide-react"' has no exported member 'Settings'.
+src/components/shared-header.tsx(8,56): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/signup-content.tsx(8,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/signup-content.tsx(8,19): error TS2305: Module '"lucide-react"' has no exported member 'AlertCircle'.
+src/components/signup-content.tsx(8,32): error TS2305: Module '"lucide-react"' has no exported member 'Eye'.
+src/components/signup-content.tsx(8,37): error TS2305: Module '"lucide-react"' has no exported member 'EyeOff'.
+src/components/signup-content.tsx(8,45): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/signup-content.tsx(8,57): error TS2305: Module '"lucide-react"' has no exported member 'Mail'.
+src/components/signup-content.tsx(8,63): error TS2305: Module '"lucide-react"' has no exported member 'Lock'.
+src/components/signup-content.tsx(8,69): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/study-now-content.tsx(4,15): error TS2459: Module '"@/app/actions"' declares 'AnalyzeContentOutput' locally, but it is not exported.
+src/components/study-now-content.tsx(4,37): error TS2305: Module '"@/app/actions"' has no exported member 'GenerateFlashcardsOutput'.
+src/components/study-now-content.tsx(4,63): error TS2305: Module '"@/app/actions"' has no exported member 'GenerateQuizzesOutput'.
+src/components/study-now-content.tsx(13,10): error TS2305: Module '"lucide-react"' has no exported member 'FileUp'.
+src/components/study-now-content.tsx(13,18): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/study-now-content.tsx(13,27): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/study-now-content.tsx(13,34): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/study-now-content.tsx(13,57): error TS2305: Module '"lucide-react"' has no exported member 'Volume2'.
+src/components/study-now-content.tsx(13,66): error TS2305: Module '"lucide-react"' has no exported member 'Pilcrow'.
+src/components/study-now-content.tsx(13,75): error TS2305: Module '"lucide-react"' has no exported member 'BrainCircuit'.
+src/components/study-now-content.tsx(13,89): error TS2305: Module '"lucide-react"' has no exported member 'HelpCircle'.
+src/components/study-now-content.tsx(13,101): error TS2305: Module '"lucide-react"' has no exported member 'BookCopy'.
+src/components/study-now-content.tsx(13,111): error TS2305: Module '"lucide-react"' has no exported member 'ListTree'.
+src/components/study-now-content.tsx(13,121): error TS2305: Module '"lucide-react"' has no exported member 'Code'.
+src/components/study-now-content.tsx(13,127): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/study-now-content.tsx(13,133): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/study-now-content.tsx(13,138): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/study-now-content.tsx(13,146): error TS2305: Module '"lucide-react"' has no exported member 'Camera'.
+src/components/study-now-content.tsx(80,38): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/study-now-content.tsx(80,66): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/study-now-content.tsx(155,74): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/components/study-now-content.tsx(169,69): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/components/study-now-content.tsx(461,57): error TS7006: Parameter 'concept' implicitly has an 'any' type.
+src/components/study-now-content.tsx(461,66): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/study-now-content.tsx(468,59): error TS7006: Parameter 'example' implicitly has an 'any' type.
+src/components/study-now-content.tsx(468,68): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/study-now-content.tsx(475,132): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/study-now-content.tsx(475,135): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/study-now-content.tsx(481,127): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/components/study-now-content.tsx(481,130): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/study-now-content.tsx(489,44): error TS7006: Parameter 'card' implicitly has an 'any' type.
+src/components/study-now-content.tsx(489,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/study-now-content.tsx(505,145): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/components/text-to-speech-content.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/text-to-speech-content.tsx(10,19): error TS2305: Module '"lucide-react"' has no exported member 'Volume2'.
+src/components/text-to-speech-content.tsx(10,28): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/theme-toggle.tsx(3,10): error TS2305: Module '"lucide-react"' has no exported member 'Moon'.
+src/components/theme-toggle.tsx(3,16): error TS2305: Module '"lucide-react"' has no exported member 'Sun'.
+src/components/thinking-indicator.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'Bot'.
+src/components/thinking-indicator.tsx(4,15): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/thinking-indicator.tsx(4,28): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/tool-widgets.tsx(8,5): error TS2305: Module '"lucide-react"' has no exported member 'Play'.
+src/components/tool-widgets.tsx(8,11): error TS2305: Module '"lucide-react"' has no exported member 'Pause'.
+src/components/tool-widgets.tsx(8,18): error TS2305: Module '"lucide-react"' has no exported member 'RotateCcw'.
+src/components/tool-widgets.tsx(8,29): error TS2305: Module '"lucide-react"' has no exported member 'Flag'.
+src/components/tool-widgets.tsx(8,35): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/tool-widgets.tsx(8,41): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/tool-widgets.tsx(8,48): error TS2305: Module '"lucide-react"' has no exported member 'Dices'.
+src/components/tool-widgets.tsx(8,55): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/tool-widgets.tsx(9,5): error TS2305: Module '"lucide-react"' has no exported member 'Timer'.
+src/components/tool-widgets.tsx(9,12): error TS2305: Module '"lucide-react"' has no exported member 'Clock'.
+src/components/tool-widgets.tsx(9,19): error TS2305: Module '"lucide-react"' has no exported member 'Calculator'.
+src/components/tool-widgets.tsx(9,31): error TS2305: Module '"lucide-react"' has no exported member 'Palette'.
+src/components/tool-widgets.tsx(9,40): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/tool-widgets.tsx(9,48): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/tool-widgets.tsx(9,55): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/tool-widgets.tsx(10,5): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/tool-widgets.tsx(10,15): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/tool-widgets.tsx(10,23): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/tool-widgets.tsx(10,33): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/tool-widgets.tsx(10,45): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/tutor-chat.tsx(10,10): error TS2305: Module '"lucide-react"' has no exported member 'GraduationCap'.
+src/components/tutor-chat.tsx(10,25): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/tutor-chat.tsx(10,34): error TS2305: Module '"lucide-react"' has no exported member 'Send'.
+src/components/tutor-chat.tsx(10,40): error TS2305: Module '"lucide-react"' has no exported member 'User'.
+src/components/tutor-chat.tsx(10,46): error TS2305: Module '"lucide-react"' has no exported member 'Mic'.
+src/components/tutor-chat.tsx(10,51): error TS2305: Module '"lucide-react"' has no exported member 'MicOff'.
+src/components/tutor-chat.tsx(88,38): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/tutor-chat.tsx(88,66): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/components/ui/accordion.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/ui/calendar.tsx(4,10): error TS2305: Module '"lucide-react"' has no exported member 'ChevronLeft'.
+src/components/ui/calendar.tsx(4,23): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/ui/carousel.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'ArrowLeft'.
+src/components/ui/carousel.tsx(7,21): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/ui/checkbox.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/ui/command.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/ui/dropdown-menu.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/ui/dropdown-menu.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/ui/dropdown-menu.tsx(5,31): error TS2305: Module '"lucide-react"' has no exported member 'Circle'.
+src/components/ui/menubar.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/ui/menubar.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/ui/menubar.tsx(5,31): error TS2305: Module '"lucide-react"' has no exported member 'Circle'.
+src/components/ui/radio-group.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Circle'.
+src/components/ui/select.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/ui/select.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/ui/select.tsx(5,30): error TS2305: Module '"lucide-react"' has no exported member 'ChevronUp'.
+src/components/ui/sidebar.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Menu'.
+src/components/usage-limit-dialog.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'AlertTriangle'.
+src/components/usage-limit-dialog.tsx(5,25): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/usage-limit-dialog.tsx(5,35): error TS2305: Module '"lucide-react"' has no exported member 'TrendingUp'.
+src/components/usage-limit-dialog.tsx(5,47): error TS2305: Module '"lucide-react"' has no exported member 'Crown'.
+src/components/web-agent-content.tsx(112,33): error TS7006: Parameter 'el' implicitly has an 'any' type.
+src/components/web-agent-content.tsx(115,27): error TS2339: Property 'isContentEditable' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(115,52): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(115,78): error TS2339: Property 'value' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(115,112): error TS2339: Property 'value' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(118,32): error TS2339: Property 'click' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(126,98): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(129,23): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(129,69): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(132,117): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/components/web-agent-content.tsx(173,48): error TS2322: Type 'string | undefined' is not assignable to type 'string | TrustedHTML'.
+  Type 'undefined' is not assignable to type 'string | TrustedHTML'.
+src/components/web-browser-content.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'ArrowLeft'.
+src/components/web-browser-content.tsx(7,21): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/web-browser-content.tsx(7,33): error TS2305: Module '"lucide-react"' has no exported member 'RotateCw'.
+src/components/web-browser-content.tsx(7,43): error TS2305: Module '"lucide-react"' has no exported member 'Home'.
+src/components/web-browser-content.tsx(7,49): error TS2305: Module '"lucide-react"' has no exported member 'Lock'.
+src/components/web-browser-content.tsx(7,55): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/web-scraper-content.tsx(8,5): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/web-scraper-content.tsx(8,14): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/web-scraper-content.tsx(8,22): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/web-scraper-content.tsx(8,36): error TS2305: Module '"lucide-react"' has no exported member 'Clock'.
+src/components/web-scraper-content.tsx(8,43): error TS2305: Module '"lucide-react"' has no exported member 'AlertCircle'.
+src/components/web-scraper-content.tsx(8,56): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/web-scraper-content.tsx(8,62): error TS2305: Module '"lucide-react"' has no exported member 'Check'.
+src/components/web-scraper-content.tsx(9,5): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/web-scraper-content.tsx(9,12): error TS2305: Module '"lucide-react"' has no exported member 'BarChart3'.
+src/components/web-scraper-content.tsx(9,23): error TS2305: Module '"lucide-react"' has no exported member 'FileText'.
+src/components/web-scraper-content.tsx(9,33): error TS2305: Module '"lucide-react"' has no exported member 'Link2'.
+src/components/web-scraper-content.tsx(9,40): error TS2305: Module '"lucide-react"' has no exported member 'ChevronDown'.
+src/components/web-scraper-content.tsx(9,53): error TS2305: Module '"lucide-react"' has no exported member 'ChevronUp'.
+src/components/web-scraper-content.tsx(10,5): error TS2305: Module '"lucide-react"' has no exported member 'Sparkles'.
+src/components/web-scraper-content.tsx(10,15): error TS2305: Module '"lucide-react"' has no exported member 'Zap'.
+src/components/web-scraper-content.tsx(10,23): error TS2305: Module '"lucide-react"' has no exported member 'History'.
+src/components/web-scraper-content.tsx(10,32): error TS2305: Module '"lucide-react"' has no exported member 'ArrowRight'.
+src/components/web-scraper-content.tsx(10,44): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/web-scraper-content.tsx(10,54): error TS2305: Module '"lucide-react"' has no exported member 'Hash'.
+src/components/web-scraper-content.tsx(11,5): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/web-scraper-content.tsx(11,13): error TS2305: Module '"lucide-react"' has no exported member 'Download'.
+src/components/web-scraper-content.tsx(11,29): error TS2305: Module '"lucide-react"' has no exported member 'TrendingUp'.
+src/components/web-scraper-content.tsx(11,41): error TS2305: Module '"lucide-react"' has no exported member 'Lightbulb'.
+src/components/web-scraper-content.tsx(11,52): error TS2305: Module '"lucide-react"' has no exported member 'Timer'.
+src/components/web-scraper-content.tsx(12,5): error TS2305: Module '"lucide-react"' has no exported member 'Database'.
+src/components/web-scraper-content.tsx(12,15): error TS2305: Module '"lucide-react"' has no exported member 'Layers'.
+src/components/web-scraper-content.tsx(12,23): error TS2305: Module '"lucide-react"' has no exported member 'Award'.
+src/components/web-scraper-content.tsx(12,30): error TS2305: Module '"lucide-react"' has no exported member 'Activity'.
+src/components/web-scraper-content.tsx(12,40): error TS2305: Module '"lucide-react"' has no exported member 'Eye'.
+src/components/web-scraper-content.tsx(12,45): error TS2305: Module '"lucide-react"' has no exported member 'RefreshCw'.
+src/components/web-scraper-content.tsx(13,5): error TS2305: Module '"lucide-react"' has no exported member 'Info'.
+src/components/web-scraper-content.tsx(13,11): error TS2305: Module '"lucide-react"' has no exported member 'ChevronLeft'.
+src/components/web-scraper-content.tsx(13,24): error TS2305: Module '"lucide-react"' has no exported member 'ChevronRight'.
+src/components/web-search-ai-content.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/components/web-search-ai-content.tsx(7,18): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/web-search-ai-content.tsx(7,27): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/web-search-ai-content.tsx(7,41): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/web-search-ai-content.tsx(7,61): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/web-search-ai-content.tsx(7,68): error TS2305: Module '"lucide-react"' has no exported member 'AlertCircle'.
+src/components/web-search-ai-content.tsx(7,81): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/web-search-ai-content.tsx(7,91): error TS2305: Module '"lucide-react"' has no exported member 'AlignLeft'.
+src/components/web-search-results.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/web-search-results.tsx(5,24): error TS2305: Module '"lucide-react"' has no exported member 'Image'.
+src/components/web-search-results.tsx(5,44): error TS2305: Module '"lucide-react"' has no exported member 'BookOpen'.
+src/components/web-search-results.tsx(5,54): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/web-search-results.tsx(5,61): error TS2305: Module '"lucide-react"' has no exported member 'Shield'.
+src/components/web-search-results.tsx(5,69): error TS2305: Module '"lucide-react"' has no exported member 'ArrowUpRight'.
+src/components/website-chat-card.tsx(5,10): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/components/website-chat-card.tsx(5,17): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/components/website-chat-card.tsx(5,31): error TS2305: Module '"lucide-react"' has no exported member 'Eye'.
+src/components/welcome-dialog.tsx(9,10): error TS2305: Module '"lucide-react"' has no exported member 'PartyPopper'.
+src/components/youtube-chat-card.tsx(7,10): error TS2305: Module '"lucide-react"' has no exported member 'Pin'.
+src/components/youtube-chat-card.tsx(7,15): error TS2305: Module '"lucide-react"' has no exported member 'Share2'.
+src/components/youtube-chat-card.tsx(7,23): error TS2305: Module '"lucide-react"' has no exported member 'Play'.
+src/components/youtube-extractor-content.tsx(10,62): error TS2459: Module '"@/app/actions"' declares 'SummarizeContentOutput' locally, but it is not exported.
+src/components/youtube-extractor-content.tsx(11,10): error TS2305: Module '"lucide-react"' has no exported member 'Loader2'.
+src/components/youtube-extractor-content.tsx(11,19): error TS2305: Module '"lucide-react"' has no exported member 'Wand2'.
+src/components/youtube-extractor-content.tsx(11,26): error TS2305: Module '"lucide-react"' has no exported member 'Save'.
+src/components/youtube-extractor-content.tsx(11,32): error TS2305: Module '"lucide-react"' has no exported member 'Copy'.
+src/components/youtube-extractor-content.tsx(11,38): error TS2305: Module '"lucide-react"' has no exported member 'Pilcrow'.
+src/lib/csrf-protection.ts(27,17): error TS2339: Property 'set' does not exist on type 'Promise<ReadonlyRequestCookies>'.
+src/lib/csrf-protection.ts(43,24): error TS2339: Property 'get' does not exist on type 'Promise<ReadonlyRequestCookies>'.
+src/lib/csrf-protection.ts(51,37): error TS2339: Property 'get' does not exist on type 'Promise<ReadonlyRequestCookies>'.
+src/lib/file-processors/pdf-processor.ts(55,31): error TS2339: Property 'Title' does not exist on type 'Object'.
+src/lib/file-processors/pdf-processor.ts(56,32): error TS2339: Property 'Author' does not exist on type 'Object'.
+src/lib/file-processors/pdf-processor.ts(57,33): error TS2339: Property 'Subject' does not exist on type 'Object'.
+src/lib/file-processors/pdf-processor.ts(58,34): error TS2339: Property 'Keywords' does not exist on type 'Object'.
+src/web/components/WebSearchAgent.tsx(3,75): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/web/components/WebSearchAgent.tsx(4,23): error TS2307: Cannot find module './ui/input' or its corresponding type declarations.
+src/web/components/WebSearchAgent.tsx(5,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+src/web/components/WebSearchAgent.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+src/web/components/WebSearchAgent.tsx(6,18): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+src/web/components/WebSearchAgent.tsx(6,25): error TS2305: Module '"lucide-react"' has no exported member 'ChevronsRight'.
+src/web/components/WebSearchAgent.tsx(6,40): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+src/web/components/WebSearchAgent.tsx(7,26): error TS2307: Cannot find module './ui/skeleton' or its corresponding type declarations.
+src/web/components/WebSearchAgent.tsx(82,20): error TS2339: Property 'electronAPI' does not exist on type 'Window & typeof globalThis'.
+src/web/components/WebSearchAgent.tsx(128,16): error TS2339: Property 'electronAPI' does not exist on type 'Window & typeof globalThis'.
+src/web/components/WebSearchAgent.tsx(142,28): error TS2339: Property 'electronAPI' does not exist on type 'Window & typeof globalThis'.
+src/web/components/WebSearchAgent.tsx(161,28): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/web/components/WebSearchAgent.tsx(203,15): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.
+test-synthesis.ts(2,10): error TS2459: Module '"./src/app/web-scraper"' declares 'synthesizeAnswer' locally, but it is not exported.
+web/components/GoogleAIAgent.tsx(171,25): error TS2339: Property 'signin' does not exist on type '{}'.
+web/components/GoogleAIAgent.tsx(171,41): error TS2339: Property 'captcha' does not exist on type '{}'.
+web/components/GoogleAIAgent.tsx(171,58): error TS2339: Property 'consent' does not exist on type '{}'.
+web/components/GoogleAIAgent.tsx(186,30): error TS2339: Property 'success' does not exist on type '{}'.
+web/components/WebSearchAgent.tsx(3,75): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+web/components/WebSearchAgent.tsx(4,23): error TS2307: Cannot find module './ui/input' or its corresponding type declarations.
+web/components/WebSearchAgent.tsx(5,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+web/components/WebSearchAgent.tsx(6,10): error TS2305: Module '"lucide-react"' has no exported member 'Search'.
+web/components/WebSearchAgent.tsx(6,18): error TS2305: Module '"lucide-react"' has no exported member 'Globe'.
+web/components/WebSearchAgent.tsx(6,25): error TS2305: Module '"lucide-react"' has no exported member 'ChevronsRight'.
+web/components/WebSearchAgent.tsx(6,40): error TS2305: Module '"lucide-react"' has no exported member 'ExternalLink'.
+web/components/WebSearchAgent.tsx(7,26): error TS2307: Cannot find module './ui/skeleton' or its corresponding type declarations.
+web/components/WebSearchAgent.tsx(8,38): error TS2306: File 'C:/Users/rk908/Downloads/whiteneon2_ac6cb57135_VSTHEMES-ORG/sidebar-1/web/utils/extractors.js' is not a module.
+web/components/WebSearchAgent.tsx(42,22): error TS2339: Property 'electronAPI' does not exist on type 'Window & typeof globalThis'.
+web/components/WebSearchAgent.tsx(96,16): error TS2339: Property 'electronAPI' does not exist on type 'Window & typeof globalThis'.
+web/components/WebSearchAgent.tsx(133,28): error TS7006: Parameter 'e' implicitly has an 'any' type.
+web/components/WebSearchAgent.tsx(176,15): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.

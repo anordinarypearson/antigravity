@@ -1,7 +1,10 @@
 'use server';
 
 import { webSearch } from '@/ai/tools/web-search';
+import { searchImages } from '@/ai/tools/image-search';
 import * as cheerio from 'cheerio';
+import { openai } from '@/lib/openai';
+import { DEFAULT_MODEL_ID } from '@/lib/models';
 
 export type WebScraperInput = {
     query: string;
@@ -44,7 +47,7 @@ export type WebScraperOutput = {
         totalWords: number;
         averageResponseMs: number;
         averageQuality: number;
-        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number };
+        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; searxng: number };
     };
     error?: string;
 };
@@ -55,8 +58,8 @@ export type ActionResult<T> = {
 };
 
 // ── Speed settings ───────────────────────────────────────────────────────────
-const SCRAPE_TIMEOUT_MS = 3000;
-const MAX_CONTENT_LENGTH = 8000;
+const SCRAPE_TIMEOUT_MS = 10000;  // 10 seconds timeout for slower sites
+const MAX_CONTENT_LENGTH = 10000;  // Increased to get more content per page
 
 // ── Domain Trust Database ────────────────────────────────────────────────────
 const TRUSTED_DOMAINS: Record<string, number> = {
@@ -77,11 +80,22 @@ const TRUSTED_DOMAINS: Record<string, number> = {
     'espncricinfo.com': 85, 'espn.com': 83,
     // Tier 3: Decent (60-74)
     'medium.com': 65, 'dev.to': 68, 'hashnode.dev': 65,
-    'reddit.com': 62, 'quora.com': 55,
+    'reddit.com': 70, 'quora.com': 60,
     'geeksforgeeks.org': 72, 'w3schools.com': 68,
     'freecodecamp.org': 75, 'digitalocean.com': 78,
     'thehindu.com': 78, 'ndtv.com': 72, 'hindustantimes.com': 70,
     'indiatimes.com': 68, 'timesofindia.indiatimes.com': 72,
+    // Tier 4: Community & blogs (50-65)
+    'substack.com': 62, 'news.ycombinator.com': 72,
+    'hackernews.com': 72, 'lobste.rs': 65,
+    'producthunt.com': 60, 'devhunt.org': 58,
+    'css-tricks.com': 75, 'smashingmagazine.com': 78,
+    'towardsdatascience.com': 70, 'analyticsvidhya.com': 68,
+    'kaggle.com': 72, 'huggingface.co': 78,
+    'indiabix.com': 60, 'javatpoint.com': 65,
+    'tutorialspoint.com': 68, 'programiz.com': 70,
+    'cricket.com': 70, 'cricbuzz.com': 78, 'iplt20.com': 72,
+    'bollywoodhungama.com': 60, 'filmfare.com': 62,
 };
 
 function getDomainTrust(domain: string): number {
@@ -218,7 +232,14 @@ function extractStructuredContent($: cheerio.CheerioAPI): {
         ogImage: $('meta[property="og:image"]').attr('content')
             || $('meta[property="og:image:url"]').attr('content')
             || $('meta[name="twitter:image"]').attr('content')
-            || $('meta[name="twitter:image:src"]').attr('content') || '',
+            || $('meta[name="twitter:image:src"]').attr('content')
+            // Fallback: first large image in article content
+            || $('article img[src]').first().attr('src')
+            || $('main img[src]').first().attr('src')
+            || $('[role="main"] img[src]').first().attr('src')
+            || $('figure img[src]').first().attr('src')
+            || $('img[src^="http"]').not('[src*="icon"]').not('[src*="logo"]').not('[src*="avatar"]').not('[width="1"]').first().attr('src')
+            || '',
     };
 
     // Ensure ogImage is a full URL
@@ -343,11 +364,23 @@ async function scrapeSingleWebsite(url: string): Promise<{
         const response = await fetch(url, {
             signal: controller.signal,
             headers: {
+                // Full modern browser fingerprint to bypass bot detection on more sites
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9,hi;q=0.7',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Sec-CH-UA': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                'Sec-CH-UA-Mobile': '?0',
+                'Sec-CH-UA-Platform': '"Windows"',
+                'Upgrade-Insecure-Requests': '1',
+                'Referer': `https://www.google.com/search?q=${encodeURIComponent(url)}`,
+                'DNT': '1',
             },
             redirect: 'follow',
         });
@@ -435,11 +468,159 @@ function generateRelatedQuestions(query: string, sources: { content: string; hea
 }
 
 
-// ── Answer Synthesis ──────────────────────────────────────────────────────────
-function synthesizeAnswer(
+// ── AI-Powered Answer Synthesis ──────────────────────────────────────────────
+
+async function aiSynthesizeAnswer(
     query: string,
     sources: { title: string; url: string; content: string; headings: string[]; qualityScore: number; trustScore: number }[]
-): { answer: string; quickSummary: string; keyTakeaways: string[] } {
+): Promise<{ answer: string; quickSummary: string; keyTakeaways: string[]; relatedQuestions: string[] } | null> {
+    try {
+        // Dramatically optimize inference speed by sending ONLY the top N most relevant dense paragraphs 
+        // across ALL scraped sources instead of dumping thousands of raw HTML bytes.
+        const { selected } = rankPassages(query, sources);
+        
+        const contextParts: string[] = [];
+        let totalLen = 0;
+        const MAX_CONTEXT = 7000; // Dense high-information context block
+
+        for (const item of selected) {
+            if (totalLen >= MAX_CONTEXT) break;
+            const source = sources[item.sourceIdx];
+            const passage = `[From: ${source.title} (${source.url})]\n${item.heading ? `${item.heading}\n` : ''}${item.text}`;
+            contextParts.push(passage);
+            totalLen += passage.length;
+        }
+
+        if (contextParts.length === 0) return null;
+
+        const context = contextParts.join('\n\n---\n\n');
+
+        const systemPrompt = `You are a search answer synthesizer. Given a user query and scraped web content from multiple sources, produce a well-structured, accurate answer.
+
+RULES:
+- Write a natural, comprehensive answer in markdown format
+- Use headers (##, ###), bullet points, and bold for key terms
+- Cite source names naturally (e.g. "According to [Source Name]...")
+- Do NOT make up facts — only use information from the provided sources
+- Be concise but thorough — target 200-400 words for the answer
+- If sources conflict, mention both perspectives
+- Use a warm, informative tone
+
+Respond in EXACTLY this JSON format (no markdown fences around the JSON):
+{
+  "answer": "The full markdown answer...",
+  "quickSummary": "A 1-2 sentence summary (max 150 words)",
+  "keyTakeaways": ["takeaway 1", "takeaway 2", "takeaway 3", "takeaway 4"],
+  "relatedQuestions": ["question 1?", "question 2?", "question 3?", "question 4?"]
+}`;
+
+        const userPrompt = `Query: "${query}"
+
+Sources:
+${context}
+
+Synthesize a comprehensive answer from these sources.`;
+
+        const response = await openai.chat.completions.create({
+            model: 'Meta-Llama-3.3-70B-Instruct', // Fast SambaNova model (3.1-8B throws 404)
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+            ],
+            // Removed response_format as it causes 404s on some SambaNova endpoints
+            max_tokens: 1500,
+            temperature: 0.3,
+            top_p: 0.9,
+        });
+
+        const raw = response.choices[0]?.message?.content?.trim();
+        if (!raw) return null;
+
+        // Robust JSON extraction — handle markdown fences, bad control chars, etc.
+        let jsonStr = raw;
+
+        // Strip markdown code fences if present
+        jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+        // Try to extract JSON object using regex if the model added surrounding text
+        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+        if (jsonMatch) jsonStr = jsonMatch[0];
+
+        // Sanitize: remove bad control characters that are not valid JSON whitespace
+        jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ');
+
+        // Fix unquoted JSON keys (which LLaMa sometimes outputs like { answer: "..." })
+        jsonStr = jsonStr.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+
+        let parsed: any;
+        try {
+            parsed = JSON.parse(jsonStr);
+        } catch (e1) {
+            try {
+                // Last resort: replace unescaped newlines that may be inside JSON strings
+                const sanitized = jsonStr.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+                parsed = JSON.parse(sanitized);
+            } catch (e2) {
+                console.error('[AI Synthesis] JSON parse failed entirely. Raw output:', raw.substring(0, 500));
+                throw e2; // Propagate to catch block
+            }
+        }
+
+        // Validate structure
+        if (!parsed.answer || typeof parsed.answer !== 'string') return null;
+
+        // Unescape newlines in answer for proper markdown rendering
+        parsed.answer = parsed.answer.replace(/\\n/g, '\n');
+        if (typeof parsed.quickSummary === 'string') parsed.quickSummary = parsed.quickSummary.replace(/\\n/g, '\n');
+
+        // Append source attribution to the answer
+        const sourceLinks = sources.slice(0, 6).map(s => `[${s.title}](${s.url})`);
+        parsed.answer += `\n\n---\n*Synthesized from ${sources.length} source${sources.length > 1 ? 's' : ''}: ${sourceLinks.join(', ')}*`;
+
+        return {
+            answer: parsed.answer,
+            quickSummary: parsed.quickSummary || '',
+            keyTakeaways: Array.isArray(parsed.keyTakeaways) ? parsed.keyTakeaways.slice(0, 6) : [],
+            relatedQuestions: Array.isArray(parsed.relatedQuestions) ? parsed.relatedQuestions.slice(0, 5) : [],
+        };
+    } catch (error: any) {
+        console.error('[AI Synthesis] Failed, falling back to manual:', error.message?.substring(0, 500));
+        return null;
+    }
+}
+
+
+// ── Manual Answer Synthesis (Fallback) ───────────────────────────────────────
+
+// Utility: split text into proper sentences handling abbreviations
+function splitSentences(text: string): string[] {
+    // Protect common abbreviations from false sentence breaks
+    const protected_ = text
+        .replace(/\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc|Inc|Ltd|Corp|Dept|Univ|approx|est)\./gi, '$1\u2024')
+        .replace(/\b(U\.S|U\.K|U\.N|E\.U|A\.I)\./gi, (m) => m.replace(/\./g, '\u2024'))
+        .replace(/\b([A-Z])\./g, '$1\u2024');
+
+    const sentences = protected_.split(/(?<=[.!?])\s+(?=[A-Z\u201c"(])|(?<=[.!?])$/g)
+        .map(s => s.replace(/\u2024/g, '.').trim())
+        .filter(s => s.length > 15);
+
+    return sentences.length > 0 ? sentences : [text.trim()].filter(s => s.length > 15);
+}
+
+// Utility: Jaccard similarity between two strings (word-level)
+function jaccardSimilarity(a: string, b: string): number {
+    const setA = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+    const setB = new Set(b.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+    if (setA.size === 0 || setB.size === 0) return 0;
+    let intersection = 0;
+    for (const word of setA) { if (setB.has(word)) intersection++; }
+    return intersection / (setA.size + setB.size - intersection);
+}
+
+function rankPassages(
+    query: string,
+    sources: { title: string; url: string; content: string; headings: string[]; qualityScore: number; trustScore: number }[]
+) {
     const stopWords = new Set([
         'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or', 'but',
         'in', 'with', 'to', 'for', 'of', 'not', 'from', 'by', 'it', 'as',
@@ -447,29 +628,71 @@ function synthesizeAnswer(
         'have', 'has', 'had', 'do', 'does', 'did', 'can', 'could', 'would',
         'should', 'may', 'might', 'shall', 'what', 'how', 'why', 'when',
         'where', 'who', 'whom', 'whose', 'about', 'their', 'there', 'then',
+        'also', 'just', 'more', 'some', 'such', 'than', 'too', 'very',
+        'into', 'over', 'only', 'other', 'its', 'our', 'your', 'any',
     ]);
 
     const queryKeywords = query.toLowerCase()
         .split(/[\s,;.!?]+/)
         .filter(w => w.length > 2 && !stopWords.has(w));
 
+    // TF-IDF-like term weighting: rarer keywords across sources get higher weight
+    const keywordDocFreq = new Map<string, number>();
+    for (const kw of queryKeywords) {
+        let docCount = 0;
+        for (const source of sources) {
+            if (source.content.toLowerCase().includes(kw)) docCount++;
+        }
+        keywordDocFreq.set(kw, docCount);
+    }
+    const totalDocs = Math.max(sources.length, 1);
+    const keywordWeights = new Map<string, number>();
+    for (const kw of queryKeywords) {
+        const df = keywordDocFreq.get(kw) || 0;
+        const idf = 1.0 + Math.log(totalDocs / Math.max(df, 1));
+        keywordWeights.set(kw, idf);
+    }
+
     const queryBigrams: string[] = [];
     const words = query.toLowerCase().split(/\s+/);
     for (let i = 0; i < words.length - 1; i++) queryBigrams.push(words[i] + ' ' + words[i + 1]);
 
-    const scored: { text: string; score: number; sourceIdx: number; heading?: string }[] = [];
+    const boilerplate = [
+        'cookie', 'privacy policy', 'terms of service', 'subscribe',
+        'sign up', 'log in', 'newsletter', 'copyright', 'all rights reserved',
+        'click here', 'read more', 'advertisement', 'sponsored',
+        'accept cookies', 'share this article', 'follow us on', 'join our',
+        'related articles', 'trending now', 'you may also like',
+        'enable javascript', 'browser does not support', 'skip to content',
+        'we use cookies', 'manage preferences', 'consent', 'gdpr',
+        'unsubscribe', 'your email address', 'sign in to', 'create an account',
+        'download the app', 'get the latest', 'breaking news alert',
+    ];
+
+    const scored: { text: string; score: number; sourceIdx: number; heading?: string; keywordsCovered: Set<string> }[] = [];
     const seenSentences = new Set<string>();
 
     sources.forEach((source, index) => {
         if (!source.content) return;
         let currentHeading = '';
+        let headingRelevance = 0;
         const lines = source.content.split('\n');
 
         lines.forEach(line => {
             const trimmed = line.trim();
             if (!trimmed) return;
-            if (trimmed.startsWith('#')) { currentHeading = trimmed.replace(/^#+\s*/, ''); return; }
-            if (trimmed.length < 35 || trimmed.length > 1800) return;
+
+            if (trimmed.startsWith('#')) {
+                currentHeading = trimmed.replace(/^#+\s*/, '');
+                const headingLower = currentHeading.toLowerCase();
+                headingRelevance = 0;
+                queryKeywords.forEach(keyword => {
+                    if (headingLower.includes(keyword)) headingRelevance += 4;
+                });
+                return;
+            }
+
+            if (trimmed.length < 40 || trimmed.length > 1800) return;
 
             const fingerprint = trimmed.substring(0, 80).toLowerCase().replace(/\s+/g, ' ');
             if (seenSentences.has(fingerprint)) return;
@@ -480,37 +703,45 @@ function synthesizeAnswer(
             const trustMult = 0.5 + (source.trustScore / 100) * 0.5;
             const combined = qualMult * trustMult;
 
+            const coveredKeywords = new Set<string>();
+
             queryKeywords.forEach(keyword => {
                 const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi');
                 const matches = lowerText.match(regex);
-                if (matches) score += matches.length * 2.5 * combined;
+                const weight = keywordWeights.get(keyword) || 1.0;
+                if (matches) {
+                    score += matches.length * 2.5 * weight * combined;
+                    coveredKeywords.add(keyword);
+                }
             });
 
             queryBigrams.forEach(bigram => {
-                if (lowerText.includes(bigram)) score += 6 * combined;
+                if (lowerText.includes(bigram)) score += 7 * combined;
             });
 
-            const position = source.content.indexOf(trimmed);
-            if (position < 500) score += 3;
-            else if (position < 1500) score += 1.5;
-
-            if (trimmed.length > 100 && trimmed.length < 800) score += 1.5;
-
-            if (currentHeading) {
-                const headingLower = currentHeading.toLowerCase();
-                queryKeywords.forEach(keyword => {
-                    if (headingLower.includes(keyword)) score += 3;
-                });
+            if (queryKeywords.length > 1 && coveredKeywords.size > 1) {
+                const coverageRatio = coveredKeywords.size / queryKeywords.length;
+                score += coverageRatio * 8 * combined;
             }
 
-            const boilerplate = [
-                'cookie', 'privacy policy', 'terms of service', 'subscribe',
-                'sign up', 'log in', 'newsletter', 'copyright', 'all rights reserved',
-                'click here', 'read more', 'advertisement', 'sponsored',
-            ];
-            if (boilerplate.some(s => lowerText.includes(s))) score -= 5;
+            const position = source.content.indexOf(trimmed);
+            if (position < 500) score += 4;
+            else if (position < 1500) score += 2;
+            else if (position < 3000) score += 1;
 
-            if (score > 0) { seenSentences.add(fingerprint); scored.push({ text: trimmed, score, sourceIdx: index, heading: currentHeading || undefined }); }
+            if (trimmed.length > 120 && trimmed.length < 600) score += 2.5;
+            else if (trimmed.length > 80 && trimmed.length < 900) score += 1.5;
+
+            if (headingRelevance > 0) score += headingRelevance * combined;
+
+            if (boilerplate.some(s => lowerText.includes(s))) score -= 8;
+            if (trimmed.length < 50) score -= 3;
+            if (trimmed.split(' ').length < 5 && !trimmed.endsWith('.')) score -= 2;
+
+            if (score > 0) {
+                seenSentences.add(fingerprint);
+                scored.push({ text: trimmed, score, sourceIdx: index, heading: currentHeading || undefined, keywordsCovered: coveredKeywords });
+            }
         });
     });
 
@@ -519,12 +750,22 @@ function synthesizeAnswer(
     const selected: typeof scored = [];
     const sourceCount = new Map<number, number>();
     for (const item of scored) {
-        if (selected.length >= 15) break;
+        if (selected.length >= 30) break;
         const count = sourceCount.get(item.sourceIdx) || 0;
-        if (count >= 4) continue;
+        if (count >= 5) continue;
         selected.push(item);
         sourceCount.set(item.sourceIdx, count + 1);
     }
+    
+    return { selected, scored, boilerplate }; 
+}
+
+function synthesizeAnswer(
+    query: string,
+    sources: { title: string; url: string; content: string; headings: string[]; qualityScore: number; trustScore: number }[]
+): { answer: string; quickSummary: string; keyTakeaways: string[] } {
+    const { selected, scored, boilerplate } = rankPassages(query, sources);
+
 
     if (selected.length === 0) {
         return {
@@ -534,29 +775,89 @@ function synthesizeAnswer(
         };
     }
 
-    // Key takeaways — from highest-trust, highest-quality sources
+    // ── Direct-answer intro ──
+    // Build an intro sentence that directly addresses the query
+    const topPassage = scored[0];
+    const topSource = sources[topPassage.sourceIdx];
+    const topSentences = splitSentences(topPassage.text);
+    const introSentence = topSentences[0] || topPassage.text.substring(0, 200);
+    const sourceCountUsed = new Set(selected.map(s => s.sourceIdx)).size;
+    const directIntro = `Based on ${sourceCountUsed} source${sourceCountUsed > 1 ? 's' : ''}, here's what we found:\n\n> ${introSentence}${introSentence.endsWith('.') || introSentence.endsWith('!') || introSentence.endsWith('?') ? '' : '.'}\n\n`;
+
+    // ── Key takeaways — with Jaccard deduplication and source diversity ──
     const keyTakeaways: string[] = [];
-    for (const item of scored.slice(0, 10)) {
-        const sentenceMatch = item.text.match(/^[^.!?]*[.!?]/);
-        if (sentenceMatch && sentenceMatch[0].length > 20 && sentenceMatch[0].length < 250) {
-            const takeaway = sentenceMatch[0].trim();
-            if (!keyTakeaways.some(t => t.substring(0, 40) === takeaway.substring(0, 40))) {
-                keyTakeaways.push(takeaway);
+    const takeawaySourceSeen = new Set<number>();
+
+    for (const item of scored.slice(0, 20)) {
+        if (keyTakeaways.length >= 6) break;
+
+        const sentences = splitSentences(item.text);
+        for (const sentence of sentences) {
+            if (sentence.length < 25 || sentence.length > 280) continue;
+            const cleaned = sentence.trim();
+
+            // Skip if too similar to existing takeaways (Jaccard > 0.5)
+            const isDuplicate = keyTakeaways.some(existing => jaccardSimilarity(existing, cleaned) > 0.45);
+            if (isDuplicate) continue;
+
+            // Skip boilerplate
+            const lc = cleaned.toLowerCase();
+            if (boilerplate.some(b => lc.includes(b))) continue;
+
+            // Prefer diverse sources
+            if (takeawaySourceSeen.size < sourceCountUsed || !takeawaySourceSeen.has(item.sourceIdx)) {
+                keyTakeaways.push(cleaned);
+                takeawaySourceSeen.add(item.sourceIdx);
+            }
+
+            if (keyTakeaways.length >= 6) break;
+        }
+    }
+
+    // ── Quick summary — coherent paragraph from best passages ──
+    let quickSummary = '';
+    const summaryPassages: string[] = [];
+    const summarySources = new Set<number>();
+
+    // Pick top 3 highest-scoring passages from different sources
+    for (const item of scored) {
+        if (summaryPassages.length >= 3) break;
+        if (summarySources.has(item.sourceIdx) && summarySources.size < Math.min(sourceCountUsed, 3)) continue;
+
+        const sentences = splitSentences(item.text);
+        // Take the first 1-2 most informative sentences
+        const goodSentences = sentences
+            .filter(s => s.length > 25 && s.length < 300)
+            .filter(s => !boilerplate.some(b => s.toLowerCase().includes(b)))
+            .slice(0, 2);
+
+        if (goodSentences.length > 0) {
+            const passage = goodSentences.join(' ').trim();
+            // Check it's not too similar to existing summary passages
+            if (!summaryPassages.some(p => jaccardSimilarity(p, passage) > 0.5)) {
+                summaryPassages.push(passage);
+                summarySources.add(item.sourceIdx);
             }
         }
-        if (keyTakeaways.length >= 6) break;
     }
 
-    // Quick summary
-    const summaryParts: string[] = [];
-    for (const item of scored.slice(0, 4)) {
-        const sentences = item.text.match(/[^.!?]*[.!?]/g);
-        if (sentences && sentences.length > 0) summaryParts.push(sentences.slice(0, 2).join('').trim());
+    if (summaryPassages.length > 0) {
+        quickSummary = summaryPassages.join(' ').substring(0, 700);
+        // Ensure it ends at a sentence boundary
+        const lastPeriod = Math.max(
+            quickSummary.lastIndexOf('.'),
+            quickSummary.lastIndexOf('!'),
+            quickSummary.lastIndexOf('?')
+        );
+        if (lastPeriod > quickSummary.length * 0.5) {
+            quickSummary = quickSummary.substring(0, lastPeriod + 1);
+        }
+    } else {
+        quickSummary = "Multiple sources were analyzed but a concise summary could not be generated.";
     }
-    const quickSummary = summaryParts.join(' ').substring(0, 600) || "Multiple sources were analyzed but a concise summary could not be generated.";
 
-    // Formatted answer grouped by source
-    let answer = '';
+    // ── Formatted answer grouped by source ──
+    let answer = directIntro;
     const grouped = new Map<number, typeof scored>();
     selected.forEach(item => {
         const arr = grouped.get(item.sourceIdx) || [];
@@ -596,7 +897,7 @@ function extractDomainInfo(url: string): { domain: string; favicon: string } {
 // ── Main Action ──────────────────────────────────────────────────────────────
 export async function webScraperAction(input: WebScraperInput): Promise<ActionResult<WebScraperOutput>> {
     const startTime = Date.now();
-    const maxSources = input.maxSources || 12;
+    const maxSources = input.maxSources || 20; // Expanded to 20 for much wider search footprint
 
     try {
         // Step 1: Multi-engine search (4 engines)
@@ -612,21 +913,26 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                     stats: {
                         totalSourcesFound: 0, sourcesScraped: 0, totalWords: 0,
                         averageResponseMs: 0, averageQuality: 0,
-                        searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0 },
+                        searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0 },
                     },
                 }
             };
         }
 
         const searchMeta = searchResults.searchMeta || {
-            sources: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0 }, totalFound: 0,
+            sources: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0 }, totalFound: 0,
         };
 
-        // Step 2: Scrape ALL in parallel
+        // Step 2: Scrape ALL in parallel + query for real background images
         const topResults = searchResults.results.slice(0, maxSources);
-        const scrapeResults = await Promise.allSettled(
-            topResults.map(result => scrapeSingleWebsite(result.url))
-        );
+        
+        const [scrapeResults, imageSearchData] = await Promise.all([
+            Promise.allSettled(topResults.map(result => scrapeSingleWebsite(result.url))),
+            searchImages({ query: input.query }).catch(() => ({ images: [] }))
+        ]);
+
+        const accurateImages = imageSearchData.images || [];
+        let imageIndex = 0;
 
         const sourcesWithContent: (ScrapedSource & { content: string; headingsRaw: string[] })[] = [];
         let totalResponseMs = 0, scrapedCount = 0, totalQuality = 0;
@@ -638,10 +944,17 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
             if (result.status === 'fulfilled' && result.value.content.length > 40) {
                 const wordCount = result.value.content.split(/\s+/).length;
 
-                // If no OG image found, generate an AI placeholder
+                // Use accurate real web images
                 let ogImage = result.value.meta.ogImage || '';
+                
+                // If missing, look at our Bing Web Search results for matching query images
                 if (!ogImage) {
-                    ogImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(topResults[index].title.substring(0, 60) + ' news photo')}?width=600&height=300&nologo=true&seed=${index + 10}`;
+                    if (imageIndex < accurateImages.length) {
+                        ogImage = accurateImages[imageIndex].url;
+                        imageIndex++;
+                    } else {
+                        ogImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(topResults[index].title.substring(0, 60) + ' informative scene')}?width=600&height=300&nologo=true&seed=${index + 10}`;
+                    }
                 }
 
                 sourcesWithContent.push({
@@ -674,7 +987,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                     domain, favicon,
                     wordCount: 0, headings: [], links: [],
                     meta: {
-                        ogImage: `https://image.pollinations.ai/prompt/${encodeURIComponent(topResults[index].title.substring(0, 60) + ' illustration')}?width=600&height=300&nologo=true&seed=${index + 20}`,
+                        ogImage: (imageIndex < accurateImages.length) ? accurateImages[imageIndex++].url : `https://image.pollinations.ai/prompt/${encodeURIComponent(topResults[index].title.substring(0, 60) + ' illustration')}?width=600&height=300&nologo=true&seed=${index + 20}`,
                     },
                     qualityScore: 10, trustScore,
                     readingTimeMin: 0, contentType: 'other',
@@ -687,18 +1000,36 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
         // Sort by combined quality+trust score
         sourcesWithContent.sort((a, b) => (b.qualityScore + b.trustScore) - (a.qualityScore + a.trustScore));
 
-        // Step 3: Synthesize answer
+        // Step 3: Synthesize answer — AI-first with manual fallback
         const sourcesForSynthesis = sourcesWithContent.filter(s => s.content.length > 40);
-        const { answer, quickSummary, keyTakeaways } = synthesizeAnswer(
-            input.query,
-            sourcesForSynthesis.map(s => ({
-                title: s.title, url: s.url, content: s.content,
-                headings: s.headingsRaw, qualityScore: s.qualityScore, trustScore: s.trustScore,
-            }))
-        );
+        const synthInput = sourcesForSynthesis.map(s => ({
+            title: s.title, url: s.url, content: s.content,
+            headings: s.headingsRaw, qualityScore: s.qualityScore, trustScore: s.trustScore,
+        }));
 
-        // Step 4: Generate related questions
-        const relatedQuestions = generateRelatedQuestions(input.query, sourcesForSynthesis);
+        let answer: string;
+        let quickSummary: string;
+        let keyTakeaways: string[];
+        let relatedQuestions: string[];
+
+        // Try AI synthesis first for much better quality
+        const aiResult = synthInput.length > 0 ? await aiSynthesizeAnswer(input.query, synthInput) : null;
+
+        if (aiResult) {
+            console.log('[Web Scraper] Using AI-synthesized answer');
+            answer = aiResult.answer;
+            quickSummary = aiResult.quickSummary;
+            keyTakeaways = aiResult.keyTakeaways;
+            relatedQuestions = aiResult.relatedQuestions;
+        } else {
+            // Fallback to manual synthesis
+            console.log('[Web Scraper] Using manual synthesis (AI unavailable)');
+            const manual = synthesizeAnswer(input.query, synthInput);
+            answer = manual.answer;
+            quickSummary = manual.quickSummary;
+            keyTakeaways = manual.keyTakeaways;
+            relatedQuestions = generateRelatedQuestions(input.query, sourcesForSynthesis);
+        }
 
         const responseTime = (Date.now() - startTime) / 1000;
         const totalWords = sourcesWithContent.reduce((sum, s) => sum + s.wordCount, 0);
@@ -730,7 +1061,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                 stats: {
                     totalSourcesFound: 0, sourcesScraped: 0, totalWords: 0,
                     averageResponseMs: 0, averageQuality: 0,
-                    searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0 },
+                    searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0 },
                 },
             }
         };

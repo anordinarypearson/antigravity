@@ -33,7 +33,7 @@ const CONTENT_TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string
 };
 
 const LOADING_STAGES = [
-    { text: "Querying 4 search engines...", icon: <Search className="h-4 w-4" />, sub: "DuckDuckGo • Brave • Wikipedia • Google News" },
+    { text: "Querying 5 search engines...", icon: <Search className="h-4 w-4" />, sub: "DuckDuckGo • Brave • Wikipedia • Google News • Bing" },
     { text: "Scraping 12 web pages...", icon: <Globe className="h-4 w-4" />, sub: "Parallel fetching & parsing" },
     { text: "Extracting content & images...", icon: <Layers className="h-4 w-4" />, sub: "Headings, text, OG images, AI fallbacks" },
     { text: "Scoring & ranking sources...", icon: <Shield className="h-4 w-4" />, sub: "Quality + trust analysis" },
@@ -251,8 +251,9 @@ export function WebScraperContent() {
                             <p className="text-muted-foreground text-sm max-w-lg mx-auto">
                                 Scrapes <span className="text-primary font-semibold">10-12 sources</span> across{' '}
                                 <span className="font-medium">DuckDuckGo</span>, <span className="text-violet-500 font-medium">Brave</span>,{' '}
-                                <span className="text-blue-500 font-medium">Wikipedia</span> &{' '}
-                                <span className="text-rose-500 font-medium">Google News</span> in under 5 seconds.
+                                <span className="text-blue-500 font-medium">Wikipedia</span>,{' '}
+                                <span className="text-rose-500 font-medium">Google News</span> &{' '}
+                                <span className="text-cyan-500 font-medium">Bing</span> in under 5 seconds.
                             </p>
                             <p className="text-[10px] text-muted-foreground/60">Ctrl+K to focus • Enter to scrape</p>
                         </div>
@@ -422,6 +423,7 @@ export function WebScraperContent() {
                                         {result.stats.searchEngines.brave > 0 && <span>Brave:{result.stats.searchEngines.brave}</span>}
                                         {result.stats.searchEngines.wikipedia > 0 && <span>Wiki:{result.stats.searchEngines.wikipedia}</span>}
                                         {(result.stats.searchEngines as any).googleNews > 0 && <span>News:{(result.stats.searchEngines as any).googleNews}</span>}
+                                        {(result.stats.searchEngines as any).bing > 0 && <span>Bing:{(result.stats.searchEngines as any).bing}</span>}
                                     </div>
                                 )}
                                 {confidenceScore > 0 && (
@@ -728,7 +730,7 @@ export function WebScraperContent() {
 
                             <div className="flex flex-wrap items-center justify-center gap-6 mt-10">
                                 {[
-                                    { icon: <Database className="h-3.5 w-3.5" />, label: "3 Search Engines" },
+                                    { icon: <Database className="h-3.5 w-3.5" />, label: "5 Search Engines" },
                                     { icon: <Zap className="h-3.5 w-3.5" />, label: "12 Sources Parallel" },
                                     { icon: <Eye className="h-3.5 w-3.5" />, label: "OG Images" },
                                     { icon: <Shield className="h-3.5 w-3.5" />, label: "Quality Scoring" },

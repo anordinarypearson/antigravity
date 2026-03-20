@@ -1,6 +1,6 @@
 "use client";
 
-import { Zap, Newspaper, Globe, Pencil, Check, Sparkles, Code, Image as ImageIcon, Brain, BookOpen, ArrowRight } from "lucide-react";
+import { Zap, Newspaper, Globe, Pencil, Check, Code, Image as ImageIcon, Brain, BookOpen, ArrowRight, Search, Sparkles, Wand2, Timer, Calculator, Palette, Dices, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
@@ -12,55 +12,84 @@ interface ChatWelcomeScreenProps {
     setActiveButton: (button: 'tools' | 'music' | 'image' | null) => void;
     handleSendMessage: (message: string) => void;
     onUpdateName: (name: string) => void;
+    chatBar?: React.ReactNode;
 }
 
 const greetings = [
-    "What would you like to create today?",
+    "What would you like to discover today?",
     "Ready to explore something new?",
-    "Let's build something amazing.",
-    "How can I assist you today?",
+    "Let's find answers together.",
+    "Ask me anything — I'm here to help.",
 ];
 
-const quickActions = [
+const QUICK_CHIPS = [
+    { query: "Tell me about Next.js", icon: "⚡" },
+    { query: "Today's top news", icon: "📰" },
+    { query: "What is quantum computing?", icon: "⚛️" },
+    { query: "How does AI work?", icon: "🤖" },
+    { query: "Latest tech innovations", icon: "🔬" },
+    { query: "Climate change updates", icon: "🌍" },
+];
+
+// ─── Feature showcase cards ───────────────────────────────────────────────────
+const FEATURE_CARDS = [
     {
-        icon: Newspaper,
-        label: 'Latest News',
-        description: 'Get the top headlines',
-        query: 'Search the latest news headlines today',
-        gradient: 'from-amber-500/10 to-orange-500/10',
-        borderHover: 'hover:border-amber-500/30',
-        iconColor: 'text-amber-500',
+        icon: Brain,
+        label: "Deep Think",
+        description: "Extended reasoning for complex problems",
+        gradient: "from-violet-500/20 to-fuchsia-500/10",
+        border: "border-violet-500/20",
+        iconColor: "text-violet-400",
+        action: "Explain the theory of relativity using deep reasoning",
+    },
+    {
+        icon: Globe,
+        label: "Web Search",
+        description: "Real-time search across the internet",
+        gradient: "from-blue-500/20 to-cyan-500/10",
+        border: "border-blue-500/20",
+        iconColor: "text-blue-400",
+        action: "/websearch What happened in tech today?",
     },
     {
         icon: Code,
-        label: 'Write Code',
-        description: 'Generate or debug code',
-        query: 'Help me write a React component',
-        gradient: 'from-blue-500/10 to-cyan-500/10',
-        borderHover: 'hover:border-blue-500/30',
-        iconColor: 'text-blue-500',
+        label: "Code Helper",
+        description: "Write, debug & explain any code",
+        gradient: "from-emerald-500/20 to-teal-500/10",
+        border: "border-emerald-500/20",
+        iconColor: "text-emerald-400",
+        action: "Write a Python function to generate Fibonacci numbers with memoization",
     },
     {
-        icon: Brain,
-        label: 'Brainstorm',
-        description: 'Generate creative ideas',
-        query: 'Help me brainstorm ideas for a project',
-        gradient: 'from-purple-500/10 to-pink-500/10',
-        borderHover: 'hover:border-purple-500/30',
-        iconColor: 'text-purple-500',
+        icon: ImageIcon,
+        label: "Image Gen",
+        description: "Create stunning AI images",
+        gradient: "from-rose-500/20 to-orange-500/10",
+        border: "border-rose-500/20",
+        iconColor: "text-rose-400",
+        action: "/image A futuristic cityscape at sunset with flying cars",
     },
     {
-        icon: BookOpen,
-        label: 'Learn',
-        description: 'Explain any concept',
-        query: 'Explain quantum computing simply',
-        gradient: 'from-emerald-500/10 to-green-500/10',
-        borderHover: 'hover:border-emerald-500/30',
-        iconColor: 'text-emerald-500',
+        icon: BrainCircuit,
+        label: "Mind Maps",
+        description: "Visualize complex topics as maps",
+        gradient: "from-amber-500/20 to-yellow-500/10",
+        border: "border-amber-500/20",
+        iconColor: "text-amber-400",
+        action: "Create a mind map about machine learning",
+    },
+    {
+        icon: Calculator,
+        label: "Calculator",
+        description: "Scientific & expression calculator",
+        gradient: "from-orange-500/20 to-red-500/10",
+        border: "border-orange-500/20",
+        iconColor: "text-orange-400",
+        action: "/calculator",
     },
 ];
 
-export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage, onUpdateName }: ChatWelcomeScreenProps) {
+export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage, onUpdateName, chatBar }: ChatWelcomeScreenProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState(userName || '');
     const [greetingIndex, setGreetingIndex] = useState(0);
@@ -81,64 +110,86 @@ export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage
 
     const currentHour = new Date().getHours();
     const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+    const timeEmoji = currentHour < 12 ? "🌅" : currentHour < 17 ? "☀️" : "🌙";
 
     return (
-        <div className="relative flex h-full flex-col justify-center p-4 sm:p-8 overflow-y-auto">
-            {/* Subtle background pattern */}
-            <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" />
+        <div className="relative flex h-full flex-col justify-start p-4 sm:p-6 overflow-y-auto custom-scrollbar">
+            {/* Background ambient blobs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], rotate: [0, 90, 0] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]"
+                />
+                <motion.div
+                    animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[100px]"
+                />
+                <motion.div
+                    animate={{ x: [0, -100, 0], y: [0, 100, 0], opacity: [0.2, 0.5, 0.2] }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-[20%] right-[20%] w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[100px]"
+                />
+            </div>
 
-            <div className="mx-auto w-full max-w-3xl space-y-10 sm:space-y-14 relative z-10">
+            <div className="mx-auto w-full max-w-4xl space-y-6 sm:space-y-8 relative z-10 mt-2 sm:mt-6 md:mt-8">
 
-                {/* Hero Section */}
+                {/* ── Hero ────────────────────── */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="space-y-5 text-center"
+                    className="space-y-3 text-center"
                 >
-                    {/* Time-based greeting */}
-                    <motion.p
+                    {/* Time greeting pill */}
+                    <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.5 }}
-                        className="text-sm font-medium text-muted-foreground tracking-widest uppercase"
+                        className="flex items-center justify-center gap-2"
                     >
-                        {timeGreeting}
-                    </motion.p>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/30 border border-border/30 backdrop-blur-sm">
+                            <span>{timeEmoji}</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[11px] font-semibold text-muted-foreground/70 tracking-[0.15em] uppercase">{timeGreeting}</span>
+                        </div>
+                    </motion.div>
 
-                    {/* Name with edit */}
+                    {/* Name */}
                     <div className="flex items-center justify-center gap-3">
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight flex flex-wrap items-center justify-center gap-3">
-                            <span className="text-muted-foreground/60">Hello,</span>
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                            <span className="text-muted-foreground/40">Hello,</span>
                             {isEditing ? (
                                 <div className="flex items-center gap-3">
                                     <Input
                                         value={newName}
                                         onChange={(e) => setNewName(e.target.value)}
-                                        className="h-12 sm:h-14 text-3xl sm:text-4xl font-black bg-muted/50 border-primary/50 shadow-sm focus-visible:ring-primary w-[200px] sm:w-[300px] text-center"
+                                        className="h-12 sm:h-14 text-2xl sm:text-3xl font-black bg-muted/30 border-primary/40 shadow-sm focus-visible:ring-primary w-[180px] sm:w-[260px] text-center rounded-xl"
                                         autoFocus
                                         onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                                     />
-                                    <Button size="icon" className="h-12 w-12 rounded-2xl touch-manipulation" onClick={handleSaveName}>
-                                        <Check className="h-6 w-6" />
+                                    <Button size="icon" className="h-11 w-11 rounded-xl" onClick={handleSaveName}>
+                                        <Check className="h-5 w-5" />
                                     </Button>
                                 </div>
                             ) : (
                                 <span className="group relative flex items-center gap-2">
                                     <motion.span
                                         key={userName || 'Creator'}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
+                                        initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                                        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                                        transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                                        className="bg-gradient-to-br from-foreground via-foreground/90 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm"
                                     >
                                         {userName || 'Creator'}
                                     </motion.span>
                                     <button
                                         onClick={() => setIsEditing(true)}
-                                        className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-muted/30 border border-transparent hover:border-border hover:bg-muted transition-all opacity-0 group-hover:opacity-100 touch-manipulation transform hover:scale-110"
+                                        className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-muted/20 border border-transparent hover:border-border/50 hover:bg-muted/40 transition-all opacity-0 group-hover:opacity-100 transform hover:scale-110"
                                         title="Edit name"
                                     >
-                                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                        <Pencil className="h-3 w-3 text-muted-foreground/60" />
                                     </button>
                                 </span>
                             )}
@@ -146,15 +197,15 @@ export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage
                     </div>
 
                     {/* Animated subtitle */}
-                    <div className="h-8 flex items-center justify-center overflow-hidden">
+                    <div className="h-7 flex items-center justify-center overflow-hidden">
                         <AnimatePresence mode="wait">
                             <motion.p
                                 key={greetingIndex}
-                                initial={{ opacity: 0, y: 16 }}
+                                initial={{ opacity: 0, y: 14 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -16 }}
+                                exit={{ opacity: 0, y: -14 }}
                                 transition={{ duration: 0.4, ease: "easeInOut" }}
-                                className="text-lg text-muted-foreground font-light"
+                                className="text-sm sm:text-base text-muted-foreground/50 font-light"
                             >
                                 {greetings[greetingIndex]}
                             </motion.p>
@@ -162,49 +213,49 @@ export function ChatWelcomeScreen({ userName, setActiveButton, handleSendMessage
                     </div>
                 </motion.div>
 
-                {/* Quick Action Cards */}
+                {/* ── Chat Bar ─────────────────── */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                    transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    {quickActions.map((item, i) => (
-                        <motion.button
-                            key={i}
-                            onClick={() => handleSendMessage(item.query)}
-                            whileHover={{ y: -4, scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                            className={cn(
-                                "flex flex-col items-center gap-3 p-5 rounded-2xl border bg-gradient-to-br transition-all duration-300",
-                                "border-border/50 shadow-sm hover:shadow-md",
-                                item.gradient,
-                                item.borderHover,
-                            )}
-                        >
-                            <div className={cn("p-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/30", item.iconColor)}>
-                                <item.icon className="h-5 w-5" />
-                            </div>
-                            <div className="text-center">
-                                <span className="text-sm font-semibold text-foreground block">{item.label}</span>
-                                <span className="text-[11px] text-muted-foreground mt-0.5 block">{item.description}</span>
-                            </div>
-                        </motion.button>
-                    ))}
+                    {chatBar}
+
+                    {/* Quick chips */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="mt-4 space-y-2"
+                    >
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {QUICK_CHIPS.map((chip, i) => (
+                                <motion.button
+                                    key={i}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.35 + i * 0.05 }}
+                                    whileHover={{ scale: 1.04, y: -2 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={() => handleSendMessage(chip.query)}
+                                    className={cn(
+                                        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium",
+                                        "bg-background/40 backdrop-blur-xl border border-white/10 dark:border-white/5",
+                                        "text-foreground/80 hover:text-foreground",
+                                        "hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_20px_rgba(var(--primary),0.15)]",
+                                        "transition-all duration-300 ease-out",
+                                        i >= 4 ? "hidden sm:flex" : ""
+                                    )}
+                                >
+                                    <span>{chip.icon}</span>
+                                    {chip.query}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </motion.div>
                 </motion.div>
 
-                {/* Sparkle hint */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                    className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60"
-                >
-                    <Sparkles className="h-3 w-3" />
-                    <span>Type a message below or pick a quick action to get started</span>
-                    <Sparkles className="h-3 w-3" />
-                </motion.div>
+
             </div>
         </div>
     );

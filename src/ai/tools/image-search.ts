@@ -1,5 +1,6 @@
 'use server';
 
+import * as cheerio from 'cheerio';
 import { z } from 'zod';
 
 const ImageResultSchema = z.object({
@@ -31,20 +32,22 @@ export type ImageSearchResult = z.infer<typeof ImageSearchResultSchema>;
 
 /**
  * Search for images from multiple free sources
- * Uses Wikimedia Commons and Unsplash API (free tier)
+ * Now uses powerful Bing scraping for extremely accurate results, falling back to Wikimedia
  */
 export async function searchImages({ query }: ImageSearchInput): Promise<ImageSearchResult> {
     const images: z.infer<typeof ImageResultSchema>[] = [];
 
     try {
-        // Search Wikimedia Commons (free, no API key required)
-        const wikimediaResults = await searchWikimedia(query);
-        images.push(...wikimediaResults);
+        // Try Bing first as it provides the most accurate and diverse images
+        console.log(`[ImageSearch] Fetching Bing images for: ${query}`);
+        const bingResults = await searchBingImages(query);
+        images.push(...bingResults);
 
-        // If we have fewer than 4 images, try Unsplash
-        if (images.length < 4 && process.env.UNSPLASH_ACCESS_KEY) {
-            const unsplashResults = await searchUnsplash(query);
-            images.push(...unsplashResults);
+        // Fallback to Wikimedia Commons if we didn't get enough
+        if (images.length < 6) {
+            console.log(`[ImageSearch] Bing gave few results, adding Wikimedia for: ${query}`);
+            const wikimediaResults = await searchWikimedia(query);
+            images.push(...wikimediaResults);
         }
 
         // Limit to 10 images as requested
@@ -78,21 +81,74 @@ export async function searchImages({ query }: ImageSearchInput): Promise<ImageSe
 }
 
 /**
- * Search Wikimedia Commons for images
+ * Scrape Bing Images for highly accurate web results
  */
-async function searchWikimedia(query: string): Promise<z.infer<typeof ImageResultSchema>[]> {
+async function searchBingImages(query: string): Promise<z.infer<typeof ImageResultSchema>[]> {
     try {
-        const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=15&prop=imageinfo&iiprop=url|size|extmetadata&iiurlwidth=400`;
+        const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC2&first=1&safesearch=Moderate`;
 
         const response = await fetch(searchUrl, {
             headers: {
-                'User-Agent': 'SearnAI/1.0 (Educational Purpose)',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
             },
+            signal: AbortSignal.timeout(8000) // Don't hang too long
         });
 
-        if (!response.ok) {
-            throw new Error(`Wikimedia API error: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Bing HTTP error: ${response.status}`);
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const results: z.infer<typeof ImageResultSchema>[] = [];
+
+        $('.iusc').each((i, el) => {
+            const mData = $(el).attr('m');
+            if (mData && results.length < 12) {
+                try {
+                    const m = JSON.parse(mData);
+                    if (m.murl) {
+                        try {
+                            const parsedUrl = new URL(m.murl);
+                            let sourceHost = 'Bing';
+                            if (m.purl) sourceHost = new URL(m.purl).hostname.replace('www.', '');
+
+                            results.push({
+                                url: m.murl, // high res
+                                thumbnailUrl: m.turl || m.murl,
+                                source: sourceHost,
+                                title: m.t || query,
+                            });
+                        } catch (e) {
+                            // Invalid URL format
+                        }
+                    }
+                } catch (e) {
+                    // JSON parse error
+                }
+            }
+        });
+
+        return results;
+    } catch (error) {
+        console.error('Bing scraping error:', error);
+        return [];
+    }
+}
+
+/**
+ * Search Wikimedia Commons for open source images
+ */
+async function searchWikimedia(query: string): Promise<z.infer<typeof ImageResultSchema>[]> {
+    try {
+        const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&prop=imageinfo&iiprop=url|size|extmetadata&iiurlwidth=400`;
+
+        const response = await fetch(searchUrl, {
+            headers: { 'User-Agent': 'SearnAI/1.0 (Educational Purpose)' },
+            signal: AbortSignal.timeout(6000)
+        });
+
+        if (!response.ok) throw new Error(`Wikimedia API error: ${response.status}`);
 
         const data = await response.json();
         const pages = data.query?.pages || {};
@@ -113,51 +169,9 @@ async function searchWikimedia(query: string): Promise<z.infer<typeof ImageResul
                 });
             }
         }
-
         return results;
     } catch (error) {
         console.error('Wikimedia search error:', error);
-        return [];
-    }
-}
-
-/**
- * Search Unsplash for images (requires API key)
- */
-async function searchUnsplash(query: string): Promise<z.infer<typeof ImageResultSchema>[]> {
-    try {
-        const apiKey = process.env.UNSPLASH_ACCESS_KEY;
-        if (!apiKey) return [];
-
-        const searchUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`;
-
-        const response = await fetch(searchUrl, {
-            headers: {
-                'Authorization': `Client-ID ${apiKey}`,
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Unsplash API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const results: z.infer<typeof ImageResultSchema>[] = [];
-
-        for (const photo of data.results || []) {
-            results.push({
-                url: photo.urls.regular,
-                thumbnailUrl: photo.urls.small,
-                source: `Unsplash (${photo.user.name})`,
-                title: photo.alt_description || photo.description || query,
-                width: photo.width,
-                height: photo.height,
-            });
-        }
-
-        return results;
-    } catch (error) {
-        console.error('Unsplash search error:', error);
         return [];
     }
 }

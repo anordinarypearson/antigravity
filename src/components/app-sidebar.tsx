@@ -156,8 +156,8 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon" className="bg-sidebar border-r border-black dark:border-sidebar-border text-sidebar-foreground">
-      <SidebarHeader className="h-16 border-b border-black dark:border-sidebar-border p-0 justify-start">
+    <Sidebar collapsible="icon" className="bg-sidebar/95 backdrop-blur-3xl border-r border-black/10 dark:border-sidebar-border/50 shadow-2xl text-sidebar-foreground">
+      <SidebarHeader className="h-16 border-b border-black/10 dark:border-sidebar-border/50 p-0 justify-start">
         <div className="flex items-center justify-between w-full h-full px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href="/" className="flex items-center">
             <h1 className="text-2xl font-bold tracking-wider text-gradient flex items-baseline gap-0 group-data-[collapsible=icon]:hidden">
