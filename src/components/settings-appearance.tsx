@@ -52,16 +52,37 @@ export function SettingsAppearanceContent() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Palette className="w-5 h-5"/> Accent Color</CardTitle>
-                        <CardDescription>The application now uses a consistent gray accent color.</CardDescription>
+                        <CardDescription>Customize the application's primary accent color.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <div className="flex flex-wrap gap-3">
-                            <div
-                                className="h-10 w-10 rounded-full border-2 border-foreground flex items-center justify-center"
-                                style={{ backgroundColor: 'hsl(0 0% 50%)' }}
-                            >
-                                <Check className="w-5 h-5 text-white" />
-                            </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
+                            {[
+                                { id: 'gray', label: 'Classic', color: 'hsl(0 0% 50%)' },
+                                { id: 'blue', label: 'Blue', color: 'hsl(221 83% 53%)' },
+                                { id: 'purple', label: 'Purple', color: 'hsl(262 83% 58%)' },
+                                { id: 'green', label: 'Green', color: 'hsl(142 71% 45%)' },
+                                { id: 'rose', label: 'Rose', color: 'hsl(346 77% 49.8%)' },
+                                { id: 'orange', label: 'Orange', color: 'hsl(24 95% 53%)' },
+                            ].map((item) => (
+                                <div key={item.id} className="flex flex-col items-center gap-2">
+                                    <button
+                                        onClick={() => (useTheme() as any).setAccentColor(item.id)}
+                                        className={cn(
+                                            "h-12 w-12 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center",
+                                            (useTheme() as any).accentColor === item.id 
+                                                ? "border-foreground ring-2 ring-primary ring-offset-2" 
+                                                : "border-transparent"
+                                        )}
+                                        style={{ backgroundColor: item.color }}
+                                        title={item.label}
+                                    >
+                                        {(useTheme() as any).accentColor === item.id && (
+                                            <Check className="w-6 h-6 text-white drop-shadow-md" />
+                                        )}
+                                    </button>
+                                    <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>

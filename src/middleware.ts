@@ -11,7 +11,7 @@ const SECURITY_CONFIG = {
     MAX_API_REQUESTS_PER_MINUTE: 30,
 
     // Protected routes (require authentication)
-    PROTECTED_ROUTES: ['/chat', '/inbox', '/settings', '/profile'],
+    PROTECTED_ROUTES: ['/chat', '/profile'],
 
     // Public routes (always accessible)
     PUBLIC_ROUTES: ['/login', '/signup', '/', '/api/webhooks'],

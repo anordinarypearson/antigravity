@@ -93,9 +93,34 @@ export function QuizResultsContent() {
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent>
-                                        <div className="space-y-2 pb-4">
-                                            <p className="text-sm text-muted-foreground">Your answer: <span className={cn(isCorrect ? "text-green-600" : "text-red-600", "font-semibold")}>{userAnswer || "Not answered"}</span></p>
-                                            {!isCorrect && <p className="text-sm text-muted-foreground">Correct answer: <span className="font-semibold text-green-600">{q.answer}</span></p>}
+                                        <div className="space-y-4 pb-4 px-1">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Your Choice</p>
+                                                    <p className={cn(isCorrect ? "text-green-600" : "text-red-600", "font-medium text-sm leading-relaxed")}>
+                                                        {userAnswer || "Not answered"}
+                                                    </p>
+                                                </div>
+                                                {!isCorrect && (
+                                                    <div className="space-y-1">
+                                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Correct Answer</p>
+                                                        <p className="font-medium text-green-600 text-sm leading-relaxed">
+                                                            {q.answer}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Explanation Section */}
+                                            <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                    <p className="text-xs font-bold uppercase tracking-widest text-foreground/70">Explanation</p>
+                                                </div>
+                                                <p className="text-sm text-foreground/80 leading-relaxed italic">
+                                                    {(q as any).explanation || "No explanation provided for this question."}
+                                                </p>
+                                            </div>
                                         </div>
                                     </AccordionContent>
                                 </AccordionItem>

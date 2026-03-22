@@ -63,11 +63,50 @@
     /* Purple */
     --feature-think: 142 71% 45%;
     /* Green */
+
+    /* Accent Defaults (Gray) */
+    --accent-h: 0;
+    --accent-s: 0%;
+    --accent-l: 9%;
+    --accent-p: 0 0% 98%;
   }
 
-  ::selection {
-    background-color: hsl(0 0% 40%);
-    color: white;
+  /* Theme Presets */
+  [data-accent="blue"] {
+    --accent-h: 221;
+    --accent-s: 83%;
+    --accent-l: 53%;
+    --accent-p: 210 40% 98%;
+  }
+  [data-accent="purple"] {
+    --accent-h: 262;
+    --accent-s: 83%;
+    --accent-l: 58%;
+    --accent-p: 210 40% 98%;
+  }
+  [data-accent="green"] {
+    --accent-h: 142;
+    --accent-s: 71%;
+    --accent-l: 45%;
+    --accent-p: 144 33% 98%;
+  }
+  [data-accent="rose"] {
+    --accent-h: 346;
+    --accent-s: 77%;
+    --accent-l: 49.8%;
+    --accent-p: 346 33% 98%;
+  }
+  [data-accent="orange"] {
+    --accent-h: 24;
+    --accent-s: 95%;
+    --accent-l: 53%;
+    --accent-p: 24 33% 98%;
+  }
+
+  :root {
+    --primary: var(--accent-h) var(--accent-s) var(--accent-l);
+    --primary-foreground: var(--accent-p);
+    --ring: var(--accent-h) var(--accent-s) var(--accent-l);
   }
 
   .dark {
@@ -81,9 +120,10 @@
     --popover: 230 25% 5%;
     --popover-foreground: 210 20% 98%;
 
-    /* Glass / White / Grey Accent as requested */
-    --primary: 0 0% 95%;
-    --primary-foreground: 228 10% 10%;
+    /* Primary now follows accent variables */
+    --primary: var(--accent-h) var(--accent-s) calc(var(--accent-l) + 10%);
+    --primary-foreground: var(--accent-p);
+    --ring: var(--accent-h) var(--accent-s) calc(var(--accent-l) + 10%);
 
     --secondary: 230 20% 12%;
     --secondary-foreground: 210 20% 98%;
@@ -580,13 +620,28 @@
     max-width: 100vw !important;
     position: relative;
     touch-action: pan-y;
+    width: 100vw;
+  }
+
+  /* Ensure all layout containers respect the viewport */
+  #root,
+  #__next,
+  main,
+  section,
+  article,
+  .flex-1 {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
   }
 
   /* Main chat container must respect screen width and prevent growth */
-  .max-w-3xl {
+  .max-w-3xl,
+  .max-w-4xl,
+  .max-w-5xl {
     max-width: 100% !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
     width: 100% !important;
     min-width: 0 !important;
   }
@@ -595,45 +650,12 @@
   .prose,
   .prose-sm,
   .prose-invert,
-  .chat-message-content {
+  .chat-message-content,
+  p, span, h1, h2, h3, h4, h5, h6, li {
     word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-    hyphens: auto !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  .prose *,
-  .prose-sm *,
-  .prose-invert *,
-  .chat-message-content * {
-    max-width: 100% !important;
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-    min-width: 0 !important;
-  }
-
-  /* Ensure paragraphs and lists don't push out */
-  .prose p,
-  .prose li,
-  .prose blockquote,
-  .prose h1,
-  .prose h2,
-  .prose h3,
-  .prose h4,
-  .prose ol,
-  .prose ul {
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
+    overflow-wrap: break-word !important;
     max-width: 100% !important;
     min-width: 0 !important;
-  }
-
-  /* Force images to stay within bounds and scale down */
-  .generated-image-card {
-    max-width: 110px !important;
-    height: auto !important;
   }
 
   /* Prevent horizontal scroll in chat message content */
@@ -646,8 +668,8 @@
 
   /* Code blocks should scroll horizontally within their container */
   .code-box {
-    max-width: calc(100vw - 1.5rem) !important;
-    width: calc(100vw - 1.5rem) !important;
+    max-width: 100% !important;
+    width: 100% !important;
     overflow-x: auto !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -660,12 +682,13 @@
     /* Keep code formatting but allows scroll */
   }
 
-  /* Tables should scroll on mobile */
-  .prose table {
-    display: block !important;
-    overflow-x: auto !important;
+  /* Force images to stay within bounds and scale down */
+  img, 
+  video, 
+  iframe, 
+  svg {
     max-width: 100% !important;
-    -webkit-overflow-scrolling: touch;
+    height: auto !important;
   }
 
   /* Card components must respect screen width */
@@ -675,43 +698,24 @@
     width: 100% !important;
     overflow-x: hidden !important;
     min-width: 0 !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
   }
 
-  /* Image search card specific fixes */
-  .max-w-3xl.card,
-  .w-full.max-w-3xl {
-    max-width: calc(100vw - 1rem) !important;
-    width: calc(100vw - 1rem) !important;
+  /* Fix for sidebar-inset specifically */
+  [class*="SidebarInset"] {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
   }
 
-  /* Carousel items smaller on mobile to show hint of next item */
-  [class*="CarouselItem"] {
-    flex: 0 0 80% !important;
-    min-width: 0 !important;
-    padding-left: 0.5rem !important;
-  }
-
-  /* Fix scroll area container and its viewport */
-  [data-radix-scroll-area-viewport] {
-    overflow-x: hidden !important;
-    width: 100% !important;
-  }
-
-  /* Message flex containers */
-  .flex.w-full.items-start {
+  /* Ensure inputs don't zoom on iOS and stay in-line */
+  input, 
+  textarea, 
+  select {
+    font-size: 16px !important; /* Prevents auto-zoom on mobile */
     max-width: 100% !important;
-    width: 100% !important;
-    gap: 0.5rem !important;
-  }
-
-  /* User message bubbles - slightly narrower for better contrast */
-  .max-w-md {
-    max-width: 82% !important;
-  }
-
-  /* Generic overflow prevention */
-  .overflow-hidden {
-    overflow: hidden !important;
   }
 }
 

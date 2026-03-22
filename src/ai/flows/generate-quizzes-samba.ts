@@ -22,6 +22,7 @@ const QuizSchema = z.object({
   question: z.string().describe('The question text.'),
   options: z.array(z.string()).min(4).max(4).describe('An array of 4 possible answers for the question.'),
   answer: z.string().describe('The correct answer to the question.'),
+  explanation: z.string().describe('A detailed explanation of why the answer is correct.'),
   type: z.literal('multiple-choice').describe('The type of question.'),
 });
 
@@ -36,7 +37,8 @@ Generate {{numQuestions}} questions. For each question, you MUST provide:
 1. A 'question' text.
 2. An array of 4 'options'. One of the options must be the correct answer.
 3. The 'answer' text, which must exactly match one of the provided options.
-4. The 'type', which must always be 'multiple-choice'.
+4. An 'explanation' text explaining why the answer is correct and providing educational context.
+5. The 'type', which must always be 'multiple-choice'.
 
 The difficulty of the quiz should be {{difficulty}}.
 
@@ -52,9 +54,10 @@ You must respond in a valid JSON format. The JSON object should match the follow
                     "question": { "type": "string" },
                     "options": { "type": "array", "items": { "type": "string" }, "minItems": 4, "maxItems": 4 },
                     "answer": { "type": "string" },
+                    "explanation": { "type": "string" },
                     "type": { "type": "string", "const": "multiple-choice" }
                 },
-                "required": ["question", "options", "answer", "type"]
+                "required": ["question", "options", "answer", "explanation", "type"]
             }
         }
     },
