@@ -10,15 +10,16 @@ import { SidebarTrigger } from "./ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "./ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { NewsContent } from "./news-content";
 import { ActionTooltip } from "./ui/action-tooltip";
 import { useUsageLimits } from "@/hooks/use-usage-limits";
-import { PricingDialog } from "./pricing-dialog";
-import { WebBrowserContent } from "./web-browser-content";
 import { SharedHeader } from "./shared-header";
-import { CommandPalette } from "./command-palette";
-import { AiEditorContent } from "./ai-editor-content";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
+import dynamic from "next/dynamic";
+
+const NewsContent = dynamic(() => import("./news-content").then(mod => mod.NewsContent), { ssr: false });
+const PricingDialog = dynamic(() => import("./pricing-dialog").then(mod => mod.PricingDialog), { ssr: false });
+const WebBrowserContent = dynamic(() => import("./web-browser-content").then(mod => mod.WebBrowserContent), { ssr: false });
+const CommandPalette = dynamic(() => import("./command-palette").then(mod => mod.CommandPalette), { ssr: false });
 import { Textarea } from "./ui/textarea";
 import { useRouter } from "next/navigation";
 
