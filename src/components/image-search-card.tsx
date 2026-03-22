@@ -182,7 +182,7 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                                     <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted border border-transparent group-hover:border-primary/20 transition-all duration-300 group-hover:shadow-lg">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
-                                            src={image.thumbnailUrl || image.url}
+                                            src={`/api/image-proxy?url=${encodeURIComponent(image.thumbnailUrl || image.url)}`}
                                             alt={image.title || 'Image'}
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             loading="lazy"
@@ -190,8 +190,9 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 // Try the full URL if thumbnail fails
-                                                if (target.src === image.thumbnailUrl && image.url !== image.thumbnailUrl) {
-                                                    target.src = image.url;
+                                                const fallbackUrl = `/api/image-proxy?url=${encodeURIComponent(image.url)}`;
+                                                if (!target.src.includes(encodeURIComponent(image.url)) && image.url !== image.thumbnailUrl) {
+                                                    target.src = fallbackUrl;
                                                 } else {
                                                     // Show placeholder
                                                     target.style.display = 'none';
@@ -263,15 +264,15 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                                 <div className="flex items-center justify-center" style={{ minHeight: '40vh' }}>
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
-                                        src={selectedImage.url}
+                                        src={`/api/image-proxy?url=${encodeURIComponent(selectedImage.url)}`}
                                         alt={selectedImage.title}
                                         className="max-w-full max-h-[65vh] object-contain"
                                         referrerPolicy="no-referrer"
                                         onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             // Try thumbnail as fallback
-                                            if (selectedImage.thumbnailUrl && target.src !== selectedImage.thumbnailUrl) {
-                                                target.src = selectedImage.thumbnailUrl;
+                                            if (selectedImage.thumbnailUrl && !target.src.includes(encodeURIComponent(selectedImage.thumbnailUrl))) {
+                                                target.src = `/api/image-proxy?url=${encodeURIComponent(selectedImage.thumbnailUrl)}`;
                                             }
                                         }}
                                     />
@@ -317,7 +318,7 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                                         <Button
                                             size="sm"
                                             className="rounded-xl text-xs bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white"
-                                            onClick={() => window.open(selectedImage.url, '_blank')}
+                                            onClick={() => window.open(`/api/image-proxy?url=${encodeURIComponent(selectedImage.url)}`, '_blank')}
                                         >
                                             <Download className="h-3.5 w-3.5 mr-1" />
                                             Download
