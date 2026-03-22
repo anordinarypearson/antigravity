@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
+import { InstallPrompt } from '@/components/install-prompt';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,6 +19,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'SearnAI',
   description: 'AI-powered study tool to help you learn smarter.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SearnAI',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
@@ -25,6 +35,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#000000',
 };
 
 export default function RootLayout({
@@ -53,6 +64,7 @@ export default function RootLayout({
 
           </AuthProvider>
           <Toaster />
+          <InstallPrompt />
         </ThemeProvider>
       </body>
     </html>

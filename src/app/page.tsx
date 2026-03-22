@@ -33,80 +33,98 @@ const AppLogo = () => (
 
 function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-hidden relative font-sans">
-      {/* Black & White Grid / Landscape */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 h-[60vh] border-t border-white/20 pointer-events-none"
-        style={{ perspective: '1000px' }}
-      >
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-hidden font-sans">
+      
+      {/* Immersive 3D Grid Landscape */}
+      <div className="absolute inset-0 pointer-events-none perspective-[1200px] flex items-end justify-center">
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2 }}
-          className="absolute inset-0"
+          initial={{ opacity: 0, rotateX: 80, scale: 1 }}
+          animate={{ opacity: [0, 1, 1], rotateX: 75, scale: 1.5 }}
+          transition={{ duration: 5, ease: "easeOut" }}
+          className="absolute w-[200vw] h-[150vh] origin-bottom border-t-2 border-white/40"
           style={{
-            transform: 'rotateX(75deg)',
-            transformOrigin: 'top center',
             backgroundImage: `
               linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px)
+              linear-gradient(to bottom, rgba(255,255,255,0.2) 2px, transparent 2px)
             `,
-            backgroundSize: '60px 60px',
+            backgroundSize: '80px 80px',
+            bottom: '-20vh'
           }}
         >
-          {/* Moving effect on the landscape */}
+          {/* Moving Floor Effect */}
           <motion.div
-            animate={{ y: [0, 60] }}
+            animate={{ y: [0, 80] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             className="w-full h-full"
             style={{
               backgroundImage: `
                 linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px)
+                linear-gradient(to bottom, rgba(255,255,255,0.2) 2px, transparent 2px)
               `,
-              backgroundSize: '60px 60px',
+              backgroundSize: '80px 80px',
             }}
           />
         </motion.div>
       </div>
 
-      {/* Random lines going here and there */}
+      {/* Chaotic Lines flying everywhere */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Vertical lines */}
-        {[10, 30, 50, 70, 90].map((pos, i) => (
+        {/* Horizontal Lasers */}
+        {[10, 25, 45, 65, 85].map((pos, i) => (
           <motion.div
-            key={`vLine-${i}`}
-            initial={{ height: 0, opacity: 0, top: '100%' }}
-            animate={{ height: "100vh", opacity: [0, 1, 0], top: '-100%' }}
-            transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "linear", delay: i * 0.4 }}
-            className="absolute w-[1px] bg-gradient-to-b from-transparent via-white to-transparent"
-            style={{ left: `${pos}%` }}
+            key={`h-${i}`}
+            initial={{ scaleX: 0, opacity: 0, left: i % 2 === 0 ? '-100%' : '100%' }}
+            animate={{ scaleX: 1, opacity: [0, 1, 0] }}
+            transition={{ duration: 2 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+            className="absolute h-[1px] bg-white top-0"
+            style={{ 
+              top: `${pos}%`, 
+              width: '100vw', 
+              transformOrigin: i % 2 === 0 ? 'left' : 'right',
+              left: 0
+            }}
           />
         ))}
-        {/* Horizontal lines */}
-        {[20, 40, 60, 80].map((pos, i) => (
+        {/* Vertical Lasers */}
+        {[15, 30, 50, 70, 85].map((pos, i) => (
           <motion.div
-            key={`hLine-${i}`}
-            initial={{ width: 0, opacity: 0, left: '-100%' }}
-            animate={{ width: "100vw", opacity: [0, 1, 0], left: '100%' }}
-            transition={{ duration: 4 + i * 0.3, repeat: Infinity, ease: "linear", delay: i * 0.6 }}
-            className="absolute h-[1px] bg-gradient-to-r from-transparent via-white to-transparent"
-            style={{ top: `${pos}%` }}
+            key={`v-${i}`}
+            initial={{ scaleY: 0, opacity: 0, top: i % 2 === 0 ? '-100%' : '100%' }}
+            animate={{ scaleY: 1, opacity: [0, 1, 0] }}
+            transition={{ duration: 1.5 + i * 0.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
+            className="absolute w-[1px] bg-white left-0"
+            style={{ 
+              left: `${pos}%`, 
+              height: '100vh', 
+              transformOrigin: i % 2 === 0 ? 'top' : 'bottom',
+              top: 0
+            }}
           />
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col items-center h-full justify-center">
-        <svg viewBox="0 0 800 400" className="w-[90vw] max-w-[800px] h-[300px]">
-          {/* Main line coming from down to here */}
+      {/* Central Animation Sequence */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
+        <svg viewBox="0 0 1000 600" className="w-[100vw] h-[100vh] absolute inset-0 pointer-events-none">
+          {/* Main Connector Line coming from bottom to center */}
           <motion.path
-             d="M400,400 L400,220"
+             d="M500,600 L500,350"
              fill="none"
              stroke="white"
-             strokeWidth="3"
+             strokeWidth="4"
              initial={{ pathLength: 0, opacity: 1 }}
              animate={{ pathLength: 1, opacity: [1, 1, 0] }}
-             transition={{ duration: 2.5, times: [0, 0.8, 1], ease: "easeInOut" }}
+             transition={{ duration: 1.5, ease: "easeIn" }}
+          />
+          {/* Branching Lines connecting out from the center */}
+          <motion.path
+             d="M500,350 L200,350 M500,350 L800,350 M500,350 L500,200"
+             fill="none"
+             stroke="white"
+             strokeWidth="2"
+             initial={{ pathLength: 0, opacity: 0 }}
+             animate={{ pathLength: 1, opacity: [0, 1, 0] }}
+             transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
           />
 
           <motion.g
@@ -114,46 +132,54 @@ function LoadingScreen() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.1, delay: 1.5 }}
           >
-            {/* Outline drawing of Searn AI */}
+            {/* Outline Text Drawing */}
             <motion.text
-              x="400"
-              y="180"
+              x="500"
+              y="320"
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-7xl md:text-[100px] font-black uppercase tracking-[0.15em]"
-              style={{ stroke: 'white', strokeWidth: 3, fill: 'transparent', strokeDasharray: 2000 }}
-              initial={{ strokeDashoffset: 2000 }}
+              className="text-6xl md:text-8xl lg:text-[120px] font-black uppercase tracking-[0.2em]"
+              style={{ stroke: 'white', strokeWidth: 2, fill: 'transparent' }}
+              initial={{ strokeDasharray: 2000, strokeDashoffset: 2000 }}
               animate={{ strokeDashoffset: 0 }}
-              transition={{ duration: 3, delay: 1.5, ease: "easeInOut" }}
+              transition={{ duration: 1.5, delay: 1.5, ease: "easeOut" }}
             >
               Searn AI
             </motion.text>
-
+            
+            {/* Glow Text Filling */}
             <motion.text
-              x="400"
-              y="180"
+              x="500"
+              y="320"
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-7xl md:text-[100px] font-black uppercase tracking-[0.15em]"
-              style={{ fill: 'white' }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.5, delay: 3.5 }}
+              className="text-6xl md:text-8xl lg:text-[120px] font-black uppercase tracking-[0.2em]"
+              style={{ fill: 'white', filter: 'drop-shadow(0px 0px 20px rgba(255,255,255,0.8))' }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 3 }}
             >
               Searn AI
             </motion.text>
           </motion.g>
         </svg>
 
+        {/* Status Text at bottom */}
         <motion.div 
-           initial={{ opacity: 0 }}
-           animate={{ opacity: [0, 1, 0.4, 1] }}
-           transition={{ duration: 2.5, delay: 4, repeat: Infinity }}
-           className="mt-6 text-white/70 text-sm md:text-base uppercase tracking-[0.5em] font-medium"
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 1, delay: 3.5 }}
+           className="absolute bottom-[20%] text-white/80 text-sm md:text-lg uppercase tracking-[0.4em] font-medium flex items-center gap-4"
         >
-          Connecting Landscape
+          <motion.div
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-3 h-3 bg-white rounded-full shadow-[0_0_15px_white]"
+          />
+          Initializing Landscape
         </motion.div>
       </div>
+
     </div>
   );
 }
