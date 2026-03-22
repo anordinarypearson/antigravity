@@ -101,9 +101,9 @@ export function InstallPrompt() {
             <motion.div 
                animate={isGenerating ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}} 
                transition={{ repeat: Infinity, duration: 2 }}
-               className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] relative z-10"
+               className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] relative z-10 overflow-hidden"
             >
-               <Smartphone className="h-10 w-10 text-white" strokeWidth={1.5} />
+               <img src="/logo.png" alt="SearnAI App Logo" className="w-full h-full object-cover" />
             </motion.div>
           </div>
           
