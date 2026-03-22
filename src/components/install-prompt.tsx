@@ -2,22 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Download, Share, PlusSquare } from "lucide-react";
+import { Download, Share, PlusSquare, Smartphone, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 
 export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Check if we are on a mobile device
+    // Check if we are on a mobile device and NOT in standalone mode
     const checkIsMobile = () => {
       const userAgent = window.navigator.userAgent.toLowerCase();
       const mobile = /iphone|ipad|ipod|android|blackberry|windows phone/g.test(userAgent);
       const isSmallScreen = window.innerWidth <= 1024;
-      setIsMobile(mobile || isSmallScreen);
+      
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as any).standalone === true);
+      
+      // Only trap if they are on mobile AND have not installed the app yet
+      setIsMobile((mobile || isSmallScreen) && !isStandalone);
       
       const ios = /iphone|ipad|ipod/.test(userAgent);
       setIsIOS(ios);
@@ -25,7 +32,6 @@ export function InstallPrompt() {
     
     checkIsMobile();
     
-    // Listen for the standard Android/Chrome install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -36,28 +42,44 @@ export function InstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     
-    // For iOS, there is no event, so we just show the prompt if they are on mobile
-    // and haven't installed it yet (standalone mode check)
-    if (isMobile && isIOS) {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as any).standalone === true);
-      if (!isStandalone) {
-         // Show it after a small delay naturally
-         setTimeout(() => setShowPrompt(true), 1500);
-      }
+    // Fallback: If mobile but beforeinstallprompt doesn't fire (like iOS or Safari)
+    if (isMobile) {
+      setTimeout(() => setShowPrompt(true), 1500);
     }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
-  }, [isMobile, isIOS]);
+  }, [isMobile]);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowPrompt(false);
-      }
+      // Simulate "processing and downloading" alive feel
+      setIsGenerating(true);
+      setProgress(0);
+      
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 15;
+        });
+      }, 300);
+
+      setTimeout(async () => {
+        clearInterval(interval);
+        setProgress(100);
+        
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setShowPrompt(false);
+        } else {
+          setIsGenerating(false);
+        }
+      }, 2500);
     }
   };
 
@@ -65,61 +87,68 @@ export function InstallPrompt() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 px-2 pb-6">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4">
         <motion.div 
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 100 }}
-          transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
-          className="w-full max-w-sm bg-card border border-border/50 shadow-2xl rounded-3xl overflow-hidden relative font-sans"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.8 }}
+          className="w-full max-w-sm bg-card border border-primary/20 shadow-[0_0_50px_rgba(59,130,246,0.15)] rounded-3xl overflow-hidden relative font-sans"
         >
           {/* Header Graphic */}
-          <div className="h-32 bg-gradient-to-br from-primary/20 via-blue-500/10 to-primary/5 flex items-center justify-center relative">
-            <button 
-              onClick={() => setShowPrompt(false)} 
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground bg-black/20 p-1.5 rounded-full backdrop-blur-md"
+          <div className="h-40 bg-gradient-to-br from-blue-900/40 via-blue-600/20 to-primary/10 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+            
+            <motion.div 
+               animate={isGenerating ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}} 
+               transition={{ repeat: Infinity, duration: 2 }}
+               className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] relative z-10"
             >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-               <Download className="h-8 w-8 text-white" />
-            </div>
+               <Smartphone className="h-10 w-10 text-white" strokeWidth={1.5} />
+            </motion.div>
           </div>
           
-          <div className="p-6 text-center">
-            <h3 className="text-xl font-bold tracking-tight mb-2">Get the SearnAI App</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              For the best experience on your phone or tablet, install the app directly to your home screen!
+          <div className="p-8 text-center">
+            <h3 className="text-2xl font-black tracking-tight mb-3">Install SearnAI App</h3>
+            <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+              SearnAI is designed exclusively as a mobile application. Please download and install the app to your device to continue using our premium features.
             </p>
             
             {isIOS ? (
-              <div className="bg-muted/50 rounded-xl p-4 text-xs text-left flex flex-col gap-3">
-                <p className="font-semibold text-foreground/80 flex items-center gap-2">
-                  <span className="bg-primary/20 text-primary w-5 h-5 flex items-center justify-center rounded-full">1</span> 
-                  Tap the share button <Share className="h-3.5 w-3.5 inline ml-1" />
+              <div className="bg-muted/30 rounded-2xl p-5 text-sm text-left flex flex-col gap-4 border border-border/50">
+                <p className="font-semibold text-foreground flex items-center gap-3">
+                  <span className="bg-primary/20 text-primary w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span> 
+                  Tap the share button <Share className="h-4 w-4 inline ml-auto" />
                 </p>
-                <p className="font-semibold text-foreground/80 flex items-center gap-2">
-                  <span className="bg-primary/20 text-primary w-5 h-5 flex items-center justify-center rounded-full">2</span> 
-                  Select "Add to Home Screen" <PlusSquare className="h-3.5 w-3.5 inline ml-1" />
+                <div className="h-[1px] bg-border/50 w-full"></div>
+                <p className="font-semibold text-foreground flex items-center gap-3">
+                  <span className="bg-primary/20 text-primary w-6 h-6 flex items-center justify-center rounded-full text-xs">2</span> 
+                  Select "Add to Home Screen" <PlusSquare className="h-4 w-4 inline ml-auto" />
                 </p>
-                <Button variant="outline" className="mt-2 w-full" onClick={() => setShowPrompt(false)}>
-                  Got it
-                </Button>
               </div>
             ) : (
-              <Button onClick={handleInstallClick} className="w-full h-12 text-md font-semibold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                Download App
-              </Button>
+              <div className="space-y-4">
+                {isGenerating ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-semibold text-primary">
+                      <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin"/> Compiling App...</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleInstallClick} 
+                    className="w-full h-14 text-lg font-bold tracking-wide rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all hover:scale-[1.02]"
+                  >
+                    <Download className="mr-2 h-5 w-5" /> Download App
+                  </Button>
+                )}
+              </div>
             )}
             
-            {!isIOS && (
-              <button 
-                onClick={() => setShowPrompt(false)}
-                className="mt-4 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
-              >
-                Continue in browser
-              </button>
-            )}
+            <p className="mt-8 text-[11px] text-muted-foreground/60 font-medium">
+              V 0.1.0 • Secure & Offline Ready
+            </p>
           </div>
         </motion.div>
       </div>

@@ -5,7 +5,7 @@ import { useChatStore } from "./chat-content";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Search, Command, LogOut, Settings, User } from "lucide-react";
+import { Sun, Moon, Search, Command, LogOut, Settings, User, Download } from "lucide-react";
 import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { useState, useEffect } from "react";
 import Link from "next/link";
