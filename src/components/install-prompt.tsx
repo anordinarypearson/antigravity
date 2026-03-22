@@ -53,34 +53,45 @@ export function InstallPrompt() {
   }, [isMobile]);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      // Simulate "processing and downloading" alive feel
-      setIsGenerating(true);
-      setProgress(0);
-      
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return prev + 15;
-        });
-      }, 300);
+    // Simulate "processing and downloading" alive feel immediately so the user sees feedback
+    setIsGenerating(true);
+    setProgress(0);
+    
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 15;
+      });
+    }, 300);
 
-      setTimeout(async () => {
-        clearInterval(interval);
-        setProgress(100);
-        
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          setShowPrompt(false);
-        } else {
+    setTimeout(async () => {
+      clearInterval(interval);
+      setProgress(100);
+      
+      if (deferredPrompt) {
+        try {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            setShowPrompt(false);
+          } else {
+            setIsGenerating(false);
+          }
+        } catch (error) {
           setIsGenerating(false);
         }
-      }, 2500);
-    }
+      } else {
+        // Fallback if the browser doesn't natively support programmatic installation prompt
+        alert("To complete installation, please tap 'Add to Home screen' or 'Install App' from your browser's menu at the top right!");
+        setIsGenerating(false);
+        
+        // Check if Safari on Android or something weird
+        // We'll just let them clear the generation state and wait.
+      }
+    }, 2500);
   };
 
   if (!showPrompt || !isMobile) return null;
