@@ -1,37 +1,33 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 
-// Define different wavy loading designs
-export type WavyStyle = 'standard' | 'high-frequency' | 'deep' | 'chaotic' | 'subtle';
-export type WavyShape = 'circle' | 'square' | 'capsule';
+// Define 4 designs of wavy rings
+export type WavyStyle = 'standard' | 'ripples' | 'soft' | 'dynamic';
 
 export interface WavyLoaderProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | number;
   style?: WavyStyle;
-  shape?: WavyShape;
   color?: string;
-  speed?: number;
+  speed?: number; // Kept as prop for defaults, but removed from UI
   usePreset?: boolean;
 }
 
-const WAVY_PATHS_CIRCLE: Record<WavyStyle, string> = {
-  standard: "M 50 10 Q 60 15 70 10 Q 80 5 90 10 L 90 90 Q 80 85 70 90 Q 60 95 50 90 Q 40 85 30 90 Q 20 95 10 90 L 10 10 Q 20 5 30 10 Q 40 15 50 10 Z",
-  'high-frequency': "M 50 10 C 55 12 55 8 60 10 C 65 12 65 8 70 10 C 75 12 75 8 80 10 C 85 12 85 8 90 10 L 90 90 C 85 88 85 92 80 90 C 75 88 75 92 70 90 C 65 88 65 92 60 90 C 55 88 55 92 50 90 C 45 88 45 92 40 90 C 35 88 35 92 30 90 C 25 88 25 92 20 90 C 15 88 15 92 10 90 L 10 10 C 15 8 15 12 20 10 C 25 8 25 12 30 10 C 35 8 35 12 40 10 C 45 8 45 12 50 10 Z",
-  deep: "M 50 5 Q 70 20 90 5 L 95 95 Q 70 70 45 95 Q 20 70 5 95 L 10 5 Q 30 20 50 5 Z",
-  chaotic: "M 50 10 Q 65 25 80 5 Q 95 20 90 40 Q 105 60 90 80 Q 75 95 50 85 Q 25 95 10 80 Q -5 60 10 40 Q 5 20 20 5 Q 35 25 50 10 Z",
-  subtle: "M 50 12 Q 60 13 70 12 Q 80 11 90 12 L 92 88 Q 80 89 70 88 Q 60 87 50 88 Q 40 89 30 88 Q 20 87 10 88 L 8 12 Q 20 11 30 12 Q 40 13 50 12 Z"
-};
-
-const WAVY_PATHS_SQUARE: Record<WavyStyle, string> = {
-  standard: "M 10 10 Q 50 5 90 10 Q 95 50 90 90 Q 50 95 10 90 Q 5 50 10 10 Z",
-  'high-frequency': "M 10 10 Q 30 12 50 10 Q 70 8 90 10 L 88 30 Q 92 50 88 70 L 90 90 Q 70 88 50 90 Q 30 92 10 90 L 12 70 Q 8 50 12 30 Z",
-  deep: "M 5 5 Q 50 20 95 5 L 80 50 L 95 95 Q 50 80 5 95 L 20 50 Z",
-  chaotic: "M 10 10 C 30 -10 70 30 90 10 C 110 30 70 70 90 90 C 70 110 30 70 10 90 C -10 70 30 30 10 10 Z",
-  subtle: "M 12 12 Q 50 13 88 12 Q 87 50 88 88 Q 50 87 12 88 Q 13 50 12 12 Z"
+const WAVY_PATHS: Record<WavyStyle, string> = {
+  // Google-like wavy ring (8 soft waves)
+  standard: "M 50 5 C 60 5 65 15 75 15 C 85 15 90 25 90 35 C 90 45 85 55 85 65 C 85 75 75 85 65 85 C 55 85 45 95 35 95 C 25 95 15 85 15 75 C 15 65 5 55 5 45 C 5 35 15 25 15 15 C 25 15 35 5 50 5 Z",
+  
+  // More ripples (12 waves)
+  ripples: "M 50 8 C 55 8 55 12 60 12 C 65 12 65 8 70 8 C 75 8 75 12 80 12 C 85 12 85 16 88 20 C 91 24 87 28 90 32 C 93 36 97 38 95 44 C 93 50 89 50 89 55 C 89 60 93 64 90 69 C 87 74 81 72 78 77 C 75 82 78 87 73 90 C 68 93 64 89 59 91 C 54 93 54 97 49 97 C 44 97 44 93 39 91 C 34 89 30 93 25 90 C 20 87 23 82 20 77 C 17 72 11 74 8 69 C 5 64 9 60 9 55 C 9 50 5 50 3 44 C 1 38 5 36 8 32 C 11 28 7 24 10 20 C 13 16 13 12 18 12 C 23 12 23 8 28 8 C 33 8 33 12 38 12 C 43 12 43 8 48 8 L 50 8 Z",
+  
+  // Soft, smooth 6 waves
+  soft: "M 50 10 C 62 10 65 15 75 18 C 85 21 88 32 90 42 C 92 52 82 60 81 70 C 80 80 65 85 55 88 C 45 91 35 85 25 80 C 15 75 10 60 8 50 C 6 40 15 30 20 20 C 25 10 38 10 50 10 Z",
+  
+  // Deeper oscillating 8 waves
+  dynamic: "M 50 2 C 65 2 70 20 85 20 C 100 20 95 35 95 50 C 95 65 100 80 85 80 C 70 80 65 98 50 98 C 35 98 30 80 15 80 C 0 80 5 65 5 50 C 5 35 0 20 15 20 C 30 20 35 2 50 2 Z"
 };
 
 const SIZE_MAP = {
@@ -41,20 +37,19 @@ const SIZE_MAP = {
   xl: 96
 };
 
+// Internal constant to prevent infinite loops should the loader be used everywhere
 const SETTINGS_KEY = 'wavy-loader-settings';
 
 export const WavyLoader: React.FC<WavyLoaderProps> = ({
   className,
   size: sizeProp = 'md',
   style: styleProp,
-  shape: shapeProp,
   color: colorProp = 'currentColor',
   speed: speedProp = 1.5,
   usePreset = true
 }) => {
   const [settings, setSettings] = useState({
     style: styleProp || 'standard',
-    shape: shapeProp || 'circle',
     size: typeof sizeProp === 'number' ? sizeProp : SIZE_MAP[sizeProp],
     speed: speedProp
   });
@@ -69,9 +64,9 @@ export const WavyLoader: React.FC<WavyLoaderProps> = ({
           const parsed = JSON.parse(saved);
           setSettings({
             style: styleProp || parsed.style || 'standard',
-            shape: shapeProp || parsed.shape || 'circle',
             size: typeof sizeProp === 'number' ? sizeProp : (parsed.size || SIZE_MAP[sizeProp]),
-            speed: speedProp || parsed.speed || 1.5
+            // Ignoring speed from local storage as per request
+            speed: speedProp || 1.5 
           });
         } catch (e) {
           console.error("Error parsing wavy settings", e);
@@ -82,10 +77,10 @@ export const WavyLoader: React.FC<WavyLoaderProps> = ({
     updateSettings();
     window.addEventListener('wavy-settings-updated', updateSettings);
     return () => window.removeEventListener('wavy-settings-updated', updateSettings);
-  }, [usePreset, sizeProp, styleProp, shapeProp, speedProp]);
+  }, [usePreset, sizeProp, styleProp, speedProp]);
 
-  const pathMap = settings.shape === 'square' ? WAVY_PATHS_SQUARE : WAVY_PATHS_CIRCLE;
-  const path = pathMap[settings.style as WavyStyle] || pathMap.standard;
+  // Fallback to standard if style isn't found
+  const path = WAVY_PATHS[settings.style as WavyStyle] || WAVY_PATHS.standard;
 
   return (
     <div 
@@ -106,10 +101,14 @@ export const WavyLoader: React.FC<WavyLoaderProps> = ({
           animate={{
             pathLength: [0, 1],
             pathOffset: [0, 1],
+            scale: [0.95, 1.05, 0.95],
+            rotate: [0, 360],
           }}
           transition={{
             pathLength: { duration: settings.speed, repeat: Infinity, ease: "easeInOut" },
-            pathOffset: { duration: settings.speed, repeat: Infinity, ease: "linear" }
+            pathOffset: { duration: settings.speed, repeat: Infinity, ease: "linear" },
+            scale: { duration: settings.speed * 2, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: settings.speed * 4, repeat: Infinity, ease: "linear" }
           }}
         />
         <motion.path
@@ -119,11 +118,13 @@ export const WavyLoader: React.FC<WavyLoaderProps> = ({
           animate={{
             opacity: [0.1, 0.4, 0.1],
             scale: [1, 1.05, 1],
+            rotate: [0, 360],
           }}
           transition={{
             duration: settings.speed * 1.5,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
+            rotate: { duration: settings.speed * 4, repeat: Infinity, ease: "linear" }
           }}
           className="origin-center"
         />
