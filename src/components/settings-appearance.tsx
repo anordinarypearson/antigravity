@@ -8,6 +8,7 @@ import { Check, Moon, Sun, Paintbrush, Palette } from "lucide-react";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { cn } from "@/lib/utils";
+import { WavyLoaderPreferences } from "./wavy-preferences";
 
 export function SettingsAppearanceContent() {
   const { theme, setTheme } = useTheme();
@@ -63,7 +64,7 @@ export function SettingsAppearanceContent() {
                                 { id: 'green', label: 'Green', color: 'hsl(142 71% 45%)' },
                                 { id: 'rose', label: 'Rose', color: 'hsl(346 77% 49.8%)' },
                                 { id: 'orange', label: 'Orange', color: 'hsl(24 95% 53%)' },
-                            ].map((item) => (
+                             ].map((item) => (
                                 <div key={item.id} className="flex flex-col items-center gap-2">
                                     <button
                                         onClick={() => (useTheme() as any).setAccentColor(item.id)}
@@ -86,6 +87,9 @@ export function SettingsAppearanceContent() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Wavy System Preferences */}
+                <WavyLoaderPreferences />
             </div>
         </main>
     </div>
