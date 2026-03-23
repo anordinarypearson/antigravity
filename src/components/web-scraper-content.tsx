@@ -4,14 +4,13 @@ import { useState, useCallback, FormEvent, useRef, useEffect, useMemo } from "re
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Loader2, Search, ExternalLink, Clock, AlertCircle, Copy, Check,
+import { Search, ExternalLink, Clock, AlertCircle, Copy, Check,
     Globe, BarChart3, FileText, Link2, ChevronDown, ChevronUp,
     Sparkles, Zap, X, History, ArrowRight, BookOpen, Hash,
     Shield, Download, Star, TrendingUp, Lightbulb, Timer,
     Database, Layers, Award, Activity, Eye, RefreshCw,
-    Info, ChevronLeft, ChevronRight, Newspaper
-} from "lucide-react";
+    Info, ChevronLeft, ChevronRight, Newspaper } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { webScraperAction, WebScraperOutput, ScrapedSource } from "@/app/web-scraper";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -280,7 +279,7 @@ export function WebScraperContent() {
                                         </button>
                                     )}
                                     <Button type="submit" size="sm" className="mr-2 rounded-lg h-9 px-4 font-semibold gap-2" disabled={loading || !query.trim()}>
-                                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Zap className="h-3.5 w-3.5" /> Scrape</>}
+                                        {loading ? <WavyLoader className="h-4 w-4 animate-spin" /> : <><Zap className="h-3.5 w-3.5" /> Scrape</>}
                                     </Button>
                                 </div>
 

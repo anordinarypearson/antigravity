@@ -6,7 +6,7 @@ import WebAgentContent from "@/components/web-agent-content";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
-import { Loader2 } from "lucide-react";
+import { WavyLoader } from "@/components/ui/wavy-loader";
 
 export function AgentContent() {
     const [isElectron, setIsElectron] = useState<boolean | null>(null);
@@ -18,7 +18,7 @@ export function AgentContent() {
     if (isElectron === null) {
         return (
             <div className="flex h-full flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <WavyLoader className="h-8 w-8 animate-spin" />
             </div>
         );
     }

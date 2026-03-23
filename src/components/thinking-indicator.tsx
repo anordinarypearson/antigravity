@@ -51,12 +51,12 @@ function SearchingAnimation() {
             {/* Animated globe */}
             <div className="relative h-8 w-8 flex-shrink-0">
                 <motion.div
-                    className="absolute inset-0 rounded-full border-2 border-blue-500/30"
+                    className="absolute inset-0 mask-wavy border-2 border-blue-500/30"
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
                 />
                 <motion.div
-                    className="absolute inset-0 m-auto h-5 w-5 rounded-full border-t-2 border-blue-400"
+                    className="absolute inset-0 m-auto h-5 w-5 mask-wavy border-t-2 border-blue-400"
                     animate={{ rotate: -360 }}
                     transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                 />
@@ -166,7 +166,7 @@ export function ThinkingIndicator({
             <div className="relative rounded-xl bg-background/95 backdrop-blur-xl border border-white/5 shadow-sm p-4">
                 {/* Header */}
                 <div className="flex items-center gap-2.5 mb-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                    <div className="flex h-6 w-6 items-center justify-center mask-wavy bg-primary/10">
                         <Brain className="h-3.5 w-3.5 text-primary" />
                     </div>
                     <div className="flex items-center gap-2">

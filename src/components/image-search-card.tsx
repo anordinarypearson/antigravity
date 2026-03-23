@@ -2,7 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Loader2, Download, X, Copy, Check, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
+import { ExternalLink,  Download, X, Copy, Check, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,7 +83,7 @@ export function ImageSearchCard({ query, images, loading }: ImageSearchCardProps
                 <CardContent className="p-5">
                     <div className="flex items-center gap-3">
                         <div className="relative h-8 w-8 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
-                            <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
+                            <WavyLoader className="h-4 w-4 animate-spin text-violet-500" />
                         </div>
                         <div className="space-y-1">
                             <p className="text-sm font-medium text-foreground">

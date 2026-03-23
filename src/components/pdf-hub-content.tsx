@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileUp, File } from "lucide-react";
+import { FileUp, File } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { SharedHeader } from "./shared-header";
@@ -117,7 +118,7 @@ export function PdfHubContent() {
                         </CardContent>
                     </Card>
                     <Button className="w-full" size="lg" disabled={!file || isLoading} onClick={handleUpload}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isLoading && <WavyLoader className="mr-2 h-4 w-4 animate-spin" />}
                         Create Study Session
                     </Button>
                 </div>

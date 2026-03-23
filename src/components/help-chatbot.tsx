@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, Loader2, Send, User, Mic, MicOff } from "lucide-react";
+import { Bot,  Send, User, Mic, MicOff } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 
 type Message = {
@@ -186,7 +187,7 @@ export function HelpChatbot() {
                 <AvatarFallback className="bg-primary text-primary-foreground"><Bot className="size-4" /></AvatarFallback>
               </Avatar>
               <div className="max-w-xs rounded-lg p-3 text-sm bg-muted flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
+                <WavyLoader className="size-4 animate-spin" />
                 <span>Assistant is thinking...</span>
               </div>
             </div>
@@ -207,7 +208,7 @@ export function HelpChatbot() {
           </Button>
           <Button type="submit" size="icon" disabled={isTyping || !input.trim()}>
             {isTyping ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <WavyLoader className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />
             )}

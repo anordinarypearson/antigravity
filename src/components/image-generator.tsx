@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, Download } from 'lucide-react';
+import { Sparkles, Download } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 
 interface ImageGeneratorProps {
     onImageGenerated?: (imageUrl: string) => void;
@@ -66,7 +67,7 @@ export function ImageGenerator({ onImageGenerated }: ImageGeneratorProps) {
                 >
                     {loading ? (
                         <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <WavyLoader className="h-4 w-4 animate-spin" />
                             Generating...
                         </>
                     ) : (

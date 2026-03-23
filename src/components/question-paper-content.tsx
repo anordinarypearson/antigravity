@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileText, Wand2, AlertTriangle } from "lucide-react";
+import { FileText, Wand2, AlertTriangle } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { generateQuestionPaperAction } from "@/app/actions";
@@ -72,7 +73,7 @@ export function QuestionPaperContent() {
                         <CardContent className="space-y-4">
                             {isGenerating ? (
                                 <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    <WavyLoader className="h-8 w-8 animate-spin text-primary" />
                                     <p className="text-muted-foreground">Generating your paper, please wait...</p>
                                     <Skeleton className="h-4 w-3/4" />
                                     <Skeleton className="h-4 w-1/2" />
@@ -103,7 +104,7 @@ export function QuestionPaperContent() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
-                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                {isGenerating ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                                 Generate Paper
                             </Button>
                         </CardFooter>

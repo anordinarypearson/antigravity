@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
-import { ThumbsUp, Send, Loader2 } from "lucide-react";
+import { ThumbsUp, Send } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
@@ -87,7 +88,7 @@ export function SettingsFeedbackContent() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={handleSubmit} disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                {isSubmitting ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 Submit Feedback
                             </Button>
                         </CardFooter>

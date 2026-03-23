@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
@@ -221,7 +222,7 @@ export function LoginContent() {
                                     disabled={socialLoading !== null}
                                 >
                                     {socialLoading === 'google' ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <>
                                             <GoogleIcon />
@@ -237,7 +238,7 @@ export function LoginContent() {
                                     disabled={socialLoading !== null}
                                 >
                                     {socialLoading === 'facebook' ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <>
                                             <FacebookIcon />
@@ -253,7 +254,7 @@ export function LoginContent() {
                                     disabled={socialLoading !== null}
                                 >
                                     {socialLoading === 'twitter' ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <>
                                             <TwitterIcon />
@@ -269,7 +270,7 @@ export function LoginContent() {
                                     disabled={socialLoading !== null}
                                 >
                                     {socialLoading === 'github' ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <>
                                             <GithubIcon />
@@ -343,7 +344,7 @@ export function LoginContent() {
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <div className="flex items-center">
                                             <span>Sign In</span>

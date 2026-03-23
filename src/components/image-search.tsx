@@ -8,7 +8,8 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, Download, ExternalLink, Loader2, Image as ImageIcon, Sparkles, X, Copy, Check, Heart, Filter } from 'lucide-react';
+import { Search, Download, ExternalLink,  Image as ImageIcon, Sparkles, X, Copy, Check, Heart, Filter } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -172,7 +173,7 @@ export default function ImageSearch() {
                                 >
                                     {loading ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <WavyLoader className="w-5 h-5 animate-spin" />
                                             Searching...
                                         </>
                                     ) : (

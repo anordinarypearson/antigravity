@@ -5,7 +5,8 @@ import { useState, useTransition, useCallback, useRef, useEffect, memo } from "r
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Image as ImageIcon, UploadCloud, X, Sun, Bot, ScanText, Tag, Trash2, Info } from "lucide-react";
+import { Image as ImageIcon, UploadCloud, X, Sun, Bot, ScanText, Tag, Trash2, Info } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import Image from "next/image";
@@ -332,7 +333,7 @@ export function AnalyzerContent() {
                                 <h2 className="text-2xl font-semibold">Local AI Analysis</h2>
                                 {isAnalyzing && !analysisResult ? (
                                     <div className="flex flex-col items-center gap-4 text-center">
-                                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                        <WavyLoader className="w-8 h-8 animate-spin text-primary" />
                                         <p className="font-semibold">{analysisStatus}</p>
                                         <Progress value={analysisProgress} className="w-full max-w-sm" />
                                     </div>

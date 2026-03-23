@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getYoutubeTranscriptAction, summarizeContentAction, SummarizeContentOutput } from "@/app/actions";
-import { Loader2, Wand2, Save, Copy, Pilcrow } from "lucide-react";
+import { Wand2, Save, Copy, Pilcrow } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";
 import { BackButton } from "./back-button";
 import { Skeleton } from "./ui/skeleton";
@@ -103,7 +104,7 @@ export function YouTubeExtractorContent() {
                                     disabled={isExtracting}
                                 />
                                 <Button onClick={handleExtractTranscript} disabled={isExtracting || !videoUrl.trim()}>
-                                    {isExtracting ? <Loader2 className="mr-2 animate-spin" /> : <Wand2 className="mr-2" />}
+                                    {isExtracting ? <WavyLoader className="mr-2 animate-spin" /> : <Wand2 className="mr-2" />}
                                     Extract
                                 </Button>
                             </div>
@@ -129,7 +130,7 @@ export function YouTubeExtractorContent() {
                                 Copy Transcript
                             </Button>
                             <Button onClick={handleSummarize} disabled={isSummarizing || !transcript.trim()}>
-                                {isSummarizing ? <Loader2 className="mr-2 animate-spin" /> : <Pilcrow className="mr-2" />}
+                                {isSummarizing ? <WavyLoader className="mr-2 animate-spin" /> : <Pilcrow className="mr-2" />}
                                 Summarize
                             </Button>
                         </CardFooter>

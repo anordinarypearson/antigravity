@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Presentation, Wand2, Download, Milestone, Lightbulb, ListOrdered, CheckCircle, Sparkles } from "lucide-react";
+import { Presentation, Wand2, Download, Milestone, Lightbulb, ListOrdered, CheckCircle, Sparkles } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
@@ -114,7 +115,7 @@ ${slide.speakerNotes}
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 {isGenerating ? (
                     <div className="flex flex-col items-center justify-center h-full text-center">
-                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <WavyLoader className="h-12 w-12 animate-spin text-primary" />
                         <p className="mt-4 text-lg font-semibold">Generating your presentation...</p>
                         <p className="text-muted-foreground">The AI is crafting your slides. Please wait a moment.</p>
                     </div>

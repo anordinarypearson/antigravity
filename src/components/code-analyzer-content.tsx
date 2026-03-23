@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, Bug, Zap, Code, AlertTriangle } from "lucide-react";
+import { Wand2, Bug, Zap, Code, AlertTriangle } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -84,7 +85,7 @@ export function CodeAnalyzerContent() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={handleAnalyzeCode} disabled={isAnalyzing || code.trim().length < 10}>
-                                {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                {isAnalyzing ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                                 Analyze Code
                             </Button>
                         </CardFooter>

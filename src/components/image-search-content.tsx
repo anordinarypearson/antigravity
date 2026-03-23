@@ -4,11 +4,10 @@
 import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import {
-    Loader2, Search, Image as ImageIcon, AlertTriangle, Download,
+import { Search, Image as ImageIcon, AlertTriangle, Download,
     ExternalLink, X, ZoomIn, Filter, Sparkles, Grid3X3, LayoutGrid,
-    ChevronDown, Heart, Share2, Copy, Check
-} from "lucide-react";
+    ChevronDown, Heart, Share2, Copy, Check } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import Image from "next/image";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -35,7 +34,7 @@ interface ImageResult {
     thumbnailUrl: string;
     title: string;
     author: string;
-    source: 'unsplash' | 'pexels' | 'wikimedia';
+    source: 'unsplash' | 'pexels' | 'wikimedia' | 'web';
     license: string;
     sourceUrl: string;
     width: number;
@@ -57,6 +56,7 @@ const TRENDING_TAGS = [
 
 const SOURCE_FILTERS = [
     { label: "All", value: "all" },
+    { label: "Web Search", value: "web" },
     { label: "Unsplash", value: "unsplash" },
     { label: "Pexels", value: "pexels" },
     { label: "Wikimedia", value: "wikimedia" },
@@ -74,7 +74,11 @@ export function ImageSearchContent() {
     const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
     const [searchedQuery, setSearchedQuery] = useState<string>("");
     const [favorites, setFavorites] = useState<Set<string>>(new Set());
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
     // Focus search on mount
@@ -113,6 +117,8 @@ export function ImageSearchContent() {
         }
 
         setSearchedQuery(q);
+        setPage(1);
+        setHasMore(true);
 
         startSearching(async () => {
             setImages([]);
@@ -121,7 +127,7 @@ export function ImageSearchContent() {
                 const response = await fetch('/api/search-images', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: q, maxResults: 30 })
+                    body: JSON.stringify({ query: q, maxResults: 30, page: 1 })
                 });
                 const result = await response.json();
 
@@ -130,6 +136,7 @@ export function ImageSearchContent() {
                     toast({ title: "Search Failed", description: result.error, variant: "destructive" });
                 } else {
                     setImages(result.results || []);
+                    if (result.results?.length < 15) setHasMore(false);
                     if (result.results?.length > 0) {
                         toast({ title: `Found ${result.results.length} images`, description: "High-quality, legal images ready to use" });
                     }
@@ -140,6 +147,50 @@ export function ImageSearchContent() {
             }
         });
     }, [query, toast]);
+
+    const handleLoadMore = useCallback(async () => {
+        if (isLoadingMore || !hasMore || !searchedQuery) return;
+
+        setIsLoadingMore(true);
+        const nextPage = page + 1;
+
+        try {
+            const response = await fetch('/api/search-images', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: searchedQuery, maxResults: 30, page: nextPage })
+            });
+            const result = await response.json();
+
+            if (result.success && result.results) {
+                if (result.results.length < 10) setHasMore(false);
+                setImages(prev => [...prev, ...result.results]);
+                setPage(nextPage);
+            } else {
+                setHasMore(false);
+            }
+        } catch (err) {
+            console.error('Load more failed:', err);
+            setHasMore(false);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [isLoadingMore, hasMore, searchedQuery, page]);
+
+    // Intersection Observer for infinite scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !isLoadingMore && images.length > 0) {
+                    handleLoadMore();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [handleLoadMore, hasMore, isLoadingMore, images.length]);
 
     const handleTagClick = (tagQuery: string) => {
         setQuery(tagQuery);
@@ -169,6 +220,7 @@ export function ImageSearchContent() {
             case 'unsplash': return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20';
             case 'pexels': return 'bg-sky-500/15 text-sky-400 border-sky-500/20';
             case 'wikimedia': return 'bg-amber-500/15 text-amber-400 border-amber-500/20';
+            case 'web': return 'bg-violet-500/15 text-violet-400 border-violet-500/20';
             default: return 'bg-primary/15 text-primary border-primary/20';
         }
     };
@@ -178,6 +230,7 @@ export function ImageSearchContent() {
             case 'unsplash': return 'bg-emerald-400';
             case 'pexels': return 'bg-sky-400';
             case 'wikimedia': return 'bg-amber-400';
+            case 'web': return 'bg-violet-400';
             default: return 'bg-primary';
         }
     };
@@ -251,7 +304,7 @@ export function ImageSearchContent() {
                                         className="px-6 py-3.5 h-auto rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium shadow-lg shadow-violet-500/20 disabled:opacity-40 disabled:shadow-none transition-all duration-300"
                                     >
                                         {isSearching ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <WavyLoader className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <>
                                                 <Search className="h-4 w-4 mr-2" />
@@ -370,8 +423,8 @@ export function ImageSearchContent() {
                             transition={{ duration: 0.3 }}
                             className={cn(
                                 viewMode === 'masonry'
-                                    ? "columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4"
-                                    : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                                    ? "columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4"
+                                    : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
                             )}
                         >
                             {filteredImages.map((img, index) => (
@@ -405,8 +458,8 @@ export function ImageSearchContent() {
                                             loading="lazy"
                                         />
 
-                                        {/* Hover Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        {/* Hover Overlay - Desktop / Clickable Label - Mobile */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent sm:opacity-0 group-hover:opacity-100 transition-all duration-300">
                                             {/* Top Actions */}
                                             <div className="absolute top-3 right-3 flex gap-2">
                                                 <button
@@ -507,6 +560,31 @@ export function ImageSearchContent() {
                             </p>
                         </motion.div>
                     )}
+                    {/* Load More Trigger */}
+                    {!isSearching && images.length > 0 && hasMore && (
+                        <div ref={loadMoreRef} className="py-12 flex flex-col items-center justify-center gap-4">
+                            {isLoadingMore ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <WavyLoader className="h-8 w-8" />
+                                    <p className="text-sm text-muted-foreground animate-pulse">Fetching more stunning visuals...</p>
+                                </div>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleLoadMore}
+                                    className="rounded-full px-8 h-12 border-primary/20 hover:bg-primary/5 text-primary"
+                                >
+                                    Load More Images
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    {!hasMore && images.length > 0 && (
+                        <div className="py-12 text-center">
+                            <p className="text-muted-foreground text-sm italic">You've reached the end of the collection.</p>
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -526,74 +604,74 @@ export function ImageSearchContent() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                            className="relative max-w-5xl w-full max-h-[90vh] flex flex-col"
+                            className="relative max-w-5xl w-full h-[95vh] sm:max-h-[85vh] flex flex-col sm:rounded-2xl overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Close Button */}
                             <button
                                 onClick={() => setSelectedImage(null)}
-                                className="absolute -top-12 right-0 h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors z-10"
+                                className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors z-50 border border-white/10"
                             >
                                 <X className="h-5 w-5 text-white" />
                             </button>
 
                             {/* Image Container */}
-                            <div className="relative bg-black rounded-t-2xl overflow-hidden flex-1 min-h-0">
-                                <div className="relative w-full h-full flex items-center justify-center" style={{ minHeight: '50vh' }}>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={selectedImage.url}
-                                        alt={selectedImage.title}
-                                        className="max-w-full max-h-[70vh] object-contain"
-                                    />
-                                </div>
+                            <div className="relative bg-[#0a0a0a] flex-1 min-h-0 flex items-center justify-center">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={selectedImage.url}
+                                    alt={selectedImage.title}
+                                    className="max-w-full max-h-full object-contain shadow-2xl"
+                                />
                             </div>
 
                             {/* Info Bar */}
-                            <div className="bg-card/95 backdrop-blur-xl rounded-b-2xl border border-border/30 p-5">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="space-y-1">
-                                        <h3 className="font-semibold text-foreground text-lg leading-snug line-clamp-1">{selectedImage.title}</h3>
-                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            {selectedImage.author && <span>by {selectedImage.author}</span>}
-                                            <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize", getSourceColor(selectedImage.source))}>
-                                                {selectedImage.source}
-                                            </span>
-                                            <span className="text-xs">{selectedImage.license}</span>
+                            <div className="bg-card/95 backdrop-blur-2xl border-t border-border/30 p-4 sm:p-6">
+                                <div className="flex flex-col gap-4">
+                                    <div className="space-y-1.5 text-center sm:text-left">
+                                        <h3 className="font-bold text-foreground text-lg sm:text-xl leading-snug line-clamp-2">{selectedImage.title}</h3>
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1.5 text-sm text-muted-foreground">
+                                            {selectedImage.author && <span className="font-medium text-foreground/80">by {selectedImage.author}</span>}
+                                            <div className="flex items-center gap-2">
+                                                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider", getSourceColor(selectedImage.source))}>
+                                                    {selectedImage.source}
+                                                </span>
+                                                <span className="text-xs opacity-60">{selectedImage.license}</span>
+                                            </div>
                                             {selectedImage.width && selectedImage.height && (
-                                                <span className="text-xs">{selectedImage.width} × {selectedImage.height}</span>
+                                                <span className="text-xs hidden sm:inline opacity-60 px-2 py-0.5 bg-muted rounded-md">{selectedImage.width} × {selectedImage.height}</span>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+
+                                    <div className="grid grid-cols-2 sm:flex sm:items-center justify-center sm:justify-end gap-2 shrink-0">
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="rounded-xl"
+                                            className="rounded-xl h-10 sm:h-9"
                                             onClick={() => handleCopyUrl(selectedImage.url)}
                                         >
                                             {copiedUrl === selectedImage.url ? (
-                                                <><Check className="h-4 w-4 mr-1.5 text-emerald-500" /> Copied</>
+                                                <><Check className="h-4 w-4 mr-2 text-emerald-500" /> Copied</>
                                             ) : (
-                                                <><Copy className="h-4 w-4 mr-1.5" /> Copy URL</>
+                                                <><Copy className="h-4 w-4 mr-2" /> URL</>
                                             )}
                                         </Button>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="rounded-xl"
+                                            className="rounded-xl h-10 sm:h-9"
                                             onClick={() => window.open(selectedImage.sourceUrl, '_blank')}
                                         >
-                                            <ExternalLink className="h-4 w-4 mr-1.5" />
+                                            <ExternalLink className="h-4 w-4 mr-2" />
                                             Source
                                         </Button>
                                         <Button
-                                            size="sm"
-                                            className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/20"
+                                            className="col-span-2 sm:col-auto rounded-xl h-12 sm:h-9 bg-gradient-to-r from-violet-600 to-fuchsia-600 border-none text-white shadow-lg shadow-violet-500/20 active:scale-95 transition-transform"
                                             onClick={() => window.open(selectedImage.url, '_blank')}
                                         >
-                                            <Download className="h-4 w-4 mr-1.5" />
-                                            Download
+                                            <Download className="h-4 w-4 mr-2" />
+                                            Download High-Res
                                         </Button>
                                     </div>
                                 </div>

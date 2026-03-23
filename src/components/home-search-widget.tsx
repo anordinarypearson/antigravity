@@ -3,16 +3,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-    Search, Globe, ExternalLink, Sparkles, Shield, BookOpen,
-    ArrowRight, Loader2, Copy, Check, Clock, TrendingUp,
+import { Search, Globe, ExternalLink, Sparkles, Shield, BookOpen,
+    ArrowRight,  Copy, Check, Clock, TrendingUp,
     X, Zap, ChevronRight, RotateCcw, Mic, MicOff,
     Image as ImageIcon, Hash, Star, ArrowUpRight,
     Newspaper, Brain, Lightbulb, RefreshCw, Share2,
     ThumbsUp, ThumbsDown, Bookmark, Filter, LayoutGrid,
     List, Eye, Timer, AlertCircle, ChevronDown, ChevronUp,
-    Compass, MousePointerClick, Flame, Wand2
-} from "lucide-react";
+    Compass, MousePointerClick, Flame, Wand2 } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
@@ -330,7 +329,7 @@ export function HomeSearchWidget({
                         <div className="flex items-center justify-center w-14 h-[56px]">
                             {isSearching ? (
                                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-                                    <Loader2 className="h-5 w-5 text-primary" />
+                                    <WavyLoader className="h-5 w-5 text-primary" />
                                 </motion.div>
                             ) : (
                                 <Search className={cn("h-5 w-5 transition-colors", isFocused ? "text-primary" : "text-muted-foreground/50")} />
@@ -372,7 +371,7 @@ export function HomeSearchWidget({
                             >
                                 {isSearching ? (
                                     <span className="flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <WavyLoader className="h-4 w-4 animate-spin" />
                                         <span className="text-xs">{SEARCH_LOADING_STAGES[loadingStage].progress}%</span>
                                     </span>
                                 ) : (

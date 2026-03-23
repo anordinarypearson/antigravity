@@ -4,7 +4,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
-import { KeyRound, Copy, Plus, AlertTriangle, Loader2 } from "lucide-react";
+import { KeyRound, Copy, Plus, AlertTriangle } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
@@ -115,7 +116,7 @@ export function SettingsApiContent() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={generateApiKey} disabled={isGenerating}>
-                                {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                                {isGenerating ? <WavyLoader className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                                 Generate New API Key
                             </Button>
                         </CardFooter>

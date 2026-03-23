@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, BrainCircuit, AlertTriangle, Download, ZoomIn, ZoomOut, Maximize2, ChevronRight, ChevronDown, Copy, RefreshCw } from "lucide-react";
+import { Wand2, BrainCircuit, AlertTriangle, Download, ZoomIn, ZoomOut, Maximize2, ChevronRight, ChevronDown, Copy, RefreshCw } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { generateMindMapAction, GenerateMindMapOutput } from "@/app/actions";
 import { ScrollArea } from "./ui/scroll-area";
@@ -334,7 +335,7 @@ export function MindMapContent() {
                                 className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white border-0 shadow-lg shadow-violet-500/20"
                             >
                                 {isGenerating
-                                    ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</>
+                                    ? <><WavyLoader className="mr-2 h-4 w-4 animate-spin" />Generating...</>
                                     : <><Wand2 className="mr-2 h-4 w-4" />Generate Mind Map</>
                                 }
                             </Button>

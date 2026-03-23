@@ -99,7 +99,7 @@ function LoadingScreen() {
           <motion.div
             animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-3 h-3 bg-white rounded-full shadow-[0_0_15px_white] shrink-0"
+            className="w-3 h-3 bg-white mask-wavy shadow-[0_0_15px_white] shrink-0"
           />
           Preparing Searn AI for you...
         </motion.div>

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Volume2, Download } from "lucide-react";
+import { Volume2, Download } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 
@@ -76,7 +77,7 @@ export function TextToSpeechContent() {
                     </Card>
 
                     <Button onClick={handleGenerateAudio} disabled={isGenerating || text.trim().length === 0}>
-                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Volume2 className="mr-2 h-4 w-4" />}
+                        {isGenerating ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Volume2 className="mr-2 h-4 w-4" />}
                         Generate Audio
                     </Button>
 

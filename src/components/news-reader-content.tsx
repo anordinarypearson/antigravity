@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, Loader2, Send, User, Sparkles, Sidebar, Moon, Sun } from "lucide-react";
+import { Bot,  Send, User, Sparkles, Sidebar, Moon, Sun } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 import { marked } from "marked";
 import { Skeleton } from "./ui/skeleton";
@@ -235,7 +236,7 @@ export function NewsReaderContent() {
                                                 <AvatarFallback className="bg-primary/10 text-primary"><Bot className="size-5" /></AvatarFallback>
                                             </Avatar>
                                             <div className="max-w-lg rounded-xl p-3 text-sm bg-muted flex items-center gap-2">
-                                                <Loader2 className="size-4 animate-spin" />
+                                                <WavyLoader className="size-4 animate-spin" />
                                             </div>
                                         </div>
                                     )}
@@ -272,7 +273,7 @@ export function NewsReaderContent() {
                                     />
                                     <Button type="submit" size="icon" className="h-10 w-10 flex-shrink-0" disabled={isTyping || !input.trim()}>
                                         {isTyping ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            <WavyLoader className="h-5 w-5 animate-spin" />
                                         ) : (
                                             <Send className="h-5 w-5" />
                                         )}

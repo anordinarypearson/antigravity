@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { generateQuizAction, GenerateQuizzesInput } from "@/app/actions";
 import { useUsageLimits } from "@/hooks/use-usage-limits";
@@ -161,7 +161,7 @@ export function QuizOptionsForm() {
                 </CardContent>
                 <CardFooter className="flex justify-end">
                     <Button onClick={handleGenerateQuiz} disabled={isGenerating}>
-                        {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isGenerating && <WavyLoader className="mr-2 h-4 w-4 animate-spin" />}
                         Create Quiz
                     </Button>
                 </CardFooter>

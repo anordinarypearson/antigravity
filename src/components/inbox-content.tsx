@@ -26,7 +26,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
-import { Send, Search, Loader2, MessageSquare, Plus, Check, CheckCheck, BadgeCheck } from "lucide-react";
+import { Send, Search,  MessageSquare, Plus, Check, CheckCheck, BadgeCheck } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { format } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -275,7 +276,7 @@ export function InboxContent() {
                             <div className="space-y-4">
                                 {loadingFriends ? (
                                     <div className="flex justify-center p-4">
-                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                        <WavyLoader className="h-6 w-6 animate-spin" />
                                     </div>
                                 ) : friends.length === 0 ? (
                                     <p className="text-center text-muted-foreground">No friends found. Add some friends first!</p>
@@ -320,7 +321,7 @@ export function InboxContent() {
                     <ScrollArea className="flex-1">
                         {loadingChats ? (
                             <div className="flex justify-center p-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <WavyLoader className="h-6 w-6 animate-spin text-muted-foreground" />
                             </div>
                         ) : chats.length === 0 ? (
                             <div className="text-center p-8 text-muted-foreground">

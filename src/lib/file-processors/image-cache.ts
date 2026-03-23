@@ -14,7 +14,7 @@ export interface CachedImage {
     id: string;
     url: string;
     localPath: string;
-    source: 'unsplash' | 'pexels' | 'wikimedia';
+    source: 'unsplash' | 'pexels' | 'wikimedia' | 'web';
     title: string;
     author?: string;
     license: string;
@@ -93,7 +93,7 @@ export function isCached(imageUrl: string): CachedImage | null {
  */
 export async function cacheImage(
     imageUrl: string,
-    source: CachedImage['source'],
+    source: 'unsplash' | 'pexels' | 'wikimedia' | 'web',
     title: string,
     author?: string,
     license: string = 'CC0'

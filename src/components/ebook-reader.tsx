@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useTransition } from "react";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Button } from "./ui/button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { slugify } from "@/lib/utils";
@@ -175,7 +176,7 @@ export function EbookReader({ slug }: { slug: string }) {
             </Button>
             <span className="text-sm text-muted-foreground">Chapter {currentChapter}</span>
             <Button variant="outline" onClick={handleNextChapter} disabled={isLoading && !chapters[currentChapter + 1]}>
-                 {(isLoading && !chapters[currentChapter + 1]) || (isPrefetching && !chapters[currentChapter+1]) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="ml-2 h-4 w-4" />}
+                 {(isLoading && !chapters[currentChapter + 1]) || (isPrefetching && !chapters[currentChapter+1]) ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="ml-2 h-4 w-4" />}
                 Next Chapter
             </Button>
         </footer>

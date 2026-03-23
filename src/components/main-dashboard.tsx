@@ -127,7 +127,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNewChat}
-                className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation"
+                className="mask-wavy hover:bg-muted/60 h-10 w-10 touch-manipulation"
                 title="New Chat"
               >
                 <FileEdit className="h-5 w-5" />
@@ -232,7 +232,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
                 allowFullScreen
                 title="YouTube music player"
               ></iframe>
-              <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-8 w-8 sm:h-7 sm:w-7 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
+              <Button variant="secondary" size="icon" className="absolute -top-3 -right-3 h-8 w-8 sm:h-7 sm:w-7 mask-wavy opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation" onClick={() => setShowPlayer(false)}><X className="h-4 w-4" /></Button>
             </div>
           )}
           {activeVideoId && !showPlayer && (

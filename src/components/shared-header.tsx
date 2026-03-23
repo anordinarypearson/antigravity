@@ -12,6 +12,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { WavyLoader } from "./ui/wavy-loader";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -68,7 +69,7 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
                     {title && <h1 className="text-xl font-semibold tracking-tight truncate max-w-[120px] sm:max-w-xs md:max-w-md">{title}</h1>}
 
                     {remainingMessages !== null && remainingMessages !== -1 && (
-                        <div className="flex h-7 items-center gap-2 px-3 rounded-full bg-muted/50 border border-border/50 transition-colors hover:bg-muted flex-shrink-0">
+                        <div className="flex h-7 items-center gap-2 px-3 mask-wavy bg-muted/50 border border-border/50 transition-colors hover:bg-muted flex-shrink-0">
                             <span className="text-xs font-bold text-foreground tabular-nums">
                                 {remainingMessages}
                             </span>
@@ -101,7 +102,7 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
                     variant="ghost"
                     size="icon"
                     onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                    className="rounded-full hover:bg-muted/60 h-10 w-10 touch-manipulation"
+                    className="mask-wavy hover:bg-muted/60 h-10 w-10 touch-manipulation"
                     title="Toggle theme"
                 >
                     <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -113,11 +114,16 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
                 {user && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Avatar className="h-8 w-8 cursor-pointer border border-border/50 hover:border-foreground/30 transition-colors">
-                                <AvatarFallback className="text-xs font-semibold bg-muted text-foreground">
-                                    {getInitials(user.displayName || user.email)}
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="relative flex items-center justify-center cursor-pointer group">
+                                <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                                    <WavyLoader size={46} color="hsl(var(--primary))" style="standard" usePreset={true} />
+                                </div>
+                                <Avatar className="h-8 w-8 relative z-10 border-2 border-background shadow-sm hover:scale-105 transition-transform duration-300">
+                                    <AvatarFallback className="text-xs font-semibold bg-muted text-foreground">
+                                        {getInitials(user.displayName || user.email)}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuLabel>

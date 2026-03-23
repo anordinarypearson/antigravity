@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, Image as ImageIcon, FileType, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, FileType, X } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';

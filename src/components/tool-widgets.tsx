@@ -4,11 +4,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import {
-    Play, Pause, RotateCcw, Flag, Copy, Check, Dices, RefreshCw,
+import { Play, Pause, RotateCcw, Flag, Copy, Check, Dices, RefreshCw,
     Timer, Clock, Calculator, Palette, Search, Globe, ExternalLink,
-    Sparkles, Shield, BookOpen, ArrowRight, Loader2
-} from "lucide-react";
+    Sparkles, Shield, BookOpen, ArrowRight } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useToast } from "@/hooks/use-toast";
 
 // ─── TYPES ────────────────────────────────────────────────────────────
@@ -1192,7 +1191,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                     disabled={isSearching || !query.trim()}
                     className="h-10 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white shadow-sm"
                 >
-                    {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    {isSearching ? <WavyLoader className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                 </Button>
             </form>
 
@@ -1220,7 +1219,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                                     "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
                                     idx <= loadingStage ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/40"
                                 )}>
-                                    {idx < loadingStage ? <Check className="h-4 w-4 text-emerald-400" /> : idx === loadingStage ? <Loader2 className="h-4 w-4 animate-spin" /> : stage.icon}
+                                    {idx < loadingStage ? <Check className="h-4 w-4 text-emerald-400" /> : idx === loadingStage ? <WavyLoader className="h-4 w-4 animate-spin" /> : stage.icon}
                                 </div>
                                 <div>
                                     <p className={cn("text-sm font-medium", idx <= loadingStage ? "text-foreground" : "text-muted-foreground/40")}>{stage.text}</p>

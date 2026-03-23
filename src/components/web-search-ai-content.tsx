@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Search, Loader2, ExternalLink, Image as ImageIcon, Globe, AlertCircle, BookOpen, AlignLeft } from "lucide-react";
+import { Search,  ExternalLink, Image as ImageIcon, Globe, AlertCircle, BookOpen, AlignLeft } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Badge } from "./ui/badge";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -116,18 +117,18 @@ export function WebSearchContent() {
                                 placeholder="Ask anything..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                className="pl-12 h-14 text-lg rounded-full shadow-sm hover:shadow-md transition-shadow bg-background/50 border-2 focus:border-primary/50"
+                                className="pl-12 h-14 text-lg mask-wavy shadow-sm hover:shadow-md transition-shadow bg-background/50 border-2 focus:border-primary/50"
                                 disabled={isSearching}
                             />
                         </div>
                         <Button
                             type="submit"
                             disabled={isSearching || !query.trim()}
-                            className="h-14 px-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg shadow-lg hover:shadow-xl transition-all"
+                            className="h-14 px-8 mask-wavy bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg shadow-lg hover:shadow-xl transition-all"
                         >
                             {isSearching ? (
                                 <span className="flex items-center gap-2">
-                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <WavyLoader className="h-5 w-5 animate-spin" />
                                     {loadingProgress}%
                                 </span>
                             ) : (
@@ -233,7 +234,7 @@ export function WebSearchContent() {
                                             <div key={index} className="group relative bg-card hover:bg-accent/50 border border-border/50 rounded-xl p-5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
                                                 <div className="flex items-start gap-4">
                                                     <div className="flex-shrink-0 mt-1">
-                                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary ring-2 ring-background shadow-sm">
+                                                        <div className="flex h-6 w-6 items-center justify-center mask-wavy bg-primary/10 text-xs font-bold text-primary ring-2 ring-background shadow-sm">
                                                             {index + 1}
                                                         </div>
                                                     </div>
@@ -276,7 +277,7 @@ export function WebSearchContent() {
                                                         href={result.link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-background text-muted-foreground/30 hover:text-primary transition-all opacity-0 group-hover:opacity-100"
+                                                        className="absolute top-4 right-4 p-2 mask-wavy hover:bg-background text-muted-foreground/30 hover:text-primary transition-all opacity-0 group-hover:opacity-100"
                                                         title="Open Link"
                                                     >
                                                         <ExternalLink className="h-4 w-4" />

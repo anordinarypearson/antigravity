@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 import { WavyLoaderPreferences } from "./wavy-preferences";
 
 export function SettingsAppearanceContent() {
-  const { theme, setTheme } = useTheme();
+  const themeContext = useTheme();
+  const { theme, setTheme } = themeContext;
 
   return (
     <div className="flex flex-col h-full bg-muted/40">
@@ -67,17 +68,17 @@ export function SettingsAppearanceContent() {
                              ].map((item) => (
                                 <div key={item.id} className="flex flex-col items-center gap-2">
                                     <button
-                                        onClick={() => (useTheme() as any).setAccentColor(item.id)}
+                                        onClick={() => (themeContext as any).setAccentColor(item.id)}
                                         className={cn(
                                             "h-12 w-12 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center",
-                                            (useTheme() as any).accentColor === item.id 
+                                            (themeContext as any).accentColor === item.id 
                                                 ? "border-foreground ring-2 ring-primary ring-offset-2" 
                                                 : "border-transparent"
                                         )}
                                         style={{ backgroundColor: item.color }}
                                         title={item.label}
                                     >
-                                        {(useTheme() as any).accentColor === item.id && (
+                                        {(themeContext as any).accentColor === item.id && (
                                             <Check className="w-6 h-6 text-white drop-shadow-md" />
                                         )}
                                     </button>

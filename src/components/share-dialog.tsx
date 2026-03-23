@@ -4,7 +4,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Copy, Share2, Send, Loader2, Check } from "lucide-react";
+import { Copy, Share2, Send,  Check } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -196,7 +197,7 @@ export function ShareDialog({ isOpen, onOpenChange, content }: ShareDialogProps)
             <ScrollArea className="h-[200px] border rounded-md p-2">
               {loadingFriends ? (
                 <div className="flex justify-center p-4">
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <WavyLoader className="h-6 w-6 animate-spin" />
                 </div>
               ) : friends.length === 0 ? (
                 <p className="text-center text-sm text-muted-foreground p-4">No friends found. Follow users to share with them directly.</p>
@@ -221,7 +222,7 @@ export function ShareDialog({ isOpen, onOpenChange, content }: ShareDialogProps)
                         onClick={() => handleShareToFriend(friend)}
                         disabled={sendingTo === friend.id}
                       >
-                        {sendingTo === friend.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        {sendingTo === friend.id ? <WavyLoader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                       </Button>
                     </div>
                   ))}

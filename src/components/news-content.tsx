@@ -4,7 +4,8 @@
 import { useEffect, useState, useCallback, useRef, FormEvent } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, ExternalLink, Search, ChevronDown } from "lucide-react";
+import { RefreshCw,  ExternalLink, Search, ChevronDown } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "./ui/skeleton";
 import { AnimatePresence, motion } from "framer-motion";

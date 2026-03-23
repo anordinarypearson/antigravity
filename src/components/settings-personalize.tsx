@@ -6,7 +6,8 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { User, Save, Loader2, AtSign } from "lucide-react";
+import { User, Save,  AtSign } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
 import { SidebarTrigger } from "./ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
@@ -151,7 +152,7 @@ export function SettingsPersonalizeContent() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={handleSave} disabled={isLoading} className="w-full sm:w-auto">
-                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                {isLoading ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 Save Profile
                             </Button>
                         </CardFooter>

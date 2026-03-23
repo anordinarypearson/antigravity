@@ -5,7 +5,8 @@ import { generateFlashcardsAction, GenerateFlashcardsSambaOutput } from "@/app/a
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusSquare, Wand2, Bot, Sparkles, Mic, Send, BookCopy, FileQuestion } from "lucide-react";
+import { PlusSquare, Wand2, Bot, Sparkles, Mic, Send, BookCopy, FileQuestion } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useEffect, useRef } from "react";
 import { Flashcard } from "./flashcard";
 import { ScrollArea } from "./ui/scroll-area";
@@ -259,7 +260,7 @@ export function CreateFlashcardsContent() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="flex flex-col items-center justify-center h-full text-center text-muted-foreground"
                         >
-                            <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mb-4" />
+                            <WavyLoader className="w-12 h-12 animate-spin text-cyan-400 mb-4" />
                             <h2 className="text-2xl font-semibold text-white">Generating Your Deck...</h2>
                             <p>The AI is working its magic. This might take a moment.</p>
                         </motion.div>

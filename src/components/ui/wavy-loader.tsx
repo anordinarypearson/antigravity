@@ -96,34 +96,12 @@ export const WavyLoader: React.FC<WavyLoaderProps> = ({
           d={path}
           fill="none"
           stroke={colorProp}
-          strokeWidth="6"
+          strokeWidth="2.5"
           strokeLinecap="round"
           animate={{
-            pathLength: [0, 1],
-            pathOffset: [0, 1],
-            scale: [0.95, 1.05, 0.95],
             rotate: [0, 360],
           }}
           transition={{
-            pathLength: { duration: settings.speed, repeat: Infinity, ease: "easeInOut" },
-            pathOffset: { duration: settings.speed, repeat: Infinity, ease: "linear" },
-            scale: { duration: settings.speed * 2, repeat: Infinity, ease: "easeInOut" },
-            rotate: { duration: settings.speed * 4, repeat: Infinity, ease: "linear" }
-          }}
-        />
-        <motion.path
-          d={path}
-          fill={colorProp}
-          initial={{ opacity: 0.1 }}
-          animate={{
-            opacity: [0.1, 0.4, 0.1],
-            scale: [1, 1.05, 1],
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: settings.speed * 1.5,
-            repeat: Infinity,
-            ease: "easeInOut",
             rotate: { duration: settings.speed * 4, repeat: Infinity, ease: "linear" }
           }}
           className="origin-center"

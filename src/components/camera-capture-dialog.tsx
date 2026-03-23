@@ -11,7 +11,8 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
@@ -149,7 +150,7 @@ export function CameraCaptureDialog({ isOpen, onOpenChange, onCapture }: CameraC
           />
           {hasPermission === null && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 text-center">
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <WavyLoader className="h-8 w-8 animate-spin" />
               <p className="mt-2 text-muted-foreground">Requesting camera access...</p>
             </div>
           )}
@@ -177,7 +178,7 @@ export function CameraCaptureDialog({ isOpen, onOpenChange, onCapture }: CameraC
                     <Button variant="outline" disabled={isCapturing}>Cancel</Button>
                 </DialogClose>
                 <Button onClick={handleCapture} disabled={!isStreamReady || isCapturing}>
-                    {isCapturing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isCapturing ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isCapturing ? "Capturing..." : "Capture"}
                 </Button>
             </div>

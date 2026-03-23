@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
-import { Brush, Wand2, Loader2, Copy, Check, RotateCcw, Sparkles, ChevronDown, ChevronUp, ArrowLeftRight } from "lucide-react";
+import { Brush, Wand2,  Copy, Check, RotateCcw, Sparkles, ChevronDown, ChevronUp, ArrowLeftRight } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateEditedContentAction } from "@/app/actions";
@@ -252,7 +253,7 @@ export function AiEditorContent({ embedded }: { embedded?: boolean }) {
                                     className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20"
                                 >
                                     {isGenerating
-                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</>
+                                        ? <><WavyLoader className="mr-2 h-4 w-4 animate-spin" />Processing...</>
                                         : <><Wand2 className="mr-2 h-4 w-4" />Generate</>
                                     }
                                 </Button>

@@ -11,7 +11,7 @@ import { searchImages } from '@/lib/file-processors/image-scraper';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { query, maxResults = 20, sources } = body;
+        const { query, maxResults = 20, sources, page = 1 } = body;
 
         if (!query || typeof query !== 'string') {
             return NextResponse.json(
@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
         const results = await searchImages(sanitizedQuery, {
             maxResults: Math.min(maxResults, 50),
             sources,
-            useCache: true
+            useCache: true,
+            page: Math.max(1, page)
         });
 
         return NextResponse.json({

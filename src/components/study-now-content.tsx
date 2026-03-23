@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { FileUp, Loader2, Wand2, Image as ImageIcon, X, Volume2, Pilcrow, BrainCircuit, HelpCircle, BookCopy, ListTree, Code, Copy, Mic, MicOff, Camera } from "lucide-react";
+import { FileUp,  Wand2, Image as ImageIcon, X, Volume2, Pilcrow, BrainCircuit, HelpCircle, BookCopy, ListTree, Code, Copy, Mic, MicOff, Camera } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 import { Flashcard } from "./flashcard";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -380,7 +381,7 @@ export function StudyNowContent() {
                   <Image src={imageDataUri} alt="Uploaded content" layout="fill" objectFit="contain" className="rounded-md border" />
                   {isOcrProcessing && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-md">
-                      <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      <WavyLoader className="h-8 w-8 animate-spin text-white" />
                       <p className="text-white mt-2">Extracting text... {ocrProgress}%</p>
                       <Progress value={ocrProgress} className="w-40 mt-2 h-1" />
                     </div>
@@ -400,7 +401,7 @@ export function StudyNowContent() {
             </CardContent>
             <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-2 @sm:flex-row">
               <Button onClick={handleAnalyze} disabled={isLoading || isOcrProcessing || content.trim().length < 50} className="w-full sm:w-auto h-11 touch-manipulation">
-                {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                {isAnalyzing ? <WavyLoader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                 Analyze
               </Button>
               <div className="flex items-stretch gap-2 flex-1">
@@ -444,7 +445,7 @@ export function StudyNowContent() {
                           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
                             <div className="flex justify-end">
                               <Button size="icon" variant="ghost" onClick={() => handleTextToSpeech(analysis.summary, 'summary')} disabled={!!isSynthesizing} className="mb-2">
-                                {isSynthesizing === 'summary' ? <Loader2 className="animate-spin" /> : <Volume2 />}
+                                {isSynthesizing === 'summary' ? <WavyLoader className="animate-spin" /> : <Volume2 />}
                               </Button>
                             </div>
                             {audioDataUri && isSynthesizing === 'summary' && (
@@ -484,7 +485,7 @@ export function StudyNowContent() {
                       </Accordion>
                     </TabsContent>
                     <TabsContent value="flashcards" className="h-full">
-                      {isGeneratingFlashcards ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><Loader2 className="animate-spin" /> <p>Generating flashcards...</p></div> : flashcards ? (
+                      {isGeneratingFlashcards ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><WavyLoader className="animate-spin" /> <p>Generating flashcards...</p></div> : flashcards ? (
                         <div className="grid grid-cols-1 gap-4 pr-4 @md:grid-cols-2">
                           {flashcards.map((card, i) => <Flashcard key={i} {...card} />)}
                         </div>
@@ -495,7 +496,7 @@ export function StudyNowContent() {
                       )}
                     </TabsContent>
                     <TabsContent value="quiz" className="h-full">
-                      {isGeneratingQuiz ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><Loader2 className="animate-spin" /> <p>Generating quiz...</p></div> : (
+                      {isGeneratingQuiz ? <div className="flex h-full items-center justify-center gap-2 text-muted-foreground"><WavyLoader className="animate-spin" /> <p>Generating quiz...</p></div> : (
                         <div className="flex h-full items-center justify-center">
                           <Button onClick={handleGenerateQuiz} disabled={isGeneratingQuiz} className="h-11 touch-manipulation"><HelpCircle className="mr-2 h-4 w-4" />Generate Quiz & Start</Button>
                         </div>

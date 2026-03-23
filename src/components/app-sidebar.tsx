@@ -143,7 +143,7 @@ export function AppSidebar() {
             className="justify-start w-full gap-2.5 px-3 relative"
           >
             {pathname === item.href && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-md bg-primary"></span>
             )}
             <div className={cn("transition-all duration-200 group-hover/menu-button:scale-110", pathname === item.href ? "text-primary" : "")}>
               {item.icon}
@@ -232,7 +232,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-md bg-primary"></span>
                   )}
                   <Home className={pathname === "/" ? "text-primary" : ""} />
                   <span className={cn("text-sm", pathname === "/" ? "text-primary font-semibold" : "")}>Home</span>
@@ -247,7 +247,7 @@ export function AppSidebar() {
                   className="justify-start w-full gap-2.5 px-3 relative"
                 >
                   {pathname === "/planner" && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-md bg-primary"></span>
                   )}
                   <Calendar className={pathname === "/planner" ? "text-primary" : ""} />
                   <span className={cn("text-sm", pathname === "/planner" ? "text-primary font-semibold" : "")}>Planner</span>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Share, PlusSquare, Smartphone, Loader2 } from "lucide-react";
+import { Download, Share, PlusSquare, Smartphone } from "lucide-react"
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 
@@ -141,7 +142,7 @@ export function InstallPrompt() {
                 {isGenerating ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs font-semibold text-primary">
-                      <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin"/> Compiling App...</span>
+                      <span className="flex items-center gap-2"><WavyLoader className="h-3 w-3 animate-spin"/> Compiling App...</span>
                       <span>{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />

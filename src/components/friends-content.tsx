@@ -15,7 +15,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Loader2 } from "lucide-react";
+import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";
 
 type User = {
@@ -223,7 +223,7 @@ export function FriendsContent() {
                                 <CardContent className="p-4">
                                     {loading ? (
                                         <div className="flex justify-center items-center h-40">
-                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                            <WavyLoader className="h-8 w-8 animate-spin text-primary" />
                                         </div>
                                     ) : friends.length === 0 ? (
                                         <div className="text-center text-muted-foreground p-12 bg-muted/20 rounded-lg border-2 border-dashed">
@@ -256,7 +256,7 @@ export function FriendsContent() {
                                 <CardContent className="p-4">
                                     {loading ? (
                                         <div className="flex justify-center items-center h-40">
-                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                            <WavyLoader className="h-8 w-8 animate-spin text-primary" />
                                         </div>
                                     ) : explore.length === 0 ? (
                                         <div className="text-center text-muted-foreground p-12 bg-muted/20 rounded-lg border-2 border-dashed">
