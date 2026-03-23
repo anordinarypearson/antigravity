@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
-import { InstallPrompt } from '@/components/install-prompt';
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -64,7 +64,7 @@ export default function RootLayout({
 
           </AuthProvider>
           <Toaster />
-          <InstallPrompt />
+
         </ThemeProvider>
       </body>
     </html>
