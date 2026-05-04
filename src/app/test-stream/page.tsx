@@ -28,7 +28,7 @@ export default function StreamingTestPage() {
                     userName: 'Test User',
                     fileContent: null,
                     imageDataUri: null,
-                    model: 'Meta-Llama-3.1-8B-Instruct',
+                    model: 'gemma-3-12b-it',
                     isMusicMode: false,
                     isPlayground: false,
                     answerTypes: {},

@@ -73,7 +73,7 @@ export async function generateMindMap(input: GenerateMindMapInput): Promise<Gene
         const prompt = mindMapSystemPrompt.replace('{{content}}', input.content);
 
         const response = await openai.chat.completions.create({
-            model: 'Meta-Llama-3.1-8B-Instruct',
+            model: 'gemma-3-12b-it',
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.5,
         });

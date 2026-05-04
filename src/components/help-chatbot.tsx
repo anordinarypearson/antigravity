@@ -13,13 +13,13 @@ import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 
 type Message = {
-  role: "user" | "model";
+  role: "user" | "assistant";
   content: string;
 };
 
 export function HelpChatbot() {
   const [history, setHistory] = useState<Message[]>([
-    { role: "model", content: "Hello! How can I help you use SearnAI today?" },
+    { role: "assistant", content: "Hello! How can I help you use SearnAI today?" },
   ]);
   const [input, setInput] = useState("");
   const [finalTranscript, setFinalTranscript] = useState("");
@@ -57,7 +57,7 @@ export function HelpChatbot() {
         });
         setHistory((prev) => prev.slice(0, -1)); // Remove user message on error
       } else if (result.data) {
-        const modelMessage: Message = { role: 'model', content: result.data.response };
+        const modelMessage: Message = { role: 'assistant', content: result.data.response };
         setHistory((prev) => [...prev, modelMessage]);
       }
     });
@@ -159,7 +159,7 @@ export function HelpChatbot() {
                 message.role === "user" ? "justify-end" : ""
               )}
             >
-              {message.role === "model" && (
+              {message.role === "assistant" && (
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground"><Bot className="size-4" /></AvatarFallback>
                 </Avatar>

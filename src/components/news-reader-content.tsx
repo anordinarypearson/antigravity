@@ -22,7 +22,7 @@ import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 
 type Message = {
-    role: "user" | "model";
+    role: "user" | "assistant";
     content: string;
 };
 
@@ -116,22 +116,22 @@ export function NewsReaderContent() {
         setInput("");
 
         startTyping(async () => {
-            const fullHistory: CoreMessage[] = [...history, userMessage].map(m => ({ role: m.role, content: m.content }));
+            const fullHistory: CoreMessage[] = [...history, userMessage].map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
 
             const fileContent = `The user is asking a follow-up question about the news article titled "${article.title}". Here is the article summary for context: "${summary?.summary || article.description}". Answer the user's question based on this context.`;
 
             const result = await chatAction({
                 history: fullHistory,
                 fileContent: fileContent,
-                model: 'Meta-Llama-3.1-8B-Instruct', // Use a fast model for news chat
+                model: 'gemma-3-12b-it', // Use a fast model for news chat
             });
 
             if (result.error) {
                 toast({ title: "Chat Error", description: result.error, variant: "destructive" });
                 setHistory((prev) => prev.filter(msg => msg !== userMessage));
             } else if (result.data) {
-                const modelMessage: Message = { role: "model", content: result.data.response };
-                setHistory((prev) => [...prev, modelMessage]);
+                const assistantMessage: Message = { role: "assistant", content: result.data.response };
+                setHistory((prev) => [...prev, assistantMessage]);
             }
         });
     }, [input, history, article, toast, summary]);
@@ -206,7 +206,7 @@ export function NewsReaderContent() {
                                                 message.role === "user" ? "justify-end" : ""
                                             )}
                                         >
-                                            {message.role === "model" && (
+                                            {message.role === "assistant" && (
                                                 <Avatar className="h-9 w-9 border">
                                                     <AvatarFallback className="bg-primary/10 text-primary"><Bot className="size-5" /></AvatarFallback>
                                                 </Avatar>
@@ -220,7 +220,7 @@ export function NewsReaderContent() {
                                                             : "bg-muted"
                                                     )}
                                                 >
-                                                    <div className="prose dark:prose-invert prose-p:my-2 text-foreground" dangerouslySetInnerHTML={{ __html: message.role === 'model' ? marked(message.content) : message.content }} />
+                                                    <div className="prose dark:prose-invert prose-p:my-2 text-foreground" dangerouslySetInnerHTML={{ __html: message.role === 'assistant' ? marked(message.content) : message.content }} />
                                                 </div>
                                             </div>
                                             {message.role === "user" && (

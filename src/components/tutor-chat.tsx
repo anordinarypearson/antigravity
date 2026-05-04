@@ -15,11 +15,11 @@ import { marked } from 'marked';
 
 interface TutorChatProps {
   content: string;
-  onSendMessage: (history: Array<{role: 'user' | 'model', content: string}>) => Promise<{data?: any, error?: string}>;
+  onSendMessage: (history: Array<{role: 'user' | 'assistant', content: string}>) => Promise<{data?: any, error?: string}>;
 }
 
 type Message = {
-  role: "user" | "model";
+  role: "user" | "assistant";
   content: string;
 };
 
@@ -71,11 +71,11 @@ export function TutorChat({ content, onSendMessage }: TutorChatProps) {
         });
         setHistory((prev) => prev.slice(0, -1)); // Remove user message on error
       } else if (result.data) {
-        const modelMessage: Message = { 
-          role: "model", 
+        const assistantMessage: Message = { 
+          role: "assistant", 
           content: result.data.response,
         };
-        setHistory((prev) => [...prev, modelMessage]);
+        setHistory((prev) => [...prev, assistantMessage]);
       }
     });
   };
@@ -184,7 +184,7 @@ export function TutorChat({ content, onSendMessage }: TutorChatProps) {
                 message.role === "user" ? "justify-end" : ""
               )}
             >
-              {message.role === 'model' && (
+              {message.role === 'assistant' && (
                 <div className="w-full">
                      <TutorResponse message={message} />
                 </div>
@@ -206,7 +206,7 @@ export function TutorChat({ content, onSendMessage }: TutorChatProps) {
               )}
             </div>
           ))}
-           {isTyping && history[history.length-1]?.role !== 'model' && (
+           {isTyping && history[history.length-1]?.role !== 'assistant' && (
             <div className="flex items-start gap-3">
               <div className="max-w-xs rounded-lg p-3 text-sm bg-muted flex items-center gap-2">
                 <WavyLoader className="size-4 animate-spin" />

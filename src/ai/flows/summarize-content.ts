@@ -39,7 +39,7 @@ Please generate a concise summary of the provided content. The summary should ca
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'Meta-Llama-3.1-8B-Instruct',
+      model: 'gemma-3-12b-it',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       max_tokens: 1000,

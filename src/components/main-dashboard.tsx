@@ -117,7 +117,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
   ];
 
   return (
-    <div className="flex h-full flex-col font-sans overflow-hidden">
+    <div className="absolute inset-0 flex flex-col font-sans overflow-hidden bg-background">
       <PricingDialog isOpen={showPricingDialog} onOpenChange={setShowPricingDialog} />
       <SharedHeader
         rightElement={
@@ -204,10 +204,10 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden relative">
-        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+      <div className="flex-1 flex overflow-hidden relative min-h-0">
+        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0 min-h-0">
           {activeView === 'searnai' ? (
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col min-h-0">
               <ChatContent
                 answerTypes={answerTypes}
                 onMessageSent={() => {

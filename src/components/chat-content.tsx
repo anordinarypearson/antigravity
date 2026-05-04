@@ -68,7 +68,7 @@ import { ToolWidgetRouter, type ToolName } from "./tool-widgets";
 
 export type Message = {
   id: string;
-  role: "user" | "model" | "tool" | "browser";
+  role: "user" | "assistant" | "tool" | "browser";
   content: string;
   image?: string | null;
   duration?: number;
@@ -130,6 +130,8 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   const [isRunning, setIsRunning] = useState(false);
   const { theme } = useTheme();
 
+  const [showHtmlPreview, setShowHtmlPreview] = useState(false);
+
   const lineCount = code.split('\n').length;
   const lang = language?.toLowerCase() || 'text';
 
@@ -149,12 +151,12 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
     setIsRunning(true);
     setOutput(null);
     setOutputError(false);
+    setShowHtmlPreview(false);
     await new Promise(r => setTimeout(r, 300));
     try {
       if (lang === 'html') {
-        const win = window.open('', '_blank', 'width=800,height=600,resizable=yes');
-        if (win) { win.document.open(); win.document.write(code); win.document.close(); setOutput('\u2705 HTML opened in new window'); }
-        else { setOutput('\u26a0\ufe0f Popup blocked. Please allow popups.'); setOutputError(true); }
+        setShowHtmlPreview(true);
+        setOutput('\u2705 HTML preview opened inline');
       } else if (lang === 'javascript' || lang === 'js') {
         const logs: string[] = [];
         const nativeLog = console.log, nativeError = console.error, nativeWarn = console.warn;
@@ -224,7 +226,7 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
   const isDark = theme === 'dark';
 
   const CodeContent = ({ compact }: { compact: boolean }) => (
-    <div className="relative">
+    <div className="relative flex flex-col">
       {isEditing ? (
         <Textarea
           value={code}
@@ -257,7 +259,26 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
           )}
         </div>
       )}
-      {output !== null && (
+      
+      {/* Inline HTML Preview */}
+      {showHtmlPreview && (
+        <div className="border-t bg-white flex-shrink-0 flex flex-col">
+          <div className="flex items-center justify-between bg-neutral-100 px-3 py-2 border-b">
+             <span className="text-xs font-semibold text-black">HTML Preview</span>
+             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-black hover:bg-neutral-200" onClick={() => setShowHtmlPreview(false)}>
+               Close Preview
+             </Button>
+          </div>
+          <iframe
+            srcDoc={code}
+            className={cn("w-full border-0 bg-white", compact ? "h-[300px]" : "h-[60vh]")}
+            sandbox="allow-scripts allow-same-origin"
+            title="HTML Preview"
+          />
+        </div>
+      )}
+
+      {output !== null && !showHtmlPreview && (
         <div className={cn(
           "border-t font-mono text-xs p-3 max-h-40 overflow-auto custom-scrollbar whitespace-pre-wrap leading-relaxed",
           outputError
@@ -337,7 +358,7 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
       {isFullscreen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
           onClick={(e) => e.target === e.currentTarget && setIsFullscreen(false)}>
-          <div className="group relative w-full max-w-5xl rounded-xl border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="group relative w-full max-w-5xl rounded-md border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <CodeHeader isModal={true} />
             <div className="flex-1 overflow-auto"><CodeContent compact={false} /></div>
             <button onClick={() => setIsFullscreen(false)}
@@ -347,7 +368,7 @@ const CodeBox = ({ language, code: initialCode }: { language: string, code: stri
           </div>
         </div>
       )}
-      <div className="group relative my-4 rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="group relative my-4 rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden">
         <CodeHeader isModal={false} />
         <CodeContent compact={true} />
       </div>
@@ -465,50 +486,94 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
+  const speechRecognitionRef = useRef<any>(null);
+
   const handleToggleRecording = async () => {
     if (isRecording) {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-        mediaRecorderRef.current.stop();
+      // Stop recording
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.stop();
+        speechRecognitionRef.current = null;
       }
       setIsRecording(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
+      return;
+    }
 
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
+    // Check for Web Speech API support
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        title: "Not Supported",
+        description: "Speech recognition is not supported in this browser. Please use Chrome or Edge.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      let finalText = input; // Start from whatever is already in the input
+
+      recognition.onresult = (event: any) => {
+        let interim = '';
+        let newFinal = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            newFinal += transcript;
+          } else {
+            interim += transcript;
           }
-        };
-
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          const audioFile = new File([audioBlob], "Voice-Note.webm", { type: 'audio/webm' });
-          stream.getTracks().forEach(track => track.stop());
-          handleAudioFileChange(audioFile);
-        };
-
-        mediaRecorder.start();
-        setIsRecording(true);
-      } catch (err: any) {
-        console.error("Microphone permission error:", err);
-        let errorMessage = "Could not access microphone.";
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          errorMessage = "Microphone permission was denied. Please allow microphone access in your browser settings.";
-        } else if (err.name === 'NotFoundError') {
-          errorMessage = "No microphone found. Please ensure your microphone is connected.";
         }
+        if (newFinal) {
+          finalText += (finalText ? ' ' : '') + newFinal.trim();
+        }
+        // Show final + interim text live in the input
+        setInput(finalText + (interim ? ' ' + interim : ''));
+      };
 
-        toast({
-          title: "Microphone Access Denied",
-          description: errorMessage,
-          variant: "destructive",
-        });
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        if (event.error !== 'no-speech') {
+          toast({
+            title: "Speech Recognition Error",
+            description: event.error === 'not-allowed'
+              ? "Microphone permission was denied. Please allow access in browser settings."
+              : `Error: ${event.error}`,
+            variant: "destructive",
+          });
+        }
         setIsRecording(false);
-      }
+        speechRecognitionRef.current = null;
+      };
+
+      recognition.onend = () => {
+        // Auto-restart if still in recording mode (browser may stop after silence)
+        if (isRecording && speechRecognitionRef.current) {
+          try {
+            recognition.start();
+          } catch {
+            setIsRecording(false);
+            speechRecognitionRef.current = null;
+          }
+        }
+      };
+
+      recognition.start();
+      speechRecognitionRef.current = recognition;
+      setIsRecording(true);
+    } catch (err: any) {
+      console.error("Speech recognition error:", err);
+      toast({
+        title: "Microphone Access Denied",
+        description: "Could not start speech recognition. Please allow microphone access.",
+        variant: "destructive",
+      });
+      setIsRecording(false);
     }
   };
 
@@ -565,7 +630,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
     } finally {
       setIsOcrProcessing(false);
     }
-  }
+  };
 
   const handleAudioFileChange = async (file: File) => {
     setIsOcrProcessing(true);
@@ -795,7 +860,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
         whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.5)" }}
         transition={{ duration: 0.3 }}
         style={{ "--chat-border-color": theme === 'dark' ? "hsla(var(--foreground) / 0.08)" : "rgba(0,0,0,0.1)", "--chat-border-hover-color": theme === 'dark' ? "hsla(var(--foreground) / 0.2)" : "rgba(0,0,0,0.2)" } as React.CSSProperties}
-        className="relative flex flex-col gap-2 rounded-[24px] border bg-chat-input-background/60 backdrop-blur-2xl p-2 sm:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
+        className="relative flex flex-col gap-2 rounded-lg border bg-chat-input-background/60 backdrop-blur-2xl p-2 sm:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none" />
         {isCommandOpen && (
@@ -1166,26 +1231,34 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
     if (!viewport) return;
 
-    const latestBotMsg = [...history].reverse().find(m => m.role === "model");
+    const latestBotMsg = [...history].reverse().find(m => m.role === "assistant");
 
-    if (!latestBotMsg || lastBotMessageId.current === latestBotMsg.id) return;
+    if (!latestBotMsg) return;
 
-    lastBotMessageId.current = latestBotMsg.id;
+    // Check if it's a NEW message
+    if (lastBotMessageId.current !== latestBotMsg.id) {
+      lastBotMessageId.current = latestBotMsg.id;
 
-    const node = document.querySelector(`[data-message-id="${latestBotMsg.id}"]`);
+      const node = document.querySelector(`[data-message-id="${latestBotMsg.id}"]`);
 
-    if (node && isUserNearBottom()) {
-      // Use a timeout to ensure the element is fully rendered before scrolling
-      setTimeout(() => {
-        node.scrollIntoView({ behavior: "smooth", block: "center" });
-        node.classList.add("searn-highlight");
-        setTimeout(() => node.classList.remove("searn-highlight"), 800);
-      }, 100);
-    } else if (isUserNearBottom()) {
-      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      if (node && isUserNearBottom()) {
+        // Use a timeout to ensure the element is fully rendered before scrolling
+        setTimeout(() => {
+          node.scrollIntoView({ behavior: "smooth", block: "center" });
+          node.classList.add("searn-highlight");
+          setTimeout(() => node.classList.remove("searn-highlight"), 800);
+        }, 100);
+      } else if (isUserNearBottom()) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
+    } else {
+      // It's updating an existing message (i.e. streaming)
+      // Auto-scroll to the bottom as long as the user hasn't scrolled up manually
+      if (isTyping && isUserNearBottom()) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'auto' });
+      }
     }
-
-  }, [history, isUserNearBottom]);
+  }, [history, isTyping, isUserNearBottom]);
 
   // Handle Scroll to Bottom Visibility
   const handleScroll = () => {
@@ -1255,12 +1328,12 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
     const genkitHistory: CoreMessage[] = currentHistory.map(h => ({
-      role: h.role as 'user' | 'model' | 'tool',
+      role: h.role === 'assistant' ? 'assistant' : h.role as 'user' | 'tool',
       content: String(h.content),
     }));
 
     // Create a temporary message ID for streaming
-    const modelMessageId = `${Date.now()}-model`;
+    const assistantMessageId = `${Date.now()}-assistant`;
     let accumulatedContent = '';
 
     try {
@@ -1295,6 +1368,17 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           return;
         }
 
+        if (response.status === 402 || errorData.error === 'PAYMENT_REQUIRED') {
+          toast({ 
+            title: "AI Provider Payment Required", 
+            description: errorData.message || "Your SambaNova account needs a payment method. Please add one at cloud.sambanova.ai or set up a free Google Gemini key in your .env.local file.", 
+            variant: "destructive",
+            duration: 10000 
+          });
+          setIsTyping(false);
+          return;
+        }
+
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
@@ -1310,14 +1394,14 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         if (result.type === 'canvas') {
           onCanvasContent?.(result.content);
           const confirmationMessage: Message = {
-            id: modelMessageId,
-            role: 'model',
+            id: assistantMessageId,
+            role: 'assistant',
             content: "Done. I've placed the content in the canvas.",
             duration: duration,
           };
           setHistory(prev => [...prev, confirmationMessage]);
         } else {
-          setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: result.content, duration: duration }]);
+          setHistory(prev => [...prev, { id: assistantMessageId, role: "assistant", content: result.content, duration: duration }]);
         }
         return;
       }
@@ -1331,47 +1415,74 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       const decoder = new TextDecoder();
 
       // Add a placeholder message that we'll update
-      setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: '' }]);
+      setHistory(prev => [...prev, { id: assistantMessageId, role: "assistant", content: '' }]);
 
-      let lastUpdateTime = 0;
-      let rafId: number | null = null;
-      let pendingContent = accumulatedContent;
+      // Word-by-word rendering: buffer incoming text, drain word by word
+      let wordBuffer: string[] = []; // queue of words to render
+      let displayedContent = '';
+      let wordIntervalId: ReturnType<typeof setInterval> | null = null;
+      let streamDone = false;
 
-      const flushToUI = (text: string) => {
-        setHistory(prev =>
-          prev.map(msg =>
-            msg.id === modelMessageId
-              ? { ...msg, content: text }
-              : msg
-          )
-        );
+      const startWordDrain = () => {
+        if (wordIntervalId !== null) return;
+        wordIntervalId = setInterval(() => {
+          if (wordBuffer.length > 0) {
+            // Drain one word at a time (or a small batch for speed)
+            const word = wordBuffer.shift()!;
+            displayedContent += word;
+            setHistory(prev =>
+              prev.map(msg =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: displayedContent }
+                  : msg
+              )
+            );
+          } else if (streamDone) {
+            // All words drained and stream is done
+            if (wordIntervalId !== null) {
+              clearInterval(wordIntervalId);
+              wordIntervalId = null;
+            }
+          }
+        }, 15); // ~66 words/sec — fast and smooth
       };
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
-          if (rafId !== null) cancelAnimationFrame(rafId);
+          streamDone = true;
           break;
         }
 
         const chunk = decoder.decode(value, { stream: true });
         accumulatedContent += chunk;
-        pendingContent = accumulatedContent;
 
-        const now = Date.now();
-        // Update at ~120 FPS (every 8ms) for a smooth letter-by-letter feel
-        if (now - lastUpdateTime > 8) {
-          lastUpdateTime = now;
-          const snap = pendingContent;
-          flushToUI(snap);
-        }
+        // Split chunk into word-level tokens (preserving spaces/newlines)
+        const tokens = chunk.split(/(?<=\s)/); // split after whitespace
+        wordBuffer.push(...tokens);
+
+        startWordDrain();
       }
+
+      // Wait for word drain to complete
+      await new Promise<void>(resolve => {
+        const checkDone = setInterval(() => {
+          if (wordBuffer.length === 0) {
+            clearInterval(checkDone);
+            if (wordIntervalId !== null) {
+              clearInterval(wordIntervalId);
+              wordIntervalId = null;
+            }
+            resolve();
+          }
+        }, 50);
+      });
 
       // Ensure the very last chunk is always rendered when the stream finishes
       setHistory(prev =>
         prev.map(msg =>
-          msg.id === modelMessageId
+          msg.id === assistantMessageId
             ? { ...msg, content: accumulatedContent }
             : msg
         )
@@ -1385,7 +1496,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       // Final update with duration
       setHistory(prev =>
         prev.map(msg =>
-          msg.id === modelMessageId
+          msg.id === assistantMessageId
             ? { ...msg, duration: duration }
             : msg
         )
@@ -1402,7 +1513,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
       // Remove the placeholder message if streaming failed
       if (accumulatedContent === '') {
-        setHistory(prev => prev.filter(msg => msg.id !== modelMessageId));
+        setHistory(prev => prev.filter(msg => msg.id !== assistantMessageId));
       }
     } finally {
       abortControllerRef.current = null;
@@ -1453,8 +1564,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           if (result.error) {
             toast({ title: "Image Search Error", description: result.error, variant: "destructive" });
           } else if (result.type === 'image_search_result' && result.images && result.images.length > 0) {
-            const modelMessageId = `${Date.now()}-model`;
-            setHistory(prev => [...prev, { id: modelMessageId, role: "model", content: JSON.stringify(result) }]);
+            const assistantMessageId = `${Date.now()}-assistant`;
+            setHistory(prev => [...prev, { id: assistantMessageId, role: "assistant", content: JSON.stringify(result) }]);
           } else {
             toast({ title: "No Images Found", description: `No images found for "${query}"`, variant: "destructive" });
           }
@@ -1476,7 +1587,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   useImperativeHandle(ref, () => ({
     handleReceiveCanvasContent(content: string) {
-      setHistory(prev => [...prev, { id: `${Date.now()}-model`, role: 'model', content: "Done. I've placed the content in the canvas." }]);
+      setHistory(prev => [...prev, { id: `${Date.now()}-assistant`, role: 'assistant', content: "Done. I've placed the content in the canvas." }]);
     }
   }));
 
@@ -1672,7 +1783,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
     // Wrap plain text in Typewriter if it's the latest message and still typing
-    if (message.id === history[history.length - 1].id && isTyping && message.role === 'model') {
+    if (message.id === history[history.length - 1].id && isTyping && message.role === 'assistant') {
       // We can use a custom renderer for ReactMarkdown, or just wrap the whole thing.
       // Since ReactMarkdown handles streaming gracefully usually, but user wants "smooth typewriter".
       // We'll wrap the `restOfContent` below for the *response* part.
@@ -1762,7 +1873,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     };
 
     // Determine if this message is actively streaming
-    const isActivelyStreaming = isTyping && message.role === 'model' && message.id === history[history.length - 1]?.id;
+    const isActivelyStreaming = isTyping && message.role === 'assistant' && message.id === history[history.length - 1]?.id;
 
     return (
       <>
@@ -1858,9 +1969,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                 <React.Fragment key={`${message.id}-${index}`}>
                   <motion.div
                     data-message-id={message.id}
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.3), ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     className={cn(
                       "flex w-full items-start gap-4 group",
                       message.role === "user" ? "justify-end" : "justify-start"
@@ -1937,7 +2048,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                             onPause={() => setIsSynthesizing(null)}
                           />
                         )}
-                        {message.role === 'model' && message.role !== 'browser' && (
+                        {message.role === 'assistant' && message.role !== 'browser' && (
                           <div className="mt-3 flex flex-wrap items-center gap-1 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                             <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleCopyToClipboard(message.content)} title="Copy">
                               <Copy className="h-3.5 w-3.5" />

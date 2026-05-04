@@ -10,7 +10,7 @@ import { Button } from "./ui/button";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
 import { SidebarTrigger } from "./ui/sidebar";
-import { collection, getDocs, doc, setDoc, deleteDoc, getDoc, runTransaction, increment } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, deleteDoc, getDoc, runTransaction, increment, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -141,6 +141,10 @@ export function FriendsContent() {
 
         try {
             await runTransaction(db, async (transaction) => {
+                // ALL READS MUST COME BEFORE WRITES IN FIRESTORE TRANSACTIONS
+                const currentUserDoc = await transaction.get(currentUserDocRef);
+                const currentUserData = currentUserDoc.data();
+
                 if (isCurrentlyFollowing) {
                     // Unfollow
                     transaction.delete(followingDocRef);
@@ -153,10 +157,31 @@ export function FriendsContent() {
                     transaction.set(followerDocRef, { followerAt: new Date() });
                     transaction.update(currentUserDocRef, { followingCount: increment(1) });
                     transaction.update(userToToggleDocRef, { followerCount: increment(1) });
+
+                    // Create a notification for the other user
+                    const notificationRef = doc(collection(db, "users", userIdToToggle, "notifications"));
+                    
+                    transaction.set(notificationRef, {
+                        type: "friend_request",
+                        senderId: currentUser.uid,
+                        user: {
+                            name: currentUserData?.name || currentUserData?.displayName || "Anonymous",
+                            avatar: currentUserData?.photoURL || "",
+                            initials: (currentUserData?.name || currentUserData?.displayName || "A").charAt(0).toUpperCase()
+                        },
+                        content: "started following you",
+                        time: serverTimestamp(),
+                        read: false
+                    });
                 }
             });
 
-            toast({ title: isCurrentlyFollowing ? "Unfollowed" : "Followed!", description: `Your follow status has been updated.` });
+            toast({ 
+                title: isCurrentlyFollowing ? "Unfollowed" : "Followed!", 
+                description: isCurrentlyFollowing 
+                    ? "You've removed this user from your following list." 
+                    : `You are now following ${users.find(u => u.id === userIdToToggle)?.name}.` 
+            });
 
             // Update UI instantly
             setUsers(prevUsers => prevUsers.map(u =>

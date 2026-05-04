@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Cpu, Bot, Globe } from "lucide-react";
 
 // SVG logo reused from login-content for consistency
 const AppLogo = () => (
@@ -40,9 +39,9 @@ function LoadingScreen() {
         
         {/* Animated Logo */}
         <motion.div
-           initial={{ opacity: 0, y: 20 }}
+           initial={{ opacity: 0, y: 10 }}
            animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 1, ease: "easeOut" }}
+           transition={{ duration: 0.8, ease: "easeOut" }}
            className="mt-[-10vh]"
         >
           <AppLogo />
@@ -89,19 +88,25 @@ function LoadingScreen() {
             </svg>
         </div>
 
-        {/* Status Text at bottom */}
+        {/* Professional Status — minimal progress bar + text */}
         <motion.div 
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 1, delay: 2.0 }}
-           className="text-white/80 text-sm md:text-lg uppercase tracking-[0.4em] font-medium flex items-center justify-center gap-4 text-center mt-4 md:mt-0"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ duration: 0.6, delay: 1.8 }}
+           className="flex flex-col items-center gap-3 mt-4 md:mt-0"
         >
-          <motion.div
-            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-3 h-3 bg-white mask-wavy shadow-[0_0_15px_white] shrink-0"
-          />
-          Preparing Searn AI for you...
+          <span className="text-white/50 text-xs md:text-sm uppercase tracking-[0.5em] font-light">
+            Initializing
+          </span>
+          {/* Thin progress bar */}
+          <div className="w-40 h-[2px] bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-white/50 rounded-full"
+              initial={{ width: '0%' }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 2.5, delay: 2.0, ease: 'easeInOut' }}
+            />
+          </div>
         </motion.div>
       </div>
 

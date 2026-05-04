@@ -100,7 +100,7 @@ service cloud.firestore {
     match /users/{userId}/{subcollection}/{docId} {
       // Validate subcollection is valid
       function isValidSubcollection() {
-        return subcollection in ['following', 'followers', 'blocked'];
+        return subcollection in ['following', 'followers', 'blocked', 'notifications'];
       }
       
       // Read: Authenticated users
@@ -115,7 +115,9 @@ service cloud.firestore {
         // Can add yourself to someone's followers list
         (subcollection == 'followers' && request.auth.uid == docId) ||
         // Can add someone to your following list (reflected in their followers)
-        (subcollection == 'following' && request.auth.uid == docId)
+        (subcollection == 'following' && request.auth.uid == docId) ||
+        // Can create a notification for someone else
+        (subcollection == 'notifications' && request.resource.data.senderId == request.auth.uid)
       ) &&
       // Rate limit follow/unfollow actions (max 10 per minute)
       isNotTooFrequent('lastFollowAction', 6);

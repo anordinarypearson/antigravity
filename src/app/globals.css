@@ -807,17 +807,19 @@
 }
 
 /* ===== Streaming Cursor ===== */
-@keyframes blink-cursor {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
 .streaming-cursor {
   display: inline;
-  animation: blink-cursor 0.8s step-end infinite;
-  color: hsl(var(--primary));
-  font-weight: 400;
+  opacity: 0.4;
+  color: hsl(var(--foreground));
+  font-weight: 300;
   margin-left: 1px;
+  transition: opacity 0.3s ease;
+}
+
+/* ===== Thinking Dots (subtle fade, no flash) ===== */
+@keyframes thinking-dot {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 0.7; }
 }
 
 .mask-wavy {

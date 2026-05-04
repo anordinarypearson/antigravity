@@ -14,7 +14,7 @@ import {z} from 'zod';
 
 const HelpChatInputSchema = z.object({
   history: z.array(z.object({
-    role: z.enum(['user', 'model']),
+    role: z.enum(['user', 'assistant']),
     content: z.string(),
   })).describe('The conversation history.'),
 });

@@ -22,7 +22,7 @@ import { textToSpeech, TextToSpeechInput, TextToSpeechOutput } from '@/ai/flows/
 import { chatWithTutor, ChatWithTutorInput, ChatWithTutorOutput } from '@/ai/flows/chat-tutor';
 import { webSearch } from '@/ai/tools/web-search';
 import { searchYoutube } from '@/ai/tools/youtube-search';
-import { DEFAULT_MODEL_ID, AVAILABLE_MODELS } from '@/lib/models';
+import { DEFAULT_MODEL_ID, AVAILABLE_MODELS, AUTO_FALLBACK_CHAIN } from '@/lib/models';
 import { AnalyzeCodeInput, AnalyzeCodeOutput } from '@/lib/code-analysis-types';
 import { GenerateQuestionPaperInput, GenerateQuestionPaperOutput } from '@/lib/question-paper-types';
 
@@ -203,14 +203,16 @@ const getSystemPrompt = (
         answerStyleInstruction = "\n\n**Answer Style Override:**\n" + selectedTypes.map(type => stylePrompts[type] || '').filter(Boolean).join(" ");
     }
 
-    // 2. Define Personas
+    // 2. Define Personas per SambaNova model
     const personaPrompts: Record<string, string> = {
-        'gpt-oss-120b': `You are Gemini, a large language model trained by Google. You are known for deep reasoning and multimodal understanding.`,
-        'DeepSeek-V3.1': `You are DeepSeek, a professional and highly analytical AI assistant known for precise, detailed answers.`,
-        'Meta-Llama-3.3-70B-Instruct': `You are Claude, an AI assistant created by Anthropic. You are thoughtful, nuanced, and careful in your reasoning.`,
-        'Llama-3.3-Swallow-70B-Instruct-v0.4': `You are Swallow, a polite and incredibly thorough AI assistant.`,
-        'gpt-5': `You are ChatGPT, a large language model trained by OpenAI. You excel at creative, versatile, and expressive responses.`,
-        'Meta-Llama-3.1-8B-Instruct': `You are Llama, a fast, factual, and efficient AI assistant.`,
+        'DeepSeek-V3.1': `You are DeepSeek V3.1, a professional and highly analytical AI assistant known for precise, detailed answers.`,
+        'DeepSeek-V3.1-cb': `You are DeepSeek V3.1 Code, an expert coding assistant specialized in programming and debugging.`,
+        'DeepSeek-V3.2': `You are DeepSeek V3.2, the latest DeepSeek model with enhanced reasoning and knowledge.`,
+        'Llama-4-Maverick-17B-128E-Instruct': `You are Llama 4 Maverick, Meta's advanced mixture-of-experts AI with exceptional versatility.`,
+        'Meta-Llama-3.3-70B-Instruct': `You are Llama 3.3 70B, a powerful AI assistant for complex multi-step reasoning.`,
+        'MiniMax-M2.5': `You are MiniMax M2.5, a highly efficient and multilingual AI assistant.`,
+        'gemma-3-12b-it': `You are Gemma 3, Google's open-source AI. You are concise, helpful, and efficient.`,
+        'gpt-oss-120b': `You are GPT-OSS 120B, a massive 120B parameter AI with deep knowledge and sophisticated reasoning.`,
     };
 
     const persona = personaPrompts[modelId] || `You are a highly capable and intelligent AI assistant.`;
@@ -389,7 +391,7 @@ export async function chatAction(input: {
         : [...recentHistory.slice(0, -1), finalUserMessage];
 
     const modelsToTry = (finalModelId === 'auto' || !finalModelId)
-        ? AVAILABLE_MODELS.map(m => m.id).filter(id => id !== 'auto')
+        ? AUTO_FALLBACK_CHAIN
         : [finalModelId];
 
     let lastError: any = null;
@@ -400,7 +402,13 @@ export async function chatAction(input: {
                 ? getCanvasSystemPrompt()
                 : getSystemPrompt(modelId, input.userName, input.fileContent, input.answerTypes);
 
-            const fullMessages = [{ role: 'system', content: systemPrompt } as CoreMessage, ...messages];
+            // Sanitize roles: convert 'model' to 'assistant' for SambaNova compatibility
+            const sanitizedMessages: CoreMessage[] = messages.map(msg => ({
+                ...msg,
+                role: msg.role === 'model' ? 'assistant' : msg.role,
+            })) as CoreMessage[];
+
+            const fullMessages = [{ role: 'system', content: systemPrompt } as CoreMessage, ...sanitizedMessages];
 
             const response = await openai.chat.completions.create({
                 model: modelId,
@@ -428,6 +436,9 @@ export async function chatAction(input: {
             // Check for rate limit error
             if (e.status === 429) {
                 return { error: `__LIMIT_EXHAUSTED__` };
+            }
+            if (e.status === 402) {
+                return { error: "PAYMENT_REQUIRED: The AI provider (SambaNova) requires a payment method on their dashboard. Please add one at cloud.sambanova.ai or use a free Gemini key in .env.local." };
             }
             if (finalModelId !== 'auto' && modelsToTry.length === 1) {
                 break;

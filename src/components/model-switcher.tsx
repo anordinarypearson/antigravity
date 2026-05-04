@@ -50,11 +50,12 @@ export function ModelSwitcher({ selectedModel, onModelChange, disabled }: ModelS
 
     const getModelIcon = (modelId: string) => {
         const id = modelId.toLowerCase();
-        if (id.includes('gpt')) return <OpenAILogo className="h-4 w-4 text-green-600" />;
-        if (id.includes('gemini') || id.includes('google')) return <GoogleLogo className="h-4 w-4 text-blue-600" />;
-        if (id.includes('claude') || id.includes('anthropic')) return <AnthropicLogo className="h-4 w-4 text-amber-700" />;
-        if (id.includes('llama') || id.includes('meta')) return <MetaLogo className="h-4 w-4 text-blue-500" />;
         if (id.includes('deepseek')) return <DeepSeekLogo className="h-4 w-4 text-blue-400" />;
+        if (id.includes('llama') || id.includes('meta') || id.includes('maverick')) return <MetaLogo className="h-4 w-4 text-blue-500" />;
+        if (id.includes('gemma') || id.includes('google')) return <GoogleLogo className="h-4 w-4 text-blue-600" />;
+        if (id.includes('gpt') || id.includes('oss')) return <OpenAILogo className="h-4 w-4 text-green-600" />;
+        if (id.includes('minimax')) return <BrainCircuit className="h-4 w-4 text-purple-500" />;
+        if (id === 'auto') return <BrainCircuit className="h-4 w-4 text-amber-500" />;
         return <BrainCircuit className="h-4 w-4 text-muted-foreground" />;
     };
 

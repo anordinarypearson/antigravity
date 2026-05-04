@@ -21,6 +21,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNotifications } from "@/hooks/use-notifications";
+import { NotificationPanel } from "./notification-panel";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Bell } from "lucide-react";
 
 
 interface SharedHeaderProps {
@@ -57,8 +61,11 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
         }
     }, [usageData, subscription, getUsageStats]);
 
+    const { unreadCount } = useNotifications();
+
     return (
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-black dark:border-border bg-sidebar px-4 sm:px-6 transition-all duration-300">
+            {/* ... left side ... */}
             <div className="flex items-center gap-4 min-w-0">
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <SidebarTrigger />
@@ -97,6 +104,28 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
                         <span className="text-xs">⌘</span>K
                     </kbd>
                 </Button>
+
+                {/* Notifications Bell */}
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative mask-wavy hover:bg-muted/60 h-10 w-10 touch-manipulation"
+                            title="Notifications"
+                        >
+                            <Bell className="h-5 w-5" />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="p-0 w-full sm:max-w-md">
+                        <NotificationPanel isMobile />
+                    </SheetContent>
+                </Sheet>
 
                 <Button
                     variant="ghost"

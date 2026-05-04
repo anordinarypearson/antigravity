@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Bell, Zap, BrainCircuit } from "lucide-react";
 import { BackButton } from "./back-button";
-import { SidebarTrigger } from "./ui/sidebar";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { SharedHeader } from "./shared-header";
 
 export function SettingsNotificationsContent() {
     const { toast } = useToast();
@@ -49,13 +49,10 @@ export function SettingsNotificationsContent() {
 
     return (
         <div className="flex flex-col h-full bg-muted/40">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 sm:px-6">
-                <div className="flex items-center gap-2">
-                    <SidebarTrigger className="lg:hidden" />
-                    <BackButton />
-                    <h1 className="text-xl font-semibold tracking-tight">Notifications</h1>
-                </div>
-            </header>
+            <SharedHeader 
+                title="Notifications" 
+                leftElement={<BackButton />}
+            />
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 <div className="mx-auto max-w-2xl space-y-8">
                     <Card>

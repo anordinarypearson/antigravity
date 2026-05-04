@@ -99,6 +99,8 @@ const mainNav = [
 
 
 
+import { useNotifications } from "@/hooks/use-notifications";
+
 export function AppSidebar() {
   const { setOpenMobile, toggleSidebar } = useSidebar();
   const router = useRouter();
@@ -108,6 +110,9 @@ export function AppSidebar() {
   const auth = useAuth();
   const user = auth?.user;
   const signOut = auth?.signOut || (() => { });
+  
+  const { notifications } = useNotifications();
+  const unreadFriendRequests = notifications.filter(n => n.type === 'friend_request' && !n.read).length;
 
   useEffect(() => {
     setPathname(currentPathname);
@@ -293,6 +298,11 @@ export function AppSidebar() {
                   )}
                   <Users className={pathname === "/friends" ? "text-primary" : ""} />
                   <span className={cn("text-sm", pathname === "/friends" ? "text-primary font-semibold" : "")}>Friends</span>
+                  {unreadFriendRequests > 0 && (
+                    <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {unreadFriendRequests}
+                    </span>
+                  )}
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

@@ -14,7 +14,7 @@ import {z} from 'zod';
 const ChatWithTutorInputSchema = z.object({
   content: z.string().describe('The study material context.'),
   history: z.array(z.object({
-    role: z.enum(['user', 'model']),
+    role: z.enum(['user', 'assistant']),
     content: z.string(),
   })).describe('The conversation history.'),
 });
