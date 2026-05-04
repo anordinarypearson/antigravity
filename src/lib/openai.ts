@@ -10,6 +10,6 @@ if (!process.env.SAMBANOVA_BASE_URL) {
 
 
 export const openai = new OpenAI({
-  baseURL: process.env.SAMBANOVA_BASE_URL,
-  apiKey: process.env.SAMBANOVA_API_KEY,
+  baseURL: process.env.SAMBANOVA_BASE_URL || 'https://api.sambanova.ai/v1',
+  apiKey: process.env.SAMBANOVA_API_KEY || 'dummy-api-key-for-build',
 });
