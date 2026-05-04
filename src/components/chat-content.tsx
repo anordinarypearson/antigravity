@@ -2083,7 +2083,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
               )}
               {isTyping && <ThinkingIndicator text={null} duration={generationTime} />}
             </div>
-          </ScrollArea>
+          </div>
         )}
       </div>
 
