@@ -323,10 +323,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return new Response(JSON.stringify({ 
-            error: lastError?.message || 'All models unavailable',
-            details: lastError?.message?.includes('dummy-api-key') ? 'The API key is missing or invalid. Please check your Vercel Environment Variables.' : undefined
-        }), {
+        return new Response(JSON.stringify({ error: lastError?.message || 'All models unavailable' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });

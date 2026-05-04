@@ -4,7 +4,6 @@
 import { chatAction } from "@/app/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
@@ -1262,10 +1261,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   // Handle Scroll to Bottom Visibility
   const handleScroll = () => {
-    if (!scrollAreaRef.current) return;
     const viewport = scrollAreaRef.current;
     if (!viewport) return;
-
+ 
     const { scrollTop, scrollHeight, clientHeight } = viewport;
     const isBottom = scrollHeight - (scrollTop + clientHeight) < 100;
     setShowScrollBottom(!isBottom);
@@ -1963,7 +1961,11 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             chatBar={chatBar}
           />
         ) : (
-          <div className="flex-1 w-full overflow-y-auto custom-scrollbar" ref={scrollAreaRef as any} onScrollCapture={handleScroll}>
+          <div 
+            className="flex-1 w-full overflow-y-auto custom-scrollbar scroll-smooth" 
+            ref={scrollAreaRef} 
+            onScroll={handleScroll}
+          >
             <div className={cn("mx-auto w-full max-w-3xl space-y-6 px-2 sm:px-4 overflow-x-hidden min-w-0", isPlayground ? "pb-4" : "pb-48")}>
               {history.map((message, index) => (
                 <React.Fragment key={`${message.id}-${index}`}>
@@ -2081,7 +2083,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
               )}
               {isTyping && <ThinkingIndicator text={null} duration={generationTime} />}
             </div>
-          </div>
+          </ScrollArea>
         )}
       </div>
 
