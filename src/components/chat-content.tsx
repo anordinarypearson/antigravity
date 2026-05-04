@@ -1221,14 +1221,14 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   }, [history]);
 
   const isUserNearBottom = useCallback(() => {
-    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    const viewport = scrollAreaRef.current;
     if (!viewport) return true; // Default to true if viewport isn't ready
     return viewport.scrollHeight - (viewport.scrollTop + viewport.clientHeight) < 150;
   }, []);
 
   useEffect(() => {
     if (!history?.length || !scrollAreaRef?.current) return;
-    const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+    const viewport = scrollAreaRef.current;
     if (!viewport) return;
 
     const latestBotMsg = [...history].reverse().find(m => m.role === "assistant");
@@ -1263,7 +1263,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   // Handle Scroll to Bottom Visibility
   const handleScroll = () => {
     if (!scrollAreaRef.current) return;
-    const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+    const viewport = scrollAreaRef.current;
     if (!viewport) return;
 
     const { scrollTop, scrollHeight, clientHeight } = viewport;
@@ -1272,7 +1272,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   };
 
   useEffect(() => {
-    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    const viewport = scrollAreaRef.current;
     if (viewport) {
       viewport.addEventListener('scroll', handleScroll);
       return () => viewport.removeEventListener('scroll', handleScroll);
@@ -1280,7 +1280,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   }, [scrollAreaRef.current]);
 
   const scrollToBottom = () => {
-    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    const viewport = scrollAreaRef.current;
     if (viewport) {
       viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
     }
