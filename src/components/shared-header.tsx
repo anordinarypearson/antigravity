@@ -64,7 +64,7 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
     const { unreadCount } = useNotifications();
 
     return (
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-black dark:border-border bg-sidebar px-4 sm:px-6 transition-all duration-300">
+        <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black dark:border-border bg-sidebar px-4 sm:px-6 transition-all duration-300">
             {/* ... left side ... */}
             <div className="flex items-center gap-4 min-w-0">
                 <div className="flex items-center gap-2 flex-shrink-0">

@@ -117,7 +117,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col font-sans overflow-hidden bg-background min-h-0 relative">
+    <div className="flex-1 flex flex-col font-sans h-svh overflow-hidden bg-background min-h-0 relative">
       <PricingDialog isOpen={showPricingDialog} onOpenChange={setShowPricingDialog} />
       <SharedHeader
         rightElement={
@@ -173,7 +173,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       )}
 
-      <div className="sticky top-[64px] flex justify-center items-center py-2.5 sm:py-3 z-10 w-full border-b border-border/30 overflow-hidden bg-background/80 backdrop-blur-md">
+      <div className="sticky top-16 flex justify-center items-center py-2.5 sm:py-3 z-[40] w-full border-b border-border/30 overflow-hidden bg-background/80 backdrop-blur-md">
         <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-2">
           {views.map((view) => {
             const Icon = view.icon;

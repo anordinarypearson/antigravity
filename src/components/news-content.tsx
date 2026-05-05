@@ -110,7 +110,7 @@ export function NewsContent() {
         <div className="flex flex-col h-full bg-muted/40 overflow-hidden">
 
             <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                <header className="mb-8 relative">
+                <header className="mb-8 sticky top-0 z-20 bg-muted/40 backdrop-blur-md pb-4 pt-2 -mx-4 px-4 -mt-2">
                     <div className="max-w-2xl mx-auto space-y-4">
                         <form onSubmit={handleSearch}>
                             <div className="relative">
