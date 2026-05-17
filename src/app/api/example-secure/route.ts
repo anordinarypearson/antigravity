@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Rate limiting
-        const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
         const rateLimitResult = checkRateLimit(ip, 10, 60000); // 10 requests per minute
 
         if (!rateLimitResult.allowed) {
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
     try {
         // Rate limiting
-        const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
         const rateLimitResult = checkRateLimit(ip, 30, 60000); // 30 requests per minute
 
         if (!rateLimitResult.allowed) {

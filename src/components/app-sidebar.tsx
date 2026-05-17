@@ -38,6 +38,7 @@ import {
   Inbox,
   Menu,
   ChevronDown,
+  Film,
 } from "lucide-react";
 import {
   Collapsible,
@@ -85,6 +86,7 @@ const resources = [
   { name: "Web Scraper", icon: <Search />, href: "/web-scraper" },
   { name: "YouTube Tools", icon: <Youtube />, href: "/youtube-extractor" },
   { name: "News", icon: <Rss />, href: "/news" },
+  { name: "Stories", icon: <Film />, href: "/stories" },
   { name: "eBooks", icon: <BookOpen />, href: "/ebooks" },
   { name: "Text-to-Speech", icon: <Volume2 />, href: "/text-to-speech" },
   { name: "AI Training", icon: <Cpu />, href: "/ai-training" },

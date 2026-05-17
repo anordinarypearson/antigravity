@@ -16,7 +16,7 @@ import { SharedHeader } from "./shared-header";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import dynamic from "next/dynamic";
 
-const NewsContent = dynamic(() => import("./news-content").then(mod => mod.NewsContent), { ssr: false });
+const StoriesContent = dynamic(() => import("./stories-content").then(mod => mod.StoriesContent), { ssr: false });
 const PricingDialog = dynamic(() => import("./pricing-dialog").then(mod => mod.PricingDialog), { ssr: false });
 const WebBrowserContent = dynamic(() => import("./web-browser-content").then(mod => mod.WebBrowserContent), { ssr: false });
 const CommandPalette = dynamic(() => import("./command-palette").then(mod => mod.CommandPalette), { ssr: false });
@@ -136,6 +136,36 @@ export const MainDashboard = React.memo(function MainDashboard() {
             </div>
           </div>
         }
+        centerElement={
+          <div className="flex items-center bg-muted/40 rounded-full p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-1 sm:px-2 shadow-sm border border-border/20">
+            {views.map((view) => {
+              const Icon = view.icon;
+              const isActive = activeView === view.id;
+              return (
+                <button
+                  key={view.id}
+                  onClick={() => setActiveView(view.id)}
+                  className={cn(
+                    "relative px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 rounded-full",
+                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  )}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-tab-bg"
+                      className="absolute inset-0 bg-background rounded-full shadow-sm border border-border/50"
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Icon className={cn("h-4 w-4 transition-colors hidden md:inline-block", isActive ? "text-primary" : "text-muted-foreground")} />
+                    <span>{view.label}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        }
       />
 
       {activeVideoId && (
@@ -173,36 +203,6 @@ export const MainDashboard = React.memo(function MainDashboard() {
         </div>
       )}
 
-      <div className="sticky top-16 flex justify-center items-center py-2.5 sm:py-3 z-[40] w-full border-b border-border/30 overflow-hidden bg-background/80 backdrop-blur-md">
-        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-2">
-          {views.map((view) => {
-            const Icon = view.icon;
-            const isActive = activeView === view.id;
-            return (
-              <button
-                key={view.id}
-                onClick={() => setActiveView(view.id)}
-                className={cn(
-                  "relative px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center gap-2 rounded-lg",
-                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-tab-bg"
-                    className="absolute inset-0 bg-background rounded-lg shadow-sm border border-border/50"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
-                  <span>{view.label}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       <div className="flex-1 flex overflow-hidden relative min-h-0">
         <main className="flex-1 flex flex-col overflow-hidden relative min-w-0 min-h-0">
@@ -218,7 +218,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
               />
             </div>
           ) : activeView === 'stories' ? (
-            <NewsContent />
+            <StoriesContent />
           ) : (
             <WebBrowserContent />
           )}

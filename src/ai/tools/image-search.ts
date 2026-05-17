@@ -2,6 +2,8 @@
 
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
+import { stealthFetch } from '@/lib/stealth-fetch';
+import { withCache, CACHE_TTL } from '@/lib/search-cache';
 
 const ImageResultSchema = z.object({
     url: z.string().url(),
@@ -26,6 +28,7 @@ const ImageSearchResultSchema = z.object({
 
 export type ImageSearchInput = {
     query: string;
+    maxImages?: number;
 };
 
 export type ImageSearchResult = z.infer<typeof ImageSearchResultSchema>;
@@ -34,24 +37,24 @@ export type ImageSearchResult = z.infer<typeof ImageSearchResultSchema>;
  * Search for images from multiple free sources
  * Now uses powerful Bing scraping for extremely accurate results, falling back to Wikimedia
  */
-export async function searchImages({ query }: ImageSearchInput): Promise<ImageSearchResult> {
+export async function searchImages({ query, maxImages = 30 }: ImageSearchInput): Promise<ImageSearchResult> {
     const images: z.infer<typeof ImageResultSchema>[] = [];
 
     try {
         // Try Bing first as it provides the most accurate and diverse images
         console.log(`[ImageSearch] Fetching Bing images for: ${query}`);
-        const bingResults = await searchBingImages(query);
+        const bingResults = await withCache('bing-images', query, CACHE_TTL.IMAGE_SEARCH, () => searchBingImages(query));
         images.push(...bingResults);
 
         // Fallback to Wikimedia Commons if we didn't get enough
-        if (images.length < 6) {
+        if (images.length < Math.min(10, maxImages)) {
             console.log(`[ImageSearch] Bing gave few results, adding Wikimedia for: ${query}`);
-            const wikimediaResults = await searchWikimedia(query);
+            const wikimediaResults = await withCache('wiki-images', query, CACHE_TTL.IMAGE_SEARCH, () => searchWikimedia(query));
             images.push(...wikimediaResults);
         }
 
-        // Limit to 10 images as requested
-        const finalImages = images.slice(0, 10);
+        // Limit to maxImages
+        const finalImages = images.slice(0, maxImages);
 
         return {
             type: 'image_search_result',
@@ -87,13 +90,10 @@ async function searchBingImages(query: string): Promise<z.infer<typeof ImageResu
     try {
         const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC2&first=1&safesearch=Moderate`;
 
-        const response = await fetch(searchUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-            },
-            signal: AbortSignal.timeout(8000) // Don't hang too long
+        // Stealth fetch — rotating UA to avoid Bing bot detection
+        const response = await stealthFetch(searchUrl, {
+            timeout: 8000,
+            queryContext: query,
         });
 
         if (!response.ok) throw new Error(`Bing HTTP error: ${response.status}`);
@@ -104,7 +104,7 @@ async function searchBingImages(query: string): Promise<z.infer<typeof ImageResu
 
         $('.iusc').each((i, el) => {
             const mData = $(el).attr('m');
-            if (mData && results.length < 12) {
+            if (mData && results.length < 40) { // Increased to get more images
                 try {
                     const m = JSON.parse(mData);
                     if (m.murl) {
@@ -143,9 +143,8 @@ async function searchWikimedia(query: string): Promise<z.infer<typeof ImageResul
     try {
         const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&prop=imageinfo&iiprop=url|size|extmetadata&iiurlwidth=400`;
 
-        const response = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'SearnAI/1.0 (Educational Purpose)' },
-            signal: AbortSignal.timeout(6000)
+        const response = await stealthFetch(searchUrl, {
+            timeout: 6000,
         });
 
         if (!response.ok) throw new Error(`Wikimedia API error: ${response.status}`);

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { webSearch } from '@/ai/tools/web-search';
+import { searchImages } from '@/ai/tools/image-search';
+import { generateExtractiveSummary } from '@/lib/summarizer';
 import * as cheerio from 'cheerio';
+import { stealthFetch } from '@/lib/stealth-fetch';
+import { extractReadableContent } from '@/lib/readability-engine';
 
 export const maxDuration = 60;
 
@@ -20,75 +24,35 @@ interface ImageResult {
     source: string;
 }
 
-async function fetchWithTimeout(url: string, timeout = 3000): Promise<Response> {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    try {
-        const response = await fetch(url, {
-            signal: controller.signal,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
-        clearTimeout(id);
-        return response;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
-    }
+// Decode HTML entities from text
+function decode(text: string): string {
+    return (text || '')
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&apos;/g, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#\d+;/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
-// Boilerplate phrases to filter out
-const BOILERPLATE_PHRASES = [
-    'cookie', 'privacy policy', 'terms of service', 'subscribe', 'newsletter',
-    'sign up', 'log in', 'accept cookies', 'we use cookies', 'consent',
-    'all rights reserved', 'copyright', 'advertisement', 'sponsored',
-];
+// fetchWithTimeout and BOILERPLATE_PHRASES removed — now handled by stealth-fetch + readability-engine
 
 async function extractPageContent(url: string): Promise<string | undefined> {
     try {
-        const response = await fetchWithTimeout(url, 2000);
+        // Perplexity-style: Use stealth fetch with rotating UA
+        const response = await stealthFetch(url, { timeout: 3000, queryContext: url });
         if (!response.ok) return undefined;
         const html = await response.text();
-        const $ = cheerio.load(html);
 
-        // Remove scripts, styles, noise
-        $('script, style, nav, footer, header, aside, .ad, .advertisement, .cookie-banner, .popup, .modal, .sidebar, .comments, form, iframe, noscript').remove();
+        // Use the readability engine for much better content extraction
+        const extracted = await extractReadableContent(html, url);
 
-        let content = '';
-
-        // Extract headings for context
-        $('h1, h2, h3').each((i: number, el: any) => {
-            const text = $(el).text().trim();
-            if (text.length > 5 && text.length < 150) {
-                content += text + '. ';
-            }
-        });
-
-        // Get paragraph text with quality filtering
-        $('p').each((i: number, el: any) => {
-            const text = $(el).text().trim();
-            // Only substantial paragraphs, skip boilerplate
-            if (text.length > 50) {
-                const lowerText = text.toLowerCase();
-                const isBoilerplate = BOILERPLATE_PHRASES.some(phrase => lowerText.includes(phrase));
-                if (!isBoilerplate) {
-                    content += text + ' ';
-                }
-            }
-        });
-
-        // Also extract list items for structured content
-        $('li').each((i: number, el: any) => {
-            const text = $(el).text().trim();
-            if (text.length > 30 && text.length < 300 && content.length < 1800) {
-                content += text + ' ';
-            }
-        });
-
-        if (content.trim().length < 50) return undefined;
-
-        return content.substring(0, 2000) + (content.length > 2000 ? '...' : '');
+        if (extracted.text.trim().length < 50) return undefined;
+        return extracted.text.substring(0, 2000) + (extracted.text.length > 2000 ? '...' : '');
     } catch (e) {
         return undefined;
     }
@@ -97,6 +61,7 @@ async function extractPageContent(url: string): Promise<string | undefined> {
 async function performWebSearch(query: string): Promise<{
     results: SearchResult[];
     images: ImageResult[];
+    quickSummary?: string;
 }> {
     try {
         // Use the shared multi-engine search (DDG + Brave + Wikipedia + Google News + Bing)
@@ -109,9 +74,9 @@ async function performWebSearch(query: string): Promise<{
                 try {
                     const hostname = new URL(item.url).hostname;
                     results.push({
-                        title: item.title,
+                        title: decode(item.title),
                         link: item.url,
-                        snippet: item.snippet,
+                        snippet: decode(item.snippet),
                         favicon: `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`,
                         source: hostname.replace('www.', ''),
                     });
@@ -134,52 +99,55 @@ async function performWebSearch(query: string): Promise<{
         // Fetch images
         const images: ImageResult[] = [];
         try {
-            const imageApiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&t=h_`;
-            const imageResponse = await fetch(imageApiUrl);
-            const imageData = await imageResponse.json();
-
-            if (imageData.RelatedTopics) {
-                for (const topic of imageData.RelatedTopics) {
-                    if (topic.Icon?.URL) {
-                        let url = topic.Icon.URL;
-                        if (!url.startsWith('http')) url = `https://duckduckgo.com${url}`;
-                        images.push({
-                            title: topic.Text || query,
-                            link: topic.FirstURL || '#',
-                            thumbnail: url,
-                            source: 'DuckDuckGo'
-                        });
-                    }
-                }
+            const imageResult = await searchImages({ query, maxImages: 6 });
+            if (imageResult && imageResult.images) {
+                images.push(...imageResult.images.map(img => ({
+                    title: img.title,
+                    link: img.url,
+                    thumbnail: img.thumbnailUrl,
+                    source: img.source
+                })));
             }
         } catch (e) {
-            // Image API failed
+            console.error('Fast web search image fetch failed:', e);
         }
 
-        // Ensure at least 4 images
-        if (images.length < 4) {
-            const extras = [
-                { suffix: 'visual', seed: 42 },
-                { suffix: 'infographic', seed: 43 },
-                { suffix: 'diagram', seed: 44 },
-                { suffix: 'photo', seed: 45 }
-            ];
+        let quickSummary = '';
+        try {
+            // Filter out news feeds so headlines don't pollute the summary
+            const nonNewsResults = results.filter(r => 
+                !r.url.includes('news.google') && 
+                !r.url.includes('reuters.com') &&
+                !r.url.includes('bbc.')
+            );
 
-            extras.forEach(({ suffix, seed }) => {
-                images.push({
-                    title: `${query} ${suffix}`,
-                    link: `https://pollinations.ai`,
-                    thumbnail: `https://image.pollinations.ai/prompt/${encodeURIComponent(query + ' ' + suffix)}?width=600&height=400&nologo=true&seed=${seed}`,
-                    source: 'AI Generated'
-                });
-            });
+            // Clean up the text before passing to the summarizer
+            const contextText = (nonNewsResults.length > 2 ? nonNewsResults : results)
+                .slice(0, 5)
+                .map(r => r.content || r.snippet || '')
+                .join(' . ') // Ensure sentence boundaries
+                // Strip obvious boilerplate
+                .replace(/cookie|privacy policy|terms of use|all rights reserved/gi, '')
+                .replace(/\s+/g, ' ');
+
+            if (contextText.length > 100) {
+                // Use our local TF-IDF summarizer (NO LLM REQUIRED!)
+                quickSummary = generateExtractiveSummary(contextText, 8);
+            }
+
+            if (!quickSummary || quickSummary.length < 30) {
+                quickSummary = searchData.quickSummary || '';
+            }
+        } catch (e) {
+            console.error('Fast web search summary failed:', e);
+            quickSummary = searchData.quickSummary || '';
         }
 
-        return { results, images: images.slice(0, 8) };
+        return { results, images: images.slice(0, 8), quickSummary };
 
     } catch (error) {
         console.error('Web search fatal error:', error);
-        return { results: [], images: [] };
+        return { results: [], images: [], quickSummary: '' };
     }
 }
 

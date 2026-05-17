@@ -104,8 +104,8 @@ export function WebSearchContent() {
                         <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
                             <Globe className="h-6 w-6 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
-                            Web Search AI
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 via-purple-500 to-indigo-400 bg-clip-text text-transparent">
+                            Deep Research
                         </h1>
                     </div>
 

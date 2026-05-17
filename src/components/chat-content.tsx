@@ -960,7 +960,8 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
                       { tool: 'calculator' as ToolName, icon: Calculator, label: 'Calculator' },
                       { tool: 'colorpicker' as ToolName, icon: Palette, label: 'Color Picker' },
                       { tool: 'dice' as ToolName, icon: Dices, label: 'Dice Roller' },
-                      { tool: 'websearch' as ToolName, icon: Search, label: 'Web Search' },
+                      { tool: 'websearch' as ToolName, icon: Search, label: 'Deep Research' },
+                      { tool: 'quicksearch' as ToolName, icon: Globe, label: 'Web Search' },
                     ].map(({ tool, icon: Icon, label }) => (
                       <button
                         key={tool}
@@ -1019,9 +1020,27 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
                 }
               }}
               disabled={isInputDisabled}
-              title="Web Search"
+              title="Deep Research"
             >
               <Search className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant={activeTool === 'quicksearch' ? 'secondary' : 'ghost'}
+              size="icon"
+              className={cn("h-8 w-8 rounded-lg", activeTool === 'quicksearch' && "bg-sky-500/15 text-sky-500")}
+              onClick={() => {
+                if (activeTool === 'quicksearch') {
+                  setActiveTool(null);
+                  setActiveButton(null);
+                } else {
+                  handleSelectTool('quicksearch' as ToolName);
+                }
+              }}
+              disabled={isInputDisabled}
+              title="Web Search"
+            >
+              <Globe className="h-4 w-4" />
             </Button>
           </div>
 

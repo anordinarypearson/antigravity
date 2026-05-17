@@ -28,9 +28,9 @@ import { Bell } from "lucide-react";
 
 
 interface SharedHeaderProps {
-    title?: string;
     leftElement?: React.ReactNode;
     rightElement?: React.ReactNode;
+    centerElement?: React.ReactNode;
 }
 
 function getInitials(name: string | null | undefined): string {
@@ -40,7 +40,7 @@ function getInitials(name: string | null | undefined): string {
     return parts[0].substring(0, 2).toUpperCase();
 }
 
-export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderProps) {
+export function SharedHeader({ title, leftElement, rightElement, centerElement }: SharedHeaderProps) {
     const { theme, setTheme } = useTheme();
     const { getUsageStats, usageData, subscription } = useUsageLimits();
     const [remainingMessages, setRemainingMessages] = useState<number | null>(null);
@@ -66,7 +66,7 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
     return (
         <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black dark:border-border bg-sidebar px-4 sm:px-6 transition-all duration-300">
             {/* ... left side ... */}
-            <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-4 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <SidebarTrigger />
                     {leftElement}
@@ -88,7 +88,13 @@ export function SharedHeader({ title, leftElement, rightElement }: SharedHeaderP
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            {centerElement && (
+                <div className="flex items-center justify-center shrink-0 max-w-[50%]">
+                    {centerElement}
+                </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
                 {rightElement}
 
                 {/* Search hint */}

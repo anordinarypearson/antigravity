@@ -11,7 +11,7 @@ import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useToast } from "@/hooks/use-toast";
 
 // ─── TYPES ────────────────────────────────────────────────────────────
-export type ToolName = "timer" | "stopwatch" | "calculator" | "colorpicker" | "dice" | "websearch";
+export type ToolName = "timer" | "stopwatch" | "calculator" | "colorpicker" | "dice" | "websearch" | "quicksearch";
 
 // Types mirrored from web-scraper.ts for client use (avoids importing server-only module)
 type ScrapedSource = {
@@ -28,7 +28,7 @@ type WebScraperOutput = {
     stats: {
         totalSourcesFound: number; sourcesScraped: number; totalWords: number;
         averageResponseMs: number; averageQuality: number;
-        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number };
+        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing?: number; searxng?: number; scholar?: number; mojeek?: number };
     };
     error?: string;
 };
@@ -1079,10 +1079,12 @@ export function DiceRollerWidget({ userMessage }: { userMessage: string }) {
 
 // ─── WEB SEARCH WIDGET ────────────────────────────────────────────────
 const SEARCH_LOADING_STAGES = [
-    { text: "Searching across engines...", icon: <Search className="h-4 w-4" />, sub: "DuckDuckGo • Brave • Wikipedia • Google News" },
-    { text: "Scraping top sources...", icon: <Globe className="h-4 w-4" />, sub: "Extracting structured content" },
-    { text: "Analyzing & ranking...", icon: <Shield className="h-4 w-4" />, sub: "Quality + trust scoring" },
-    { text: "Synthesizing answer...", icon: <Sparkles className="h-4 w-4" />, sub: "Building comprehensive response" },
+    { text: "Querying 8 search engines...", icon: <Search className="h-4 w-4" />, sub: "DuckDuckGo • Brave • Bing • Wikipedia • Google News • Scholar • SearXNG • Mojeek" },
+    { text: "Fetching web pages...", icon: <Globe className="h-4 w-4" />, sub: "Downloading content from top sources" },
+    { text: "Extracting key content...", icon: <BookOpen className="h-4 w-4" />, sub: "Parsing headings, paragraphs, metadata" },
+    { text: "Scoring & ranking...", icon: <Shield className="h-4 w-4" />, sub: "Quality + trust + relevance analysis" },
+    { text: "AI synthesis in progress...", icon: <Sparkles className="h-4 w-4" />, sub: "Building comprehensive answer" },
+    { text: "Generating insights...", icon: <ArrowRight className="h-4 w-4" />, sub: "Key takeaways + related questions" },
 ];
 
 export function WebSearchWidget({ userMessage }: { userMessage: string }) {
@@ -1093,6 +1095,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
     const [error, setError] = useState<string | null>(null);
     const [expandedSource, setExpandedSource] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
+    const [answerExpanded, setAnswerExpanded] = useState(false);
     const { toast } = useToast();
     const inputRef = useRef<HTMLInputElement>(null);
     const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -1112,13 +1115,13 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
         loadingIntervalRef.current = setInterval(() => {
             stage = Math.min(stage + 1, SEARCH_LOADING_STAGES.length - 1);
             setLoadingStage(stage);
-        }, 1800);
+        }, 1200);
 
         try {
             const res = await fetch('/api/web-scraper', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: q, maxSources: 8 }),
+                body: JSON.stringify({ query: q, maxSources: 60, extractMode: 'full' }),
             });
             const json = await res.json();
             if (!res.ok || json.error) {
@@ -1164,13 +1167,33 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
             className="w-full max-w-2xl mx-auto flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-blue-500/8 via-cyan-500/5 to-emerald-500/8 border border-blue-500/20 backdrop-blur-sm"
         >
             {/* Header */}
-            <div className="flex items-center gap-2 text-sm font-medium text-blue-400">
-                <Search className="h-4 w-4" />
-                <span>Web Search</span>
+            <div className="flex items-center gap-2 text-sm font-medium text-violet-400">
+                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/15 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="font-semibold tracking-wide">Deep Research</span>
+                    {result && (
+                        <span className="text-[10px] text-muted-foreground/60 font-normal">
+                            {result.stats.sourcesScraped} sources scraped · {result.responseTime.toFixed(1)}s
+                        </span>
+                    )}
+                </div>
                 {result && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                        {result.stats.sourcesScraped} sources • {result.responseTime.toFixed(1)}s
-                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <div className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                result.stats.averageQuality >= 70 ? "bg-emerald-400" : result.stats.averageQuality >= 50 ? "bg-amber-400" : "bg-red-400"
+                            )} />
+                            <span className={cn(
+                                "text-[10px] font-semibold",
+                                result.stats.averageQuality >= 70 ? "text-emerald-400" : result.stats.averageQuality >= 50 ? "text-amber-400" : "text-red-400"
+                            )}>
+                                {result.stats.averageQuality >= 70 ? 'High' : result.stats.averageQuality >= 50 ? 'Medium' : 'Low'} Confidence
+                            </span>
+                        </div>
+                    </div>
                 )}
             </div>
 
@@ -1204,6 +1227,22 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-3 overflow-hidden"
                     >
+                        {/* Progress bar */}
+                        <div className="w-full">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[10px] text-muted-foreground/60 font-mono">Progress</span>
+                                <span className="text-[10px] text-violet-400 font-bold">{Math.round(((loadingStage + 1) / SEARCH_LOADING_STAGES.length) * 100)}%</span>
+                            </div>
+                            <div className="h-1 w-full rounded-full bg-muted/20 overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500"
+                                    initial={{ width: '0%' }}
+                                    animate={{ width: `${((loadingStage + 1) / SEARCH_LOADING_STAGES.length) * 100}%` }}
+                                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                                />
+                            </div>
+                        </div>
+
                         {SEARCH_LOADING_STAGES.map((stage, idx) => (
                             <motion.div
                                 key={idx}
@@ -1217,7 +1256,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                             >
                                 <div className={cn(
                                     "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
-                                    idx <= loadingStage ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/40"
+                                    idx <= loadingStage ? "bg-violet-500/15 text-violet-400" : "bg-muted/30 text-muted-foreground/40"
                                 )}>
                                     {idx < loadingStage ? <Check className="h-4 w-4 text-emerald-400" /> : idx === loadingStage ? <WavyLoader className="h-4 w-4 animate-spin" /> : stage.icon}
                                 </div>
@@ -1238,7 +1277,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                 </motion.div>
             )}
 
-            {/* Results */}
+            {/* Results — Full Deep Research view */}
             <AnimatePresence>
                 {result && !isSearching && (
                     <motion.div
@@ -1281,22 +1320,38 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                             </div>
                         )}
 
-                        {/* Detailed Answer */}
+                        {/* Detailed Answer — Collapsible */}
                         {result.answer && (
                             <div className="p-4 rounded-xl bg-background/60 border border-border/40">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <Globe className="h-3.5 w-3.5 text-blue-400" />
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Detailed Answer</span>
+                                        <Globe className="h-3.5 w-3.5 text-muted-foreground/80" />
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Detailed Answer</span>
                                     </div>
                                     <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleCopyAnswer}>
                                         {copied ? <Check className="h-3 w-3 mr-1 text-emerald-400" /> : <Copy className="h-3 w-3 mr-1" />}
                                         {copied ? 'Copied' : 'Copy'}
                                     </Button>
                                 </div>
-                                <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-foreground/90 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-                                    <SimpleMarkdown>{result.answer}</SimpleMarkdown>
+                                <div className="relative">
+                                    <div className={cn(
+                                        "prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-foreground/90 pr-2 custom-scrollbar transition-all duration-300",
+                                        !answerExpanded && result.answer.length > 600 ? "max-h-48 overflow-hidden" : "max-h-none"
+                                    )}>
+                                        <SimpleMarkdown>{result.answer}</SimpleMarkdown>
+                                    </div>
+                                    {!answerExpanded && result.answer.length > 600 && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/90 to-transparent pointer-events-none" />
+                                    )}
                                 </div>
+                                {result.answer.length > 600 && (
+                                    <button
+                                        onClick={() => setAnswerExpanded(!answerExpanded)}
+                                        className="mt-2 text-xs text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1"
+                                    >
+                                        {answerExpanded ? 'Show less' : 'Read full answer'} <ArrowRight className={cn("h-3 w-3 transition-transform", answerExpanded && "rotate-90")} />
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -1317,65 +1372,40 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="relative flex-shrink-0 w-64 h-48 rounded-2xl overflow-hidden group border border-border/30 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all snap-center cursor-pointer bg-background/50"
+                                            className="relative flex-shrink-0 w-56 h-44 rounded-2xl overflow-hidden group border border-border/30 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all snap-center cursor-pointer bg-background/50"
                                             onMouseEnter={() => setExpandedSource(i)}
                                             onMouseLeave={() => setExpandedSource(null)}
                                         >
-                                            {/* Image Background */}
                                             {source.meta?.ogImage ? (
-                                                <div 
-                                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" 
-                                                    style={{ backgroundImage: `url(${source.meta.ogImage})` }} 
-                                                />
+                                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${source.meta.ogImage})` }} />
                                             ) : (
                                                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 transition-transform duration-700 group-hover:scale-110" />
                                             )}
-                                            
-                                            {/* Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20 group-hover:from-black via-black/80 transition-colors duration-300" />
-
-                                            {/* Content */}
-                                            <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
-                                                {/* Top Row: Favicon & Domain */}
+                                            <div className="absolute inset-0 flex flex-col justify-between p-3 z-10">
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2 max-w-[70%] bg-black/40 backdrop-blur-md border border-white/10 px-2 py-1 rounded-full">
+                                                    <div className="flex items-center gap-1.5 max-w-[70%] bg-black/40 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-full">
                                                         {source.favicon && (
-                                                            <img src={source.favicon} alt="" className="h-3.5 w-3.5 rounded-sm bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                                            <img src={source.favicon} alt="" className="h-3 w-3 rounded-sm bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
                                                         )}
-                                                        <span className="text-[10px] font-medium text-white/90 truncate">{source.domain}</span>
+                                                        <span className="text-[9px] font-medium text-white/90 truncate">{source.domain}</span>
                                                     </div>
-                                                    <div className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md border border-white/10", getTrustColor(source.trustScore))}>
-                                                        {getTrustLabel(source.trustScore) === 'Low Trust' ? 'Low' : getTrustLabel(source.trustScore).replace(' Trust', '')}
+                                                    <div className={cn("px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md border border-white/10", getTrustColor(source.trustScore))}>
+                                                        {source.trustScore >= 85 ? 'High' : source.trustScore >= 70 ? 'Good' : 'Med'}
                                                     </div>
                                                 </div>
-
-                                                {/* Bottom Row: Title & Expanded Snippet */}
-                                                <div className="space-y-1.5 transition-all duration-300">
-                                                    <h3 className="text-sm font-semibold text-white/95 leading-tight line-clamp-2 group-hover:line-clamp-none">
-                                                        {source.title}
-                                                    </h3>
-                                                    
+                                                <div>
+                                                    <h3 className="text-xs font-semibold text-white/95 leading-tight line-clamp-2">{source.title}</h3>
                                                     <AnimatePresence>
                                                         {expandedSource === i && (
-                                                            <motion.div
+                                                            <motion.p
                                                                 initial={{ opacity: 0, height: 0 }}
                                                                 animate={{ opacity: 1, height: 'auto' }}
                                                                 exit={{ opacity: 0, height: 0 }}
-                                                                className="overflow-hidden"
+                                                                className="text-[10px] text-white/60 line-clamp-3 mt-1 border-t border-white/10 pt-1"
                                                             >
-                                                                <p className="text-[11px] text-white/70 line-clamp-3 leading-relaxed mt-2 border-t border-white/10 pt-2">
-                                                                    {source.snippet}
-                                                                </p>
-                                                                <div className="flex items-center gap-2 mt-2 text-[10px] text-white/50">
-                                                                    <span>{source.contentType}</span>
-                                                                    {source.readingTimeMin > 0 && (
-                                                                        <>
-                                                                            <span>•</span>
-                                                                            <span>{source.readingTimeMin}m read</span>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            </motion.div>
+                                                                {source.snippet}
+                                                            </motion.p>
                                                         )}
                                                     </AnimatePresence>
                                                 </div>
@@ -1400,9 +1430,9 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                                             whileHover={{ scale: 1.03 }}
                                             whileTap={{ scale: 0.97 }}
                                             onClick={() => handleSearch(q)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-background/50 border border-border/40 text-foreground/80 hover:bg-background/80 hover:border-blue-500/30 transition-all"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-background/50 border border-border/40 text-foreground/80 hover:bg-background/80 hover:border-foreground/30 transition-all"
                                         >
-                                            <ArrowRight className="h-3 w-3 text-blue-400" />
+                                            <ArrowRight className="h-3 w-3 text-muted-foreground/70" />
                                             {q}
                                         </motion.button>
                                     ))}
@@ -1410,21 +1440,34 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                             </div>
                         )}
 
-                        {/* Stats Bar */}
-                        <div className="flex items-center justify-between pt-2 border-t border-border/20">
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground/60">
-                                <span>{result.stats.totalWords.toLocaleString()} words analyzed</span>
-                                <span>Avg quality: {result.stats.averageQuality}%</span>
+                        {/* Stats Bar — Enhanced with engine breakdown */}
+                        <div className="pt-3 border-t border-border/20 space-y-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground/60">
+                                    <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> {result.stats.sourcesScraped} sources</span>
+                                    <span>·</span>
+                                    <span>{result.stats.totalWords.toLocaleString()} words</span>
+                                    <span>·</span>
+                                    <span>Avg quality {result.stats.averageQuality}%</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                    onClick={() => handleSearch()}
+                                >
+                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                    Re-research
+                                </Button>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                                onClick={() => handleSearch()}
-                            >
-                                <RefreshCw className="h-3 w-3 mr-1" />
-                                Refresh
-                            </Button>
+                            {/* Engine breakdown */}
+                            <div className="flex flex-wrap gap-1.5">
+                                {Object.entries(result.stats.searchEngines).filter(([, v]) => v > 0).map(([engine, count]) => (
+                                    <span key={engine} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted/20 text-[10px] text-muted-foreground/50 font-mono">
+                                        {engine} <span className="text-violet-400/70 font-semibold">{count}</span>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -1444,7 +1487,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                             <button
                                 key={i}
                                 onClick={() => { setQuery(example); handleSearch(example); }}
-                                className="px-3 py-1.5 text-xs rounded-full bg-background/50 border border-border/40 text-foreground/70 hover:bg-background/80 hover:border-blue-500/30 transition-all"
+                                className="px-3 py-1.5 text-xs rounded-full bg-background/50 border border-border/40 text-foreground/70 hover:bg-background/80 hover:border-foreground/30 transition-all"
                             >
                                 {example}
                             </button>
@@ -1456,8 +1499,244 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
     );
 }
 
+// ─── QUICK WEB SEARCH WIDGET ─────────────────────────────────────────
+export function QuickWebSearchWidget({ userMessage }: { userMessage: string }) {
+    const [query, setQuery] = useState(userMessage?.trim() || '');
+    const [isSearching, setIsSearching] = useState(false);
+    const [results, setResults] = useState<{ title: string; link: string; snippet: string; favicon: string; source?: string }[]>([]);
+    const [images, setImages] = useState<{ title: string; link: string; thumbnail: string; source: string }[]>([]);
+    const [quickSummary, setQuickSummary] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTime, setSearchTime] = useState<number | null>(null);
+    const [showAll, setShowAll] = useState(false);
+    const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
 
-// ─── TOOL WIDGET ROUTER ───────────────────────────────────────────────
+    const handleSearch = useCallback(async (searchQuery?: string) => {
+        const q = (searchQuery || query).trim();
+        if (!q) return;
+        setQuery(q);
+        setIsSearching(true);
+        setError(null);
+        setResults([]);
+        setImages([]);
+        setQuickSummary(null);
+        setShowAll(false);
+        const t0 = Date.now();
+        try {
+            const res = await fetch('/api/web-search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q }),
+            });
+            const json = await res.json();
+            if (!res.ok || json.error) {
+                setError(json.error || 'Search failed.');
+            } else if (json.results) {
+                setResults(json.results);
+                setImages(json.images || []);
+                setQuickSummary(json.quickSummary || null);
+                setSearchTime((Date.now() - t0) / 1000);
+            }
+        } catch (e: any) {
+            setError(e.message || 'Search failed. Please try again.');
+        } finally {
+            setIsSearching(false);
+        }
+    }, [query]);
+
+    useEffect(() => {
+        if (userMessage?.trim() && userMessage.trim().length > 2) {
+            handleSearch(userMessage.trim());
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleCopyLink = (link: string, idx: number) => {
+        navigator.clipboard.writeText(link);
+        setCopiedIdx(idx);
+        toast({ title: "Link copied!", description: link.substring(0, 60) + '…' });
+        setTimeout(() => setCopiedIdx(null), 1500);
+    };
+
+    const visibleResults = showAll ? results.slice(0, 8) : results.slice(0, 4);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="w-full flex flex-col gap-4"
+        >
+            {/* Header */}
+            <div className="flex items-center gap-2 text-sm font-medium text-sky-400">
+                <div className="h-6 w-6 rounded-lg bg-sky-500/15 flex items-center justify-center">
+                    <Globe className="h-3.5 w-3.5" />
+                </div>
+                <span className="font-semibold tracking-wide">Fast Web Search</span>
+                {searchTime && (
+                    <span className="ml-auto text-[11px] text-muted-foreground/60 font-mono">
+                        {results.length} results · {searchTime.toFixed(1)}s
+                    </span>
+                )}
+            </div>
+
+            {/* Re-search input */}
+            {!isSearching && results.length > 0 && (
+                <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex gap-2">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Refine your search..."
+                        className="flex-1 h-8 px-3 rounded-lg bg-background/60 border border-border/40 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30 transition-all"
+                    />
+                    <Button type="submit" size="sm" className="h-8 px-3 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 text-xs border-0">
+                        <Search className="h-3 w-3 mr-1" /> Search
+                    </Button>
+                </form>
+            )}
+
+            {/* Loading — animated shimmer */}
+            <AnimatePresence>
+                {isSearching && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2.5">
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="h-5 w-5 rounded-md bg-sky-500/15 flex items-center justify-center">
+                                <Search className="h-3 w-3 text-sky-400 animate-pulse" />
+                            </div>
+                            <span className="text-xs text-sky-400 animate-pulse">Searching 8 engines...</span>
+                        </div>
+                        {[1, 2, 3, 4].map(i => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="h-[60px] rounded-xl overflow-hidden relative"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-muted/20 via-sky-500/8 to-muted/20 animate-pulse" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[shimmer_2s_ease-in-out_infinite]" style={{ animationDelay: `${i * 200}ms` }} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Error */}
+            {error && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs">!</span>
+                    </div>
+                    {error}
+                </motion.div>
+            )}
+
+            <AnimatePresence>
+                {results.length > 0 && !isSearching && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                        
+                        {/* Images */}
+                        {images.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar snap-x snap-mandatory">
+                                {images.map((img, i) => (
+                                    <a key={i} href={img.link} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 snap-center">
+                                        <div className="h-24 w-36 rounded-xl overflow-hidden border border-border/30 hover:border-sky-500/50 transition-colors relative group">
+                                            <img 
+                                                src={img.thumbnail} 
+                                                alt={img.title} 
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                                onError={(e) => {
+                                                    const target = e.currentTarget;
+                                                    target.style.display = 'none';
+                                                    if (target.parentElement?.parentElement) {
+                                                        target.parentElement.parentElement.style.display = 'none';
+                                                    }
+                                                }}
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-1.5">
+                                                <span className="text-[9px] text-white font-medium truncate w-full">{img.source}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* AI Summary */}
+                        {quickSummary && (
+                            <div className="relative rounded-xl overflow-hidden">
+                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-muted-foreground/30" />
+                                <div className="pl-4 pr-3 py-3 bg-muted/20 border border-border/40 rounded-xl">
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                        <Sparkles className="h-3 w-3 text-muted-foreground/80" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">AI Summary</span>
+                                    </div>
+                                    <p className="text-sm text-foreground/85 leading-relaxed">{quickSummary}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Results — All visible with show more */}
+                        <div className="space-y-2">
+                        {visibleResults.map((r, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="group flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/30 hover:border-sky-500/40 hover:bg-background/90 hover:shadow-md transition-all relative"
+                            >
+                                <div className="flex-shrink-0 mt-0.5">
+                                    <img src={r.favicon} alt="" className="h-4 w-4 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                </div>
+                                <a href={r.link} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                        <span className="text-[11px] text-sky-400/80 font-medium truncate">{r.source || (() => { try { return new URL(r.link).hostname.replace('www.', ''); } catch { return r.link; } })()}</span>
+                                        <ExternalLink className="h-2.5 w-2.5 text-muted-foreground/30 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                    <p className="text-sm font-medium text-foreground group-hover:text-sky-400 transition-colors line-clamp-1">{r.title}</p>
+                                    <p className="text-xs text-muted-foreground/70 line-clamp-2 mt-0.5 leading-relaxed">{r.snippet}</p>
+                                </a>
+                                {/* Copy button */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleCopyLink(r.link, i); }}
+                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-muted/50"
+                                    title="Copy link"
+                                >
+                                    {copiedIdx === i ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3 text-muted-foreground/50" />}
+                                </button>
+                            </motion.div>
+                        ))}
+                        
+                        {/* Show more / less toggle */}
+                        {results.length > 4 && (
+                            <motion.button
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                onClick={() => setShowAll(!showAll)}
+                                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-sky-400/70 hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-500/5"
+                            >
+                                {showAll ? (
+                                    <>Show less</>
+                                ) : (
+                                    <>Show {Math.min(results.length - 4, 4)} more results <ArrowRight className="h-3 w-3" /></>
+                                )}
+                            </motion.button>
+                        )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+        </motion.div>
+    );
+}
+
+
 export function ToolWidgetRouter({ tool, userMessage }: { tool: ToolName; userMessage: string }) {
     switch (tool) {
         case "timer":
@@ -1472,6 +1751,8 @@ export function ToolWidgetRouter({ tool, userMessage }: { tool: ToolName; userMe
             return <DiceRollerWidget userMessage={userMessage} />;
         case "websearch":
             return <WebSearchWidget userMessage={userMessage} />;
+        case "quicksearch":
+            return <QuickWebSearchWidget userMessage={userMessage} />;
         default:
             return null;
     }

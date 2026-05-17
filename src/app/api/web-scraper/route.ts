@@ -4,7 +4,7 @@ import { webScraperAction } from '@/app/web-scraper';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { query, maxSources } = body;
+        const { query, maxSources, extractMode } = body;
 
         if (!query || typeof query !== 'string') {
             return NextResponse.json({ error: 'Invalid query' }, { status: 400 });
@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
 
         const result = await webScraperAction({
             query,
-            maxSources: maxSources || 8,
+            maxSources: maxSources || (extractMode === 'full' ? 60 : 8),
+            extractMode: extractMode || 'summary',
         });
 
         return NextResponse.json(result);

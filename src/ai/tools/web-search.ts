@@ -2,6 +2,9 @@
 
 import { z } from 'zod';
 import * as cheerio from 'cheerio';
+import { stealthFetch } from '@/lib/stealth-fetch';
+import { withCache, CACHE_TTL } from '@/lib/search-cache';
+import { generateExtractiveSummary } from '@/lib/summarizer';
 
 const SearchResultSchema = z.object({
   title: z.string(),
@@ -15,6 +18,62 @@ export type WebSearchInput = {
 };
 
 export type WebSearchResult = z.infer<typeof SearchResultSchema>;
+
+// Decode HTML entities from snippet text
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/&#\d+;/g, '') // Remove other numeric entities
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Quick summary generation from top snippets (no AI — pure heuristic)
+function generateQuickSummary(results: WebSearchResult[], query: string): string {
+  if (results.length === 0) return '';
+
+  const cleanSnippet = (raw: string): string => {
+    let s = decodeHtmlEntities(raw);
+    // Strip news attribution: "The New York Times — Thu, 07 May 2026 22:15:33 GMT:"
+    s = s.replace(/^[A-Z][\w\s&'.,-]+(?: —| –| -| \|)\s*(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[^:]*:\s*/i, '');
+    s = s.replace(/^(?:Reuters|AP|BBC[\w\s]*|CNN|The [\w\s]+Times|The Guardian|Al Jazeera|NDTV|Bloomberg|Forbes|Axios|NPR)[\s.—–:-]+/i, '');
+    s = s.replace(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s+\d{1,2}\s+\w+\s+\d{4}[\s\d:]*(?:GMT|UTC|EST|PST|IST)?:?\s*/gi, '');
+    s = s.replace(/^\s*\d{1,2}:\d{2}(?:\s*(?:AM|PM|GMT|UTC|EST|PST|IST))?[\s:|-]*\s*/i, '');
+    s = s.replace(/(?:Updated\s+)?\d+\s+(?:hours?|minutes?|mins?|days?|seconds?)\s+ago\.?\s*/gi, '');
+    return s.trim();
+  };
+
+  const rankedResults = [...results]
+    .filter(r => !r.url.includes('news.google') && !r.url.includes('reuters.com') && !r.url.includes('bbc.'))
+    .sort((a, b) => {
+      const isAInfo = a.url.includes('wikipedia.org') || a.url.includes('britannica.com') || a.url.includes('.edu') || a.url.includes('.org');
+      const isBInfo = b.url.includes('wikipedia.org') || b.url.includes('britannica.com') || b.url.includes('.edu') || b.url.includes('.org');
+      if (isAInfo && !isBInfo) return -1;
+      if (!isAInfo && isBInfo) return 1;
+      return 0;
+    });
+
+  const topSnippets = rankedResults
+    .slice(0, 12)
+    .map(r => cleanSnippet(r.snippet))
+    .filter(s => s.length > 50 && s.length < 350
+      && !s.startsWith('No description')
+      && !/cookie|privacy|subscribe|sign.?up|copyright|shop|cart|checkout/i.test(s)
+      && !/^(home|menu|search|skip to|share|order online|delivery)/i.test(s));
+  
+  if (topSnippets.length === 0) return '';
+
+  const combinedText = topSnippets.join(' . ');
+  return generateExtractiveSummary(combinedText, 8);
+}
 
 /**
  * Multi-source web search combining:
@@ -31,25 +90,29 @@ export async function webSearch({ query, maxResults = 20 }: WebSearchInput) {
   const seenUrls = new Set<string>();
   const seenDomains = new Map<string, number>();
 
-  // Run ALL 6 search engines in parallel for maximum speed & coverage
-  const [ddgResults, braveResults, wikiResults, newsResults, bingResults, searxResults] = await Promise.allSettled([
-    searchDuckDuckGo(query),
-    searchBrave(query),
-    searchWikipedia(query),
-    searchGoogleNews(query),
-    searchBing(query),
-    searchSearXNG(query),
+  // Run ALL 8 search engines in parallel — each individually cached
+  const [ddgResults, braveResults, wikiResults, newsResults, bingResults, searxResults, scholarResults, mojeekResults] = await Promise.allSettled([
+    withCache('ddg', query, CACHE_TTL.WEB_SEARCH, () => searchDuckDuckGo(query)),
+    withCache('brave', query, CACHE_TTL.WEB_SEARCH, () => searchBrave(query)),
+    withCache('wiki', query, CACHE_TTL.REFERENCE, () => searchWikipedia(query)),
+    withCache('gnews', query, CACHE_TTL.NEWS, () => searchGoogleNews(query)),
+    withCache('bing', query, CACHE_TTL.WEB_SEARCH, () => searchBing(query)),
+    withCache('searx', query, CACHE_TTL.WEB_SEARCH, () => searchSearXNG(query)),
+    withCache('scholar', query, CACHE_TTL.REFERENCE, () => searchGoogleScholar(query)),
+    withCache('mojeek', query, CACHE_TTL.WEB_SEARCH, () => searchMojeek(query)),
   ]);
 
   // Log search engine results for debugging
-  console.log(`[WebSearch] DDG: ${ddgResults.status === 'fulfilled' ? ddgResults.value.length : 'failed'}, Brave: ${braveResults.status === 'fulfilled' ? braveResults.value.length : 'failed'}, Wiki: ${wikiResults.status === 'fulfilled' ? wikiResults.value.length : 'failed'}, News: ${newsResults.status === 'fulfilled' ? newsResults.value.length : 'failed'}, Bing: ${bingResults.status === 'fulfilled' ? bingResults.value.length : 'failed'}, SearX: ${searxResults.status === 'fulfilled' ? searxResults.value.length : 'failed'}`);
+  console.log(`[WebSearch] DDG: ${ddgResults.status === 'fulfilled' ? ddgResults.value.length : 'failed'}, Brave: ${braveResults.status === 'fulfilled' ? braveResults.value.length : 'failed'}, Wiki: ${wikiResults.status === 'fulfilled' ? wikiResults.value.length : 'failed'}, News: ${newsResults.status === 'fulfilled' ? newsResults.value.length : 'failed'}, Bing: ${bingResults.status === 'fulfilled' ? bingResults.value.length : 'failed'}, SearX: ${searxResults.status === 'fulfilled' ? searxResults.value.length : 'failed'}, Scholar: ${scholarResults.status === 'fulfilled' ? scholarResults.value.length : 'failed'}, Mojeek: ${mojeekResults.status === 'fulfilled' ? mojeekResults.value.length : 'failed'}`);
 
-  // Interleave results: news first for freshness, then DDG, SearX, Bing, Brave, Wiki
+  // Interleave results: news first for freshness, then DDG, Scholar, SearX, Mojeek, Bing, Brave, Wiki
   const allBuckets: WebSearchResult[][] = [];
 
   if (newsResults.status === 'fulfilled' && newsResults.value.length > 0) allBuckets.push(newsResults.value);
   if (ddgResults.status === 'fulfilled' && ddgResults.value.length > 0) allBuckets.push(ddgResults.value);
+  if (scholarResults.status === 'fulfilled' && scholarResults.value.length > 0) allBuckets.push(scholarResults.value);
   if (searxResults.status === 'fulfilled' && searxResults.value.length > 0) allBuckets.push(searxResults.value);
+  if (mojeekResults.status === 'fulfilled' && mojeekResults.value.length > 0) allBuckets.push(mojeekResults.value);
   if (bingResults.status === 'fulfilled' && bingResults.value.length > 0) allBuckets.push(bingResults.value);
   if (braveResults.status === 'fulfilled' && braveResults.value.length > 0) allBuckets.push(braveResults.value);
   if (wikiResults.status === 'fulfilled' && wikiResults.value.length > 0) allBuckets.push(wikiResults.value);
@@ -77,11 +140,15 @@ export async function webSearch({ query, maxResults = 20 }: WebSearchInput) {
   }
 
   if (results.length === 0) {
-    return { noResults: true };
+    return { results: [], quickSummary: '', searchMeta: { sources: {}, totalFound: 0 } };
   }
+
+  // Generate a quick summary from the top results
+  const quickSummary = generateQuickSummary(results, query);
 
   return {
     results,
+    quickSummary,
     searchMeta: {
       sources: {
         duckduckgo: ddgResults.status === 'fulfilled' ? ddgResults.value.length : 0,
@@ -90,6 +157,8 @@ export async function webSearch({ query, maxResults = 20 }: WebSearchInput) {
         googleNews: newsResults.status === 'fulfilled' ? newsResults.value.length : 0,
         bing: bingResults.status === 'fulfilled' ? bingResults.value.length : 0,
         searxng: searxResults.status === 'fulfilled' ? searxResults.value.length : 0,
+        scholar: scholarResults.status === 'fulfilled' ? scholarResults.value.length : 0,
+        mojeek: mojeekResults.status === 'fulfilled' ? mojeekResults.value.length : 0,
       },
       totalFound: results.length,
     },
@@ -112,12 +181,11 @@ async function searchGoogleNews(query: string): Promise<WebSearchResult[]> {
   try {
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
 
-    const response = await fetch(rssUrl, {
+    const response = await stealthFetch(rssUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml',
       },
-      signal: AbortSignal.timeout(8000),
+      timeout: 6000,
     });
 
     if (!response.ok) return [];
@@ -156,9 +224,8 @@ async function searchWikipedia(query: string): Promise<WebSearchResult[]> {
   try {
     const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(query)}&srlimit=5&srprop=snippet&origin=*`;
 
-    const response = await fetch(searchUrl, {
-      headers: { 'User-Agent': 'SearnAI/2.0 (Educational Platform)' },
-      signal: AbortSignal.timeout(8000),
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
     });
 
     if (!response.ok) return [];
@@ -184,13 +251,10 @@ async function searchWikipedia(query: string): Promise<WebSearchResult[]> {
 async function searchDuckDuckGo(query: string): Promise<WebSearchResult[]> {
   try {
     const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(10000),
+    // Stealth fetch — rotates UA per request like Perplexity does
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
+      queryContext: query,
     });
 
     if (!response.ok) return [];
@@ -198,7 +262,7 @@ async function searchDuckDuckGo(query: string): Promise<WebSearchResult[]> {
     const results: WebSearchResult[] = [];
     const $ = cheerio.load(html);
 
-    $('.result').slice(0, 12).each((_, element) => {
+    $('.result').slice(0, 20).each((_, element) => {
       const el = $(element);
       const titleLink = el.find('a.result__a');
       const title = titleLink.text().trim();
@@ -228,13 +292,10 @@ async function searchDuckDuckGo(query: string): Promise<WebSearchResult[]> {
 async function searchBrave(query: string): Promise<WebSearchResult[]> {
   try {
     const searchUrl = `https://search.brave.com/search?q=${encodeURIComponent(query)}&source=web`;
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(10000),
+    // Stealth fetch with rotating browser fingerprint
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
+      queryContext: query,
     });
 
     if (!response.ok) return [];
@@ -242,7 +303,7 @@ async function searchBrave(query: string): Promise<WebSearchResult[]> {
     const results: WebSearchResult[] = [];
     const $ = cheerio.load(html);
 
-    $('[data-type="web"]').slice(0, 10).each((_, element) => {
+    $('[data-type="web"]').slice(0, 15).each((_, element) => {
       const el = $(element);
       const titleLink = el.find('a').first();
       const url = titleLink.attr('href') || '';
@@ -268,13 +329,10 @@ async function searchBrave(query: string): Promise<WebSearchResult[]> {
 async function searchBing(query: string): Promise<WebSearchResult[]> {
   try {
     const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en`;
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(10000),
+    // Stealth fetch — Bing is aggressive about bot detection
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
+      queryContext: query,
     });
 
     if (!response.ok) return [];
@@ -282,7 +340,7 @@ async function searchBing(query: string): Promise<WebSearchResult[]> {
     const results: WebSearchResult[] = [];
     const $ = cheerio.load(html);
 
-    $('li.b_algo').slice(0, 10).each((_, element) => {
+    $('li.b_algo').slice(0, 15).each((_, element) => {
       const el = $(element);
       const titleLink = el.find('h2 a').first();
       const url = titleLink.attr('href') || '';
@@ -317,12 +375,11 @@ async function searchSearXNG(query: string): Promise<WebSearchResult[]> {
   for (const instance of instances) {
     try {
       const searchUrl = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=general&language=en`;
-      const response = await fetch(searchUrl, {
+      const response = await stealthFetch(searchUrl, {
         headers: {
           'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         },
-        signal: AbortSignal.timeout(8000),
+        timeout: 6000,
       });
 
       if (!response.ok) continue;
@@ -331,7 +388,7 @@ async function searchSearXNG(query: string): Promise<WebSearchResult[]> {
       if (!data.results || !Array.isArray(data.results)) continue;
 
       const results: WebSearchResult[] = [];
-      for (const item of data.results.slice(0, 10)) {
+      for (const item of data.results.slice(0, 15)) {
         if (item.url && item.title) {
           try {
             new URL(item.url);
@@ -353,4 +410,106 @@ async function searchSearXNG(query: string): Promise<WebSearchResult[]> {
 
   console.error('SearXNG: all instances failed');
   return [];
+}
+
+/**
+ * Search Google Scholar for academic and research results.
+ * Uses the public HTML interface — no API key required.
+ */
+async function searchGoogleScholar(query: string): Promise<WebSearchResult[]> {
+  try {
+    const searchUrl = `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}&hl=en`;
+    // Stealth fetch — Google Scholar is very strict about bots
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
+      queryContext: query,
+    });
+
+    if (!response.ok) return [];
+    const html = await response.text();
+    const results: WebSearchResult[] = [];
+    const $ = cheerio.load(html);
+
+    $('.gs_ri').slice(0, 10).each((_, element) => {
+      const el = $(element);
+      const titleLink = el.find('h3 a').first();
+      const title = titleLink.text().trim();
+      let url = titleLink.attr('href') || '';
+      const snippet = el.find('.gs_rs').text().replace(/\s+/g, ' ').trim().substring(0, 300);
+      const authors = el.find('.gs_a').text().trim();
+
+      if (url && title && title.length > 3 && !url.includes('scholar.google.com')) {
+        try {
+          new URL(url);
+          results.push({
+            title: `📄 ${title}`,
+            url,
+            snippet: authors ? `${authors} — ${snippet}` : snippet || 'Academic publication',
+          });
+        } catch { }
+      }
+    });
+
+    return results;
+  } catch (error) {
+    console.error('Google Scholar search error:', error);
+    return [];
+  }
+}
+
+/**
+ * Search using Mojeek — an independent, crawler-based search engine.
+ * Provides unique results not sourced from Google/Bing.
+ */
+async function searchMojeek(query: string): Promise<WebSearchResult[]> {
+  try {
+    const searchUrl = `https://www.mojeek.com/search?q=${encodeURIComponent(query)}&fmt=json`;
+    // Stealth fetch for Mojeek
+    const response = await stealthFetch(searchUrl, {
+      timeout: 6000,
+      accept: 'application/json, text/html',
+      queryContext: query,
+    });
+
+    if (!response.ok) {
+      // Mojeek might not support JSON, fallback to HTML scraping
+      const htmlResponse = await fetch(`https://www.mojeek.com/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html',
+        },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (!htmlResponse.ok) return [];
+      const html = await htmlResponse.text();
+      const $ = cheerio.load(html);
+      const results: WebSearchResult[] = [];
+      
+      $('li.result, .results-standard li').slice(0, 15).each((_, element) => {
+        const el = $(element);
+        const titleLink = el.find('a.ob').first().length ? el.find('a.ob').first() : el.find('h2 a, a').first();
+        const url = titleLink.attr('href') || '';
+        const title = titleLink.text().trim();
+        const snippet = el.find('p.s, .s').first().text().replace(/\s+/g, ' ').trim().substring(0, 250);
+        if (url && title && !url.includes('mojeek.com')) {
+          try { new URL(url); results.push({ title, url, snippet: snippet || 'No description available.' }); } catch { }
+        }
+      });
+      return results;
+    }
+
+    const data = await response.json();
+    if (!data.response?.results) return [];
+
+    return data.response.results.slice(0, 8).map((item: any) => ({
+      title: item.title || '',
+      url: item.url || '',
+      snippet: (item.desc || 'No description available.').substring(0, 250),
+    })).filter((r: WebSearchResult) => {
+      try { new URL(r.url); return r.title.length > 3; } catch { return false; }
+    });
+  } catch (error) {
+    console.error('Mojeek search error:', error);
+    return [];
+  }
 }

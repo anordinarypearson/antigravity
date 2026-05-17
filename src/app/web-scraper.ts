@@ -5,6 +5,8 @@ import { searchImages } from '@/ai/tools/image-search';
 import * as cheerio from 'cheerio';
 import { openai } from '@/lib/openai';
 import { DEFAULT_MODEL_ID } from '@/lib/models';
+import { stealthFetchWithRetry } from '@/lib/stealth-fetch';
+import { extractReadableContent, type ExtractedContent } from '@/lib/readability-engine';
 
 export type WebScraperInput = {
     query: string;
@@ -47,7 +49,7 @@ export type WebScraperOutput = {
         totalWords: number;
         averageResponseMs: number;
         averageQuality: number;
-        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; searxng: number };
+        searchEngines: { duckduckgo: number; brave: number; wikipedia: number; googleNews: number; bing: number; searxng: number; scholar: number; mojeek: number };
     };
     error?: string;
 };
@@ -358,34 +360,11 @@ async function scrapeSingleWebsite(url: string): Promise<{
     const start = Date.now();
 
     try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), SCRAPE_TIMEOUT_MS);
-
-        const response = await fetch(url, {
-            signal: controller.signal,
-            headers: {
-                // Full modern browser fingerprint to bypass bot detection on more sites
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9,hi;q=0.7',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
-                'Sec-CH-UA': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-                'Sec-CH-UA-Mobile': '?0',
-                'Sec-CH-UA-Platform': '"Windows"',
-                'Upgrade-Insecure-Requests': '1',
-                'Referer': `https://www.google.com/search?q=${encodeURIComponent(url)}`,
-                'DNT': '1',
-            },
-            redirect: 'follow',
-        });
-
-        clearTimeout(timeout);
+        // Perplexity-style: Use stealth fetch with rotating UA and automatic retry
+        const response = await stealthFetchWithRetry(url, {
+            timeout: SCRAPE_TIMEOUT_MS,
+            queryContext: url,
+        }, 2);
 
         if (!response.ok) {
             return { content: '', headings: [], links: [], meta: {}, responseMs: Date.now() - start, contentType: 'other', qualityScore: 0, trustScore };
@@ -397,10 +376,12 @@ async function scrapeSingleWebsite(url: string): Promise<{
         }
 
         const html = await response.text();
-        const $ = cheerio.load(html);
-        const extracted = extractStructuredContent($);
-        const detectedType = detectContentType(url, $);
-        const quality = calculateQualityScore(extracted.text, extracted.headings, extracted.meta, detectedType, trustScore);
+
+        // Perplexity-style: Use readability engine instead of basic CSS selectors
+        const extracted = await extractReadableContent(html, url);
+
+        // Apply trust score bonus to quality
+        const adjustedQuality = Math.min(100, extracted.qualityScore + Math.round((trustScore - 50) / 10));
 
         setCache(url, {
             content: extracted.text, headings: extracted.headings,
@@ -410,7 +391,8 @@ async function scrapeSingleWebsite(url: string): Promise<{
         return {
             content: extracted.text, headings: extracted.headings,
             links: extracted.links, meta: extracted.meta,
-            responseMs: Date.now() - start, contentType: detectedType, qualityScore: quality, trustScore,
+            responseMs: Date.now() - start, contentType: extracted.contentType,
+            qualityScore: adjustedQuality, trustScore,
         };
     } catch (error: any) {
         console.error(`Scrape error ${url}:`, error.message?.substring(0, 80));
@@ -472,7 +454,8 @@ function generateRelatedQuestions(query: string, sources: { content: string; hea
 
 async function aiSynthesizeAnswer(
     query: string,
-    sources: { title: string; url: string; content: string; headings: string[]; qualityScore: number; trustScore: number }[]
+    sources: { title: string; url: string; content: string; headings: string[]; qualityScore: number; trustScore: number }[],
+    extractMode: 'full' | 'summary' | 'structured' = 'summary'
 ): Promise<{ answer: string; quickSummary: string; keyTakeaways: string[]; relatedQuestions: string[] } | null> {
     try {
         // Dramatically optimize inference speed by sending ONLY the top N most relevant dense paragraphs 
@@ -481,7 +464,7 @@ async function aiSynthesizeAnswer(
         
         const contextParts: string[] = [];
         let totalLen = 0;
-        const MAX_CONTEXT = 7000; // Dense high-information context block
+        const MAX_CONTEXT = extractMode === 'full' ? 50000 : 7000; // Deep Research gets huge context block
 
         for (const item of selected) {
             if (totalLen >= MAX_CONTEXT) break;
@@ -506,7 +489,9 @@ RULES:
 - If sources conflict, mention both perspectives
 - Use a warm, informative tone
 
-Respond in EXACTLY this JSON format (no markdown fences around the JSON):
+You MUST respond ONLY with a valid JSON object. Do NOT include any conversational text before or after the JSON.
+Your entire response must be parseable by JSON.parse().
+
 {
   "answer": "The full markdown answer...",
   "quickSummary": "A 1-2 sentence summary (max 150 words)",
@@ -519,16 +504,16 @@ Respond in EXACTLY this JSON format (no markdown fences around the JSON):
 Sources:
 ${context}
 
-Synthesize a comprehensive answer from these sources.`;
+Synthesize a comprehensive answer from these sources. Remember, you must return ONLY a valid JSON object matching the exact format specified in your system prompt. Do not output anything else.`;
 
         const response = await openai.chat.completions.create({
-            model: 'Meta-Llama-3.3-70B-Instruct', // Fast SambaNova model (3.1-8B throws 404)
+            model: 'Meta-Llama-3.3-70B-Instruct', // Fast SambaNova model
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
             ],
             // Removed response_format as it causes 404s on some SambaNova endpoints
-            max_tokens: 1500,
+            max_tokens: extractMode === 'full' ? 3000 : 1500, // Longer answer for deep research
             temperature: 0.3,
             top_p: 0.9,
         });
@@ -903,7 +888,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
         // Step 1: Multi-engine search (4 engines)
         const searchResults = await webSearch({ query: input.query, maxResults: maxSources + 4 });
 
-        if (searchResults.noResults || !searchResults.results || searchResults.results.length === 0) {
+        if (!searchResults.results || searchResults.results.length === 0) {
             const responseTime = (Date.now() - startTime) / 1000;
             return {
                 data: {
@@ -913,7 +898,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                     stats: {
                         totalSourcesFound: 0, sourcesScraped: 0, totalWords: 0,
                         averageResponseMs: 0, averageQuality: 0,
-                        searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0 },
+                        searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0, scholar: 0, mojeek: 0 },
                     },
                 }
             };
@@ -1013,7 +998,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
         let relatedQuestions: string[];
 
         // Try AI synthesis first for much better quality
-        const aiResult = synthInput.length > 0 ? await aiSynthesizeAnswer(input.query, synthInput) : null;
+        const aiResult = synthInput.length > 0 ? await aiSynthesizeAnswer(input.query, synthInput, input.extractMode) : null;
 
         if (aiResult) {
             console.log('[Web Scraper] Using AI-synthesized answer');
@@ -1045,7 +1030,16 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                     sourcesScraped: scrapedCount, totalWords,
                     averageResponseMs: scrapedCount > 0 ? Math.round(totalResponseMs / scrapedCount) : 0,
                     averageQuality: scrapedCount > 0 ? Math.round(totalQuality / scrapedCount) : 0,
-                    searchEngines: searchMeta.sources,
+                    searchEngines: {
+                        duckduckgo: searchMeta.sources.duckduckgo ?? 0,
+                        brave: searchMeta.sources.brave ?? 0,
+                        wikipedia: searchMeta.sources.wikipedia ?? 0,
+                        googleNews: searchMeta.sources.googleNews ?? 0,
+                        bing: searchMeta.sources.bing ?? 0,
+                        searxng: searchMeta.sources.searxng ?? 0,
+                        scholar: searchMeta.sources.scholar ?? 0,
+                        mojeek: searchMeta.sources.mojeek ?? 0,
+                    },
                 },
             }
         };
@@ -1061,7 +1055,7 @@ export async function webScraperAction(input: WebScraperInput): Promise<ActionRe
                 stats: {
                     totalSourcesFound: 0, sourcesScraped: 0, totalWords: 0,
                     averageResponseMs: 0, averageQuality: 0,
-                    searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0 },
+                    searchEngines: { duckduckgo: 0, brave: 0, wikipedia: 0, googleNews: 0, bing: 0, searxng: 0, scholar: 0, mojeek: 0 },
                 },
             }
         };
