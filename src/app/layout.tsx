@@ -1,6 +1,6 @@
 
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Literata } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -9,9 +9,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
 
 
-const inter = Inter({
+const literata = Literata({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-literata',
   display: 'swap',
 });
 
@@ -52,10 +52,10 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className={cn("min-h-screen bg-background font-body antialiased", inter.variable)} suppressHydrationWarning>
+      <body className={cn("min-h-screen bg-background font-body antialiased", literata.variable)} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

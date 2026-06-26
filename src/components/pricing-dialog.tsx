@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
-import { Check, X, Sparkles, TrendingUp, Crown } from "lucide-react";
+import { Check, X, Zap, TrendingUp, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { SUBSCRIPTION_PRICES, SUBSCRIPTION_FEATURES, SubscriptionTier } from "@/lib/subscription-limits";
@@ -17,7 +17,7 @@ interface PricingDialogProps {
 
 const tierIcons = {
     free: null,
-    go: Sparkles,
+    go: Zap,
     plus: TrendingUp,
     pro: Crown,
 };

@@ -116,9 +116,9 @@ async function performWebSearch(query: string): Promise<{
         try {
             // Filter out news feeds so headlines don't pollute the summary
             const nonNewsResults = results.filter(r => 
-                !r.url.includes('news.google') && 
-                !r.url.includes('reuters.com') &&
-                !r.url.includes('bbc.')
+                !r.link.includes('news.google') && 
+                !r.link.includes('reuters.com') &&
+                !r.link.includes('bbc.')
             );
 
             // Clean up the text before passing to the summarizer
@@ -132,7 +132,7 @@ async function performWebSearch(query: string): Promise<{
 
             if (contextText.length > 100) {
                 // Use our local TF-IDF summarizer (NO LLM REQUIRED!)
-                quickSummary = generateExtractiveSummary(contextText, 8);
+                quickSummary = generateExtractiveSummary(contextText, 8, query);
             }
 
             if (!quickSummary || quickSummary.length < 30) {

@@ -5,30 +5,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { AppLogo } from "@/components/app-logo";
 
-// SVG logo reused from login-content for consistency
-const AppLogo = () => (
-  <svg
-    className="h-20 w-20 text-primary loading-screen-logo"
-    viewBox="0 0 100 100"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M50 5L90 28V72L50 95L10 72V28L50 5Z"
-      fill="currentColor"
-      className="opacity-10"
-    />
-    <path
-      d="M63 40.5C63 36.3579 59.6421 33 55.5 33H44.5C40.3579 33 37 36.3579 37 40.5V43.5C37 47.6421 40.3579 51 44.5 51H55.5C59.6421 51 63 54.3579 63 58.5V61.5C63 65.6421 59.6421 69 55.5 69H44.5C40.3579 69 37 65.6421 37 61.5"
-      stroke="currentColor"
-      strokeWidth="8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-primary"
-    />
-  </svg>
-);
+
 
 function LoadingScreen() {
   return (
@@ -39,12 +18,12 @@ function LoadingScreen() {
         
         {/* Animated Logo */}
         <motion.div
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.8, ease: "easeOut" }}
-           className="mt-[-10vh]"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="relative drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]"
         >
-          <AppLogo />
+          <AppLogo className="h-20 w-20 text-primary loading-screen-logo" />
         </motion.div>
 
         {/* Text Animation */}

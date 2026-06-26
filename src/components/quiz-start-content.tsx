@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import QuizInterface from "./quiz-interface";
-import { GenerateQuizzesOutput } from "@/app/actions";
+import type { GenerateQuizzesSambaOutput as GenerateQuizzesOutput } from "@/ai/flows/generate-quizzes-samba";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";

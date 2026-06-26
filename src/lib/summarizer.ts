@@ -1,4 +1,4 @@
-export function generateExtractiveSummary(text: string, maxSentences: number = 3): string {
+export function generateExtractiveSummary(text: string, maxSentences: number = 3, query?: string): string {
     if (!text || text.trim().length === 0) return '';
 
     // 1. Split into sentences (smart regex that doesn't split on abbreviations like i.e. or single initials)
@@ -110,6 +110,8 @@ export function generateExtractiveSummary(text: string, maxSentences: number = 3
     });
 
     // 4. Score sentences based on TF-IDF
+    const queryWords = query ? new Set(getWords(query)) : new Set<string>();
+
     const sentenceScores = sentences.map((sentence, idx) => {
         const words = sentenceWords[idx];
         if (words.length === 0) return { idx, score: 0, sentence };
@@ -133,6 +135,18 @@ export function generateExtractiveSummary(text: string, maxSentences: number = 3
         // Run-on penalty: > 35 words is usually a bad sentence to extract
         if (sentence.split(' ').length > 35) {
             score *= 0.7;
+        }
+
+        // Query Relevance Boost
+        if (queryWords.size > 0) {
+            let matchCount = 0;
+            words.forEach(w => {
+                if (queryWords.has(w)) matchCount++;
+            });
+            if (matchCount > 0) {
+                const boost = 1 + (matchCount / queryWords.size) * 1.0;
+                score *= boost;
+            }
         }
 
         return { idx, score, sentence };

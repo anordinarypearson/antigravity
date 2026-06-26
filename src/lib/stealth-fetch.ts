@@ -53,6 +53,7 @@ export type StealthFetchOptions = {
     method?: 'GET' | 'POST';
     body?: string;
     accept?: string;
+    headers?: Record<string, string>;
     /** If true, adds a search-engine referrer matching the query */
     queryContext?: string;
 };
@@ -89,6 +90,7 @@ export async function stealthFetch(url: string, options: StealthFetchOptions = {
         'Pragma': 'no-cache',
         'DNT': '1',
         'Upgrade-Insecure-Requests': '1',
+        ...(options.headers || {}),
     };
 
     if (referrer) {

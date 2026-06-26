@@ -7,12 +7,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Presentation, Wand2, Download, Milestone, Lightbulb, ListOrdered, CheckCircle, Sparkles } from "lucide-react"
+import { Presentation, Wand2, Download, Milestone, Lightbulb, ListOrdered, CheckCircle } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
-import { generatePresentationAction, GeneratePresentationOutput } from "@/app/actions";
+import { generatePresentationAction } from "@/app/actions";
+import type { GeneratePresentationOutput } from "@/ai/flows/generate-presentation";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import React from "react";
@@ -21,11 +22,11 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 const SlideIcon = ({ type }: { type: string }) => {
     switch (type) {
-        case 'title': return <Sparkles className="w-8 h-8" />;
+        case 'title': return <Lightbulb className="w-8 h-8" />;
         case 'overview': return <ListOrdered className="w-8 h-8" />;
         case 'content': return <Milestone className="w-8 h-8" />;
         case 'summary': return <CheckCircle className="w-8 h-8" />;
-        case 'closing': return <Sparkles className="w-8 h-8" />;
+        case 'closing': return <Lightbulb className="w-8 h-8" />;
         default: return <Presentation className="w-8 h-8" />;
     }
 }

@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { Play, Pause, RotateCcw, Flag, Copy, Check, Dices, RefreshCw,
     Timer, Clock, Calculator, Palette, Search, Globe, ExternalLink,
-    Sparkles, Shield, BookOpen, ArrowRight } from "lucide-react"
+    Shield, BookOpen, ArrowRight } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useToast } from "@/hooks/use-toast";
 
@@ -1083,7 +1083,7 @@ const SEARCH_LOADING_STAGES = [
     { text: "Fetching web pages...", icon: <Globe className="h-4 w-4" />, sub: "Downloading content from top sources" },
     { text: "Extracting key content...", icon: <BookOpen className="h-4 w-4" />, sub: "Parsing headings, paragraphs, metadata" },
     { text: "Scoring & ranking...", icon: <Shield className="h-4 w-4" />, sub: "Quality + trust + relevance analysis" },
-    { text: "AI synthesis in progress...", icon: <Sparkles className="h-4 w-4" />, sub: "Building comprehensive answer" },
+    { text: "AI synthesis in progress...", icon: null, sub: "Building comprehensive answer" },
     { text: "Generating insights...", icon: <ArrowRight className="h-4 w-4" />, sub: "Key takeaways + related questions" },
 ];
 
@@ -1168,10 +1168,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
         >
             {/* Header */}
             <div className="flex items-center gap-2 text-sm font-medium text-violet-400">
-                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/15 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4" />
-                </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col ml-1">
                     <span className="font-semibold tracking-wide">Deep Research</span>
                     {result && (
                         <span className="text-[10px] text-muted-foreground/60 font-normal">
@@ -1289,7 +1286,7 @@ export function WebSearchWidget({ userMessage }: { userMessage: string }) {
                         {result.quickSummary && (
                             <div className="p-4 rounded-xl bg-background/60 border border-border/40">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Sparkles className="h-4 w-4 text-amber-400" />
+                                    {/* Sparkles removed */}
                                     <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Quick Summary</span>
                                 </div>
                                 <p className="text-sm text-foreground leading-relaxed">{result.quickSummary}</p>
@@ -1672,7 +1669,7 @@ export function QuickWebSearchWidget({ userMessage }: { userMessage: string }) {
                                 <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-muted-foreground/30" />
                                 <div className="pl-4 pr-3 py-3 bg-muted/20 border border-border/40 rounded-xl">
                                     <div className="flex items-center gap-1.5 mb-1.5">
-                                        <Sparkles className="h-3 w-3 text-muted-foreground/80" />
+                                        {/* Sparkles removed */}
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">AI Summary</span>
                                     </div>
                                     <p className="text-sm text-foreground/85 leading-relaxed">{quickSummary}</p>

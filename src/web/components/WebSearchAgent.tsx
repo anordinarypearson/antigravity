@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search, Globe, ChevronsRight, ExternalLink } from 'lucide-react';
-import { Skeleton } from './ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { extractGoogleResults } from '../utils/extractors';
 
 interface SearchResult {
@@ -79,7 +79,7 @@ const WebSearchAgent = () => {
         if (extractedResults && extractedResults.length > 0) {
             setResults(extractedResults);
             // Forward results to chat UI
-            window.electronAPI.sendSearchResults({ query, results: extractedResults });
+            (window as any).electronAPI.sendSearchResults({ query, results: extractedResults });
         } else {
             setError('Failed to extract results. The page structure might have changed or the page didn\'t load correctly.');
         }
@@ -125,7 +125,7 @@ const WebSearchAgent = () => {
         const currentUrl = event.url;
         setWebviewUrl(currentUrl);
         // Inform chat that navigation happened
-        window.electronAPI.sendWebViewNavigation(currentUrl);
+        (window as any).electronAPI.sendWebViewNavigation(currentUrl);
       };
 
       webview.addEventListener('dom-ready', handleDomReady);
@@ -139,7 +139,7 @@ const WebSearchAgent = () => {
   }, [handleExtraction]);
 
   useEffect(() => {
-    const cleanup = window.electronAPI.onOpenInWebview((url: string) => {
+    const cleanup = (window as any).electronAPI.onOpenInWebview((url: string) => {
         setQuery(url); // Set query to the URL itself or a derived search term
         handleSearch(url);
     });
@@ -155,7 +155,7 @@ const WebSearchAgent = () => {
             <CardDescription>Enter a query to search Google and see results here.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleSearch(query); }} className="flex gap-2">
+            <form onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleSearch(query); }} className="flex gap-2">
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -200,7 +200,7 @@ const WebSearchAgent = () => {
               ref={webviewRef}
               src={webviewUrl}
               className="w-full h-full border-0"
-              allowpopups="true"
+              allowpopups={true}
             />
           </CardContent>
         </Card>

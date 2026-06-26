@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Search,  ExternalLink, Image as ImageIcon, Globe, AlertCircle, BookOpen, AlignLeft } from "lucide-react"
+import { Search,  ExternalLink, Image as ImageIcon, Globe, AlertCircle, BookOpen, AlignLeft, Sparkles } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Badge } from "./ui/badge";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
@@ -33,6 +33,7 @@ interface SearchResponse {
     query: string;
     results: SearchResult[];
     images: ImageResult[];
+    quickSummary?: string;
     timestamp: string;
 }
 
@@ -183,6 +184,21 @@ export function WebSearchContent() {
 
                     {searchResults && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+                            {/* AI Quick Answer / Summary (Perplexity Style) */}
+                            {searchResults.quickSummary && (
+                                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="flex items-center gap-2 border-b border-border/50 pb-4 mb-4">
+                                        <Sparkles className="h-5 w-5 text-purple-500 animate-pulse" />
+                                        <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">AI Quick Answer</h3>
+                                    </div>
+                                    <Card className="border-border/50 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-transparent shadow-md hover:shadow-lg transition-all p-6">
+                                        <div className="text-foreground leading-relaxed text-base whitespace-pre-line prose dark:prose-invert max-w-none">
+                                            {searchResults.quickSummary}
+                                        </div>
+                                    </Card>
+                                </section>
+                            )}
 
                             {/* 1. Images First (Perplexity Style) */}
                             {searchResults.images.length > 0 && (

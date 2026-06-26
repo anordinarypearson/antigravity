@@ -107,7 +107,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: https: blob:",
               "media-src 'self' blob: data:",
-              "connect-src 'self' https://*.googleapis.com https://*.google.com https://identitytoolkit.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://razorpay.com https://*.razorpay.com https://api.unsplash.com https://api.pexels.com",
+              "connect-src 'self' https://*.googleapis.com https://*.google.com https://identitytoolkit.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://razorpay.com https://*.razorpay.com https://api.unsplash.com https://api.pexels.com https://huggingface.co https://*.huggingface.co https://cdn.jsdelivr.net",
               "frame-src 'self' https://accounts.google.com https://api.razorpay.com https://*.firebaseapp.com https://www.youtube.com",
               "object-src 'none'",
               "base-uri 'self'",

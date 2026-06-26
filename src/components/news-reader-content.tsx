@@ -1,14 +1,15 @@
 
 "use client";
 
-import { chatAction, SummarizeContentOutput, summarizeContentAction } from "@/app/actions";
+import { chatAction, summarizeContentAction } from "@/app/actions";
+import type { SummarizeContentOutput } from "@/ai/flows/summarize-content";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot,  Send, User, Sparkles, Sidebar, Moon, Sun } from "lucide-react"
+import { Bot,  Send, User, Sidebar, Moon, Sun } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useRef, useEffect, useCallback } from "react";
 import { marked } from "marked";
@@ -123,14 +124,14 @@ export function NewsReaderContent() {
             const result = await chatAction({
                 history: fullHistory,
                 fileContent: fileContent,
-                model: 'gemma-3-12b-it', // Use a fast model for news chat
+                model: 'DeepSeek-V3.2', // Use a fast model for news chat
             });
 
             if (result.error) {
                 toast({ title: "Chat Error", description: result.error, variant: "destructive" });
                 setHistory((prev) => prev.filter(msg => msg !== userMessage));
             } else if (result.data) {
-                const assistantMessage: Message = { role: "assistant", content: result.data.response };
+                const assistantMessage: Message = { role: "assistant", content: result.data.content };
                 setHistory((prev) => [...prev, assistantMessage]);
             }
         });
@@ -243,7 +244,7 @@ export function NewsReaderContent() {
                                     {history.length === 0 && !isTyping && (
                                         <div className="pt-4">
                                             <div className="flex items-center gap-2 mb-3">
-                                                <Sparkles className="text-primary w-5 h-5" />
+                                                {/* Sparkles removed */}
                                                 <p className="text-sm font-semibold text-muted-foreground">Try asking...</p>
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

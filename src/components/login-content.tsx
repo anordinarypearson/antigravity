@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react"
+import { useTheme } from "@/components/theme-provider";
+import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock, Sun, Moon } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { AppLogo } from "@/components/app-logo";
 
 // Social provider icons as SVG components
 const GoogleIcon = () => (
@@ -40,28 +42,6 @@ const GithubIcon = () => (
     </svg>
 );
 
-const AppLogo = () => (
-    <svg
-        className="h-14 w-14 text-primary"
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-    >
-        <path
-            d="M50 5L90 28V72L50 95L10 72V28L50 5Z"
-            fill="currentColor"
-            className="opacity-10"
-        />
-        <path
-            d="M63 40.5C63 36.3579 59.6421 33 55.5 33H44.5C40.3579 33 37 36.3579 37 40.5V43.5C37 47.6421 40.3579 51 44.5 51H55.5C59.6421 51 63 54.3579 63 58.5V61.5C63 65.6421 59.6421 69 55.5 69H44.5C40.3579 69 37 65.6421 37 61.5"
-            stroke="currentColor"
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-primary"
-        />
-    </svg>
-);
 
 export function LoginContent() {
     const { signInWithEmail, sendPasswordReset, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithTwitter } = useAuth();
@@ -73,6 +53,13 @@ export function LoginContent() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const containerVariants = {
         hidden: { opacity: 0, y: 10 },
@@ -162,16 +149,31 @@ export function LoginContent() {
 
     return (
         <div className="relative flex min-h-screen items-center justify-center bg-background p-4 sm:p-6">
+            {mounted && (
+                <div className="absolute top-4 right-4 z-20">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                        className="mask-wavy hover:bg-muted/60 h-10 w-10 touch-manipulation"
+                        title="Toggle theme"
+                    >
+                        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
+                </div>
+            )}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
                 className="w-full max-w-[400px] z-10"
             >
-                <Card className="border-border shadow-md bg-card">
+                <Card className="border-0 shadow-none bg-transparent">
                     <CardHeader className="text-center space-y-4 pt-8 pb-6">
                         <motion.div variants={itemVariants} className="flex justify-center">
-                            <AppLogo />
+                            <AppLogo className="h-14 w-14 text-primary" />
                         </motion.div>
                         <div className="space-y-1">
                             <motion.div variants={itemVariants}>

@@ -5,7 +5,7 @@ import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Image as ImageIcon, AlertTriangle, Download,
-    ExternalLink, X, ZoomIn, Filter, Sparkles, Grid3X3, LayoutGrid,
+    ExternalLink, X, ZoomIn, Filter, Grid3X3, LayoutGrid,
     ChevronDown, Heart, Share2, Copy, Check } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import Image from "next/image";
@@ -245,9 +245,7 @@ export function ImageSearchContent() {
                     <SidebarTrigger className="md:hidden" />
                     <BackButton />
                     <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500">
-                            <ImageIcon className="h-4 w-4 text-white" />
-                        </div>
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
                         <h1 className="text-xl font-semibold tracking-tight">Image Search</h1>
                     </div>
                 </div>
@@ -326,7 +324,7 @@ export function ImageSearchContent() {
                             className="max-w-2xl mx-auto"
                         >
                             <div className="flex items-center gap-2 mb-3">
-                                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                                {/* Sparkles removed */}
                                 <p className="text-sm font-medium text-muted-foreground">Trending</p>
                             </div>
                             <div className="flex flex-wrap gap-2">

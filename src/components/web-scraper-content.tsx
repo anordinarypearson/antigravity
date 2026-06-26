@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ExternalLink, Clock, AlertCircle, Copy, Check,
     Globe, BarChart3, FileText, Link2, ChevronDown, ChevronUp,
-    Sparkles, Zap, X, History, ArrowRight, BookOpen, Hash,
+    Zap, X, History, ArrowRight, BookOpen, Hash,
     Shield, Download, Star, TrendingUp, Lightbulb, Timer,
     Database, Layers, Award, Activity, Eye, RefreshCw,
     Info, ChevronLeft, ChevronRight, Newspaper } from "lucide-react"
@@ -36,7 +36,7 @@ const LOADING_STAGES = [
     { text: "Scraping 12 web pages...", icon: <Globe className="h-4 w-4" />, sub: "Parallel fetching & parsing" },
     { text: "Extracting content & images...", icon: <Layers className="h-4 w-4" />, sub: "Headings, text, OG images, AI fallbacks" },
     { text: "Scoring & ranking sources...", icon: <Shield className="h-4 w-4" />, sub: "Quality + trust analysis" },
-    { text: "Synthesizing answer...", icon: <Sparkles className="h-4 w-4" />, sub: "Building response with takeaways" },
+    { text: "Synthesizing answer...", icon: null, sub: "Building response with takeaways" },
 ];
 
 export function WebScraperContent() {
@@ -322,7 +322,7 @@ export function WebScraperContent() {
                         <motion.div key="loading" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="py-12">
                             <div className="flex flex-col items-center gap-8">
                                 <div className="relative">
-                                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 via-violet-500/10 to-primary/5 flex items-center justify-center border border-primary/10">
+                                    <div className="h-20 w-20 rounded-2xl flex items-center justify-center">
                                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }}>
                                             <Globe className="h-8 w-8 text-primary" />
                                         </motion.div>
@@ -442,7 +442,7 @@ export function WebScraperContent() {
                             <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-muted/50 border border-border/30 max-w-md mx-auto">
                                 {([
                                     { key: 'summary' as const, icon: <Lightbulb className="h-3.5 w-3.5" />, label: 'Summary' },
-                                    { key: 'answer' as const, icon: <Sparkles className="h-3.5 w-3.5" />, label: 'Full Answer' },
+                                    { key: 'answer' as const, icon: null, label: 'Full Answer' },
                                     { key: 'sources' as const, icon: <BookOpen className="h-3.5 w-3.5" />, label: `Sources (${result.sources.length})` },
                                 ]).map(tab => (
                                     <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -608,7 +608,7 @@ export function WebScraperContent() {
                                     <div className="h-1 bg-gradient-to-r from-primary via-violet-500 to-primary/20" />
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-violet-500/10 flex items-center justify-center border border-primary/10"><Sparkles className="h-4 w-4 text-primary" /></div>
+                                            <div className="h-9 w-9 flex items-center justify-center"></div>
                                             <div>
                                                 <CardTitle className="text-lg">Detailed Answer</CardTitle>
                                                 <CardDescription className="text-xs">From {result.stats?.sourcesScraped || 0} scraped sources</CardDescription>
@@ -696,7 +696,7 @@ export function WebScraperContent() {
                     {!loading && !result && !error && (
                         <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-12">
                             <div className="text-center mb-10">
-                                <div className="relative inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-violet-500/10 border border-primary/10 mb-4">
+                                <div className="relative inline-flex h-16 w-16 items-center justify-center mb-4">
                                     <Search className="h-7 w-7 text-primary" />
                                     <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
                                         <span className="text-[9px] font-bold text-white">12</span>
@@ -733,7 +733,7 @@ export function WebScraperContent() {
                                     { icon: <Zap className="h-3.5 w-3.5" />, label: "12 Sources Parallel" },
                                     { icon: <Eye className="h-3.5 w-3.5" />, label: "OG Images" },
                                     { icon: <Shield className="h-3.5 w-3.5" />, label: "Quality Scoring" },
-                                    { icon: <Sparkles className="h-3.5 w-3.5" />, label: "Smart Synthesis" },
+                                    { icon: null, label: "Smart Synthesis" },
                                 ].map((f, i) => (
                                     <span key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">{f.icon} {f.label}</span>
                                 ))}

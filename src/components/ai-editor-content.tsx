@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "./back-button";
 import { SharedHeader } from "./shared-header";
-import { Brush, Wand2,  Copy, Check, RotateCcw, Sparkles, ChevronDown, ChevronUp, ArrowLeftRight } from "lucide-react"
+import { Brush, Wand2,  Copy, Check, RotateCcw, ChevronDown, ChevronUp, ArrowLeftRight } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -148,7 +148,6 @@ export function AiEditorContent({ embedded }: { embedded?: boolean }) {
                             <CardHeader className="pb-2 pt-4 px-4">
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                                        <Sparkles className="h-3.5 w-3.5 text-amber-400" />
                                         Quick Actions
                                     </CardTitle>
                                     <button

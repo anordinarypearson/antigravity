@@ -16,7 +16,8 @@ import { generateEditedContent, GenerateEditedContentInput, GenerateEditedConten
 import { helpChat, HelpChatInput, HelpChatOutput } from '@/ai/flows/help-chatbot';
 import { getYoutubeTranscript, GetYoutubeTranscriptInput, GetYoutubeTranscriptOutput } from '@/ai/flows/youtube-transcript';
 import { analyzeContent, AnalyzeContentInput, AnalyzeContentOutput } from '@/ai/flows/analyze-content';
-import { analyzeImageContent, AnalyzeImageContentInput, AnalyzeImageContentOutput } from '@/ai/flows/analyze-image-content';
+import { analyzeImageContent } from '@/ai/flows/analyze-image-content';
+import { AnalyzeImageContentInput, AnalyzeImageContentOutput } from '@/lib/image-analysis-types';
 import { summarizeContent, SummarizeContentInput, SummarizeContentOutput } from '@/ai/flows/summarize-content';
 import { textToSpeech, TextToSpeechInput, TextToSpeechOutput } from '@/ai/flows/text-to-speech';
 import { chatWithTutor, ChatWithTutorInput, ChatWithTutorOutput } from '@/ai/flows/chat-tutor';
@@ -25,6 +26,9 @@ import { searchYoutube } from '@/ai/tools/youtube-search';
 import { DEFAULT_MODEL_ID, AVAILABLE_MODELS, AUTO_FALLBACK_CHAIN } from '@/lib/models';
 import { AnalyzeCodeInput, AnalyzeCodeOutput } from '@/lib/code-analysis-types';
 import { GenerateQuestionPaperInput, GenerateQuestionPaperOutput } from '@/lib/question-paper-types';
+
+
+
 
 
 export type ActionResult<T> = {
@@ -307,7 +311,7 @@ export async function chatAction(input: {
     model?: string,
     isMusicMode?: boolean,
     isPlayground?: boolean,
-    answerTypes: { [key: string]: boolean },
+    answerTypes?: { [key: string]: boolean },
 }): Promise<ActionResult<{ type: 'chat' | 'canvas', content: string }>> {
     const userMessageContent = input.history[input.history.length - 1]?.content.toString();
 
@@ -378,7 +382,7 @@ export async function chatAction(input: {
                 { type: "text", text: String(userMessage.content) },
                 { type: "image", image: input.imageDataUri }
             ]
-        };
+        } as any;
     } else {
         finalUserMessage = userMessage;
     }
@@ -400,12 +404,12 @@ export async function chatAction(input: {
         try {
             const systemPrompt = useCanvas
                 ? getCanvasSystemPrompt()
-                : getSystemPrompt(modelId, input.userName, input.fileContent, input.answerTypes);
+                : getSystemPrompt(modelId, input.userName || null, input.fileContent || null, input.answerTypes || { auto: true });
 
             // Sanitize roles: convert 'model' to 'assistant' for SambaNova compatibility
             const sanitizedMessages: CoreMessage[] = messages.map(msg => ({
                 ...msg,
-                role: msg.role === 'model' ? 'assistant' : msg.role,
+                role: (msg.role as string) === 'model' ? 'assistant' : msg.role,
             })) as CoreMessage[];
 
             const fullMessages = [{ role: 'system', content: systemPrompt } as CoreMessage, ...sanitizedMessages];

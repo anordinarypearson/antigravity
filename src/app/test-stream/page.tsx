@@ -28,7 +28,7 @@ export default function StreamingTestPage() {
                     userName: 'Test User',
                     fileContent: null,
                     imageDataUri: null,
-                    model: 'gemma-3-12b-it',
+                    model: 'DeepSeek-V3.2',
                     isMusicMode: false,
                     isPlayground: false,
                     answerTypes: {},

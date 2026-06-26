@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { AppLogo } from "@/components/app-logo";
 
 // Social provider icons as SVG components
 const GoogleIcon = () => (
@@ -40,28 +41,7 @@ const GithubIcon = () => (
     </svg>
 );
 
-const AppLogo = () => (
-    <svg
-        className="h-14 w-14 text-primary"
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-    >
-        <path
-            d="M50 5L90 28V72L50 95L10 72V28L50 5Z"
-            fill="currentColor"
-            className="opacity-10"
-        />
-        <path
-            d="M63 40.5C63 36.3579 59.6421 33 55.5 33H44.5C40.3579 33 37 36.3579 37 40.5V43.5C37 47.6421 40.3579 51 44.5 51H55.5C59.6421 51 63 54.3579 63 58.5V61.5C63 65.6421 59.6421 69 55.5 69H44.5C40.3579 69 37 65.6421 37 61.5"
-            stroke="currentColor"
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-primary"
-        />
-    </svg>
-);
+
 
 const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -187,10 +167,10 @@ export function SignUpContent() {
                 animate="visible"
                 className="w-full max-w-[400px] z-10"
             >
-                <Card className="border-border shadow-md bg-card">
+                <Card className="border-0 shadow-none bg-transparent">
                     <CardHeader className="text-center space-y-4 pt-8 pb-6">
                         <motion.div variants={itemVariants} className="flex justify-center">
-                            <AppLogo />
+                            <AppLogo className="h-14 w-14 text-primary" />
                         </motion.div>
                         <div className="space-y-1">
                             <motion.div variants={itemVariants}>

@@ -1,7 +1,9 @@
 
 "use client";
 
-import type { AnalyzeContentOutput, GenerateFlashcardsOutput, GenerateQuizzesOutput } from "@/app/actions";
+import type { AnalyzeContentOutput } from "@/ai/flows/analyze-content";
+import type { GenerateFlashcardsSambaOutput as GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards-samba";
+import type { GenerateQuizzesSambaOutput as GenerateQuizzesOutput } from "@/ai/flows/generate-quizzes-samba";
 import { analyzeContentAction, generateFlashcardsAction, textToSpeechAction, chatWithTutorAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileEdit, Moon, Sun, X, MoreVertical, Play, Pause, Rewind, FastForward, Video, Newspaper, MessageSquare, Star, Globe, Users, FlaskConical, Copy, Trash2, PlayCircle, Pilcrow, Check } from "lucide-react";
+import { FileEdit, Moon, Sun, X, MoreVertical, Play, Pause, Rewind, FastForward, Video, Newspaper, MessageSquare, Star, Users, FlaskConical, Copy, Trash2, PlayCircle, Pilcrow, Check } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useEffect, useRef, useState } from "react";
 import { ChatContent, useChatStore } from "./chat-content";
@@ -10,7 +10,6 @@ import { SidebarTrigger } from "./ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "./ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ActionTooltip } from "./ui/action-tooltip";
 import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { SharedHeader } from "./shared-header";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
@@ -18,7 +17,6 @@ import dynamic from "next/dynamic";
 
 const StoriesContent = dynamic(() => import("./stories-content").then(mod => mod.StoriesContent), { ssr: false });
 const PricingDialog = dynamic(() => import("./pricing-dialog").then(mod => mod.PricingDialog), { ssr: false });
-const WebBrowserContent = dynamic(() => import("./web-browser-content").then(mod => mod.WebBrowserContent), { ssr: false });
 const CommandPalette = dynamic(() => import("./command-palette").then(mod => mod.CommandPalette), { ssr: false });
 import { Textarea } from "./ui/textarea";
 import { useRouter } from "next/navigation";
@@ -113,11 +111,10 @@ export const MainDashboard = React.memo(function MainDashboard() {
   const views = [
     { id: 'searnai', label: 'SearnAI', icon: MessageSquare },
     { id: 'stories', label: 'Stories', icon: Newspaper },
-    { id: 'browser', label: 'Browser', icon: Globe },
   ];
 
   return (
-    <div className="flex-1 flex flex-col font-sans h-svh overflow-hidden bg-background min-h-0 relative">
+    <div className="flex-1 flex flex-col font-sans bg-background relative">
       <PricingDialog isOpen={showPricingDialog} onOpenChange={setShowPricingDialog} />
       <SharedHeader
         rightElement={
@@ -136,37 +133,38 @@ export const MainDashboard = React.memo(function MainDashboard() {
             </div>
           </div>
         }
-        centerElement={
-          <div className="flex items-center bg-muted/40 rounded-full p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-1 sm:px-2 shadow-sm border border-border/20">
-            {views.map((view) => {
-              const Icon = view.icon;
-              const isActive = activeView === view.id;
-              return (
-                <button
-                  key={view.id}
-                  onClick={() => setActiveView(view.id)}
-                  className={cn(
-                    "relative px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 rounded-full",
-                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-tab-bg"
-                      className="absolute inset-0 bg-background rounded-full shadow-sm border border-border/50"
-                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Icon className={cn("h-4 w-4 transition-colors hidden md:inline-block", isActive ? "text-primary" : "text-muted-foreground")} />
-                    <span>{view.label}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        }
       />
+      {/* Secondary Header for Navigation Tabs */}
+      <div className="sticky top-16 z-40 flex items-center justify-center border-b border-border/10 bg-sidebar/30 backdrop-blur-md px-4 py-2 shrink-0">
+        <div className="flex items-center bg-background rounded-full p-1 gap-1 overflow-x-auto no-scrollbar max-w-full px-1 sm:px-2 shadow-sm border border-border">
+          {views.map((view) => {
+            const Icon = view.icon;
+            const isActive = activeView === view.id;
+            return (
+              <button
+                key={view.id}
+                onClick={() => setActiveView(view.id)}
+                className={cn(
+                  "relative px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 rounded-full whitespace-nowrap",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="active-tab-bg"
+                    className="absolute inset-0 bg-background rounded-full shadow-sm border border-border/50"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  <Icon className={cn("h-4 w-4 transition-colors hidden md:inline-block", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <span>{view.label}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {activeVideoId && (
         <div className="px-4 py-2 border-b bg-sidebar/50 backdrop-blur-sm">
@@ -204,10 +202,10 @@ export const MainDashboard = React.memo(function MainDashboard() {
       )}
 
 
-      <div className="flex-1 flex overflow-hidden relative min-h-0">
-        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0 min-h-0">
+      <div className="flex-1 flex relative">
+        <main className="flex-1 flex flex-col relative min-w-0">
           {activeView === 'searnai' ? (
-            <div className="h-full flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col min-h-0">
               <ChatContent
                 answerTypes={answerTypes}
                 onMessageSent={() => {
@@ -219,9 +217,7 @@ export const MainDashboard = React.memo(function MainDashboard() {
             </div>
           ) : activeView === 'stories' ? (
             <StoriesContent />
-          ) : (
-            <WebBrowserContent />
-          )}
+          ) : null}
           {activeVideoId && showPlayer && (
             <div className="fixed bottom-24 sm:bottom-4 right-2 sm:right-4 z-50 group">
               <iframe

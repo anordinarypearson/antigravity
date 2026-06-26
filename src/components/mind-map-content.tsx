@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Wand2, BrainCircuit, AlertTriangle, Download, ZoomIn, ZoomOut, Maximize2, ChevronRight, ChevronDown, Copy, RefreshCw } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
-import { generateMindMapAction, GenerateMindMapOutput } from "@/app/actions";
+import { generateMindMapAction } from "@/app/actions";
+import type { GenerateMindMapOutput } from "@/ai/flows/generate-mindmap";
 import { ScrollArea } from "./ui/scroll-area";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { cn } from "@/lib/utils";

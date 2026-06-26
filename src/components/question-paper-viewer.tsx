@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Printer, FileText } from "lucide-react";
 import { SidebarTrigger } from "./ui/sidebar";
 import { BackButton } from "./back-button";
-import { GenerateQuestionPaperOutput } from "@/app/actions";
+import type { GenerateQuestionPaperOutput } from "@/lib/question-paper-types";
 import { Separator } from "./ui/separator";
 
 export function QuestionPaperViewer() {

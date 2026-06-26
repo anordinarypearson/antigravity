@@ -1,7 +1,8 @@
 
 "use client";
 
-import { helpChatAction, HelpChatInput } from "@/app/actions";
+import { helpChatAction } from "@/app/actions";
+import type { HelpChatInput } from "@/ai/flows/help-chatbot";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

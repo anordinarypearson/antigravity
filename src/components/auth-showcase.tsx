@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Search, Code, Youtube, FileText, Sparkles, Brain, Zap, Shield } from "lucide-react";
+import { Search, Code, Youtube, FileText, Brain, Zap, Shield } from "lucide-react";
 
 const features = [
     {
@@ -63,7 +63,7 @@ const features = [
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity }}
                 >
-                    <Sparkles className="w-8 h-8" />
+                    {/* Sparkles removed */}
                 </motion.div>
             </div>
         )

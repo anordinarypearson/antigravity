@@ -84,7 +84,7 @@ export async function generateEbookChapter(input: GenerateEbookChapterInput): Pr
             .replace('{{chapter}}', String(input.chapter));
 
         const response = await openai.chat.completions.create({
-            model: 'gemma-3-12b-it',
+            model: 'DeepSeek-V3.2',
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
             temperature: 0.7,

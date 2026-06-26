@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { GenerateQuizzesOutput } from "@/app/actions";
+import type { GenerateQuizzesSambaOutput as GenerateQuizzesOutput } from "@/ai/flows/generate-quizzes-samba";
 import { BackButton } from "./back-button";
 
 type ResultsData = {

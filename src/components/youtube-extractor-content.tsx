@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { getYoutubeTranscriptAction, summarizeContentAction, SummarizeContentOutput } from "@/app/actions";
+import { getYoutubeTranscriptAction, summarizeContentAction } from "@/app/actions";
+import type { SummarizeContentOutput } from "@/ai/flows/summarize-content";
 import { Wand2, Save, Copy, Pilcrow } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { useRouter } from "next/navigation";

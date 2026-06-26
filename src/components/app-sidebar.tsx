@@ -39,6 +39,8 @@ import {
   Menu,
   ChevronDown,
   Film,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   Collapsible,
@@ -57,7 +59,9 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { AppLogo } from "@/components/app-logo";
 import { useSidebar } from "./ui/sidebar";
+import { useTheme } from "@/components/theme-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -116,7 +120,11 @@ export function AppSidebar() {
   const { notifications } = useNotifications();
   const unreadFriendRequests = notifications.filter(n => n.type === 'friend_request' && !n.read).length;
 
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     setPathname(currentPathname);
   }, [currentPathname]);
 
@@ -163,62 +171,16 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon" className="bg-sidebar/95 backdrop-blur-3xl border-r border-black/10 dark:border-sidebar-border/50 shadow-2xl text-sidebar-foreground">
-      <SidebarHeader className="h-16 border-b border-black/10 dark:border-sidebar-border/50 p-0 justify-start">
+    <Sidebar collapsible="icon" className="bg-sidebar border-r border-border shadow-2xl text-sidebar-foreground transition-all duration-300">
+      <SidebarHeader className="h-16 border-b border-border p-0 justify-start">
         <div className="flex items-center justify-between w-full h-full px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href="/" className="flex items-center">
             <h1 className="text-2xl font-bold tracking-wider text-gradient flex items-baseline gap-0 group-data-[collapsible=icon]:hidden">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 1024 1024"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="shrink-0 -mr-0.5 relative top-[9px]"
-              >
-                <defs>
-                  <linearGradient id="blueGradient" x1="256" y1="128" x2="768" y2="896" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#1a3cff" />
-                    <stop offset="100%" stopColor="#4d6bff" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M 320 280 Q 512 120 704 280 L 664 340 Q 512 220 360 340 Q 512 460 664 580 L 624 640 Q 512 540 400 640 Q 512 760 704 640"
-                  stroke="url(#blueGradient)"
-                  strokeWidth="110"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                <circle cx="750" cy="250" r="28" fill="#1a3cff" />
-              </svg>
+              <AppLogo className="shrink-0 -mr-0.5 relative top-[3px] w-[28px] h-[28px]" />
               <span>earnAI</span>
             </h1>
             {/* Logo shown when collapsed */}
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 1024 1024"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="shrink-0 hidden group-data-[collapsible=icon]:block"
-            >
-              <defs>
-                <linearGradient id="blueGradient2" x1="256" y1="128" x2="768" y2="896" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#1a3cff" />
-                  <stop offset="100%" stopColor="#4d6bff" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M 320 280 Q 512 120 704 280 L 664 340 Q 512 220 360 340 Q 512 460 664 580 L 624 640 Q 512 540 400 640 Q 512 760 704 640"
-                stroke="url(#blueGradient2)"
-                strokeWidth="110"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-              <circle cx="750" cy="250" r="28" fill="#1a3cff" />
-            </svg>
+            <AppLogo className="shrink-0 hidden group-data-[collapsible=icon]:block w-[28px] h-[28px]" />
           </Link>
         </div>
       </SidebarHeader>
@@ -342,6 +304,21 @@ export function AppSidebar() {
         </div>
         <SidebarFooter className="p-2 border-t border-neutral-800/60">
           <SidebarMenu>
+            {mounted && (
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
+                  className="w-full justify-start gap-2.5 px-3 relative"
+                  title="Toggle theme"
+                >
+                  <div className="relative h-5 w-5 flex items-center justify-center">
+                    <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  </div>
+                  <span className="text-sm">Toggle Theme</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <Link href="/settings">
                 <SidebarMenuButton className="w-full justify-start gap-2.5 px-3" isActive={pathname.startsWith('/settings')}>

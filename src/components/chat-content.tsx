@@ -11,10 +11,10 @@ import {
   Download, StopCircle, Paperclip, Mic, MicOff, Send, Layers, Plus,
   Search, ArrowUp, Wand2, Music, Youtube, MoreVertical, Play, Pause,
   Rewind, FastForward, Presentation, Video, Image as ImageIcon,
-  ChevronDown, Globe, FileUp, FileAudio, File as FileIcon, Sparkles,
+  ChevronDown, Globe, FileUp, FileAudio, File as FileIcon,
   Code, ChevronRight, Palette, Terminal, Zap, Square, ThumbsUp,
   ThumbsDown, ArrowDown, Pencil, Check, Clipboard, Edit2,
-  Wrench, Timer, Clock, Calculator, Dices
+  Wrench, Timer, Clock, Calculator, Dices, Brain, Heart, Shield, Activity
 } from "lucide-react";
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import ReactMarkdown from 'react-markdown';
@@ -60,6 +60,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ImageSearchCard } from "./image-search-card";
 import { ToolWidgetRouter, type ToolName } from "./tool-widgets";
+import { PresentationDraftCard } from "./presentation-draft-card";
 
 
 
@@ -581,7 +582,44 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
     handleLocalSendMessage();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const processImageFile = async (file: File) => {
+    setIsOcrProcessing(true);
+    setOcrProgress(0);
+
+    try {
+      const resizedDataUri = await resizeImage(file, 2000);
+      setImageDataUri(resizedDataUri);
+      setFileContent(null);
+      setFileName(file.name);
+
+      const { data: { text } } = await Tesseract.recognize(
+        resizedDataUri,
+        'eng',
+        {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              setOcrProgress(Math.round(m.progress * 100));
+            }
+          }
+        }
+      );
+      setFileContent(text);
+      toast({
+        title: "Image & Text Attached",
+        description: `Text has been extracted. You can now ask questions.`,
+      });
+
+    } catch (error: any) {
+      toast({ title: "OCR or Image processing Failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
+      setFileContent(null);
+      setImageDataUri(null);
+      setFileName(null);
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type === "text/plain") {
@@ -597,8 +635,10 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
         handleAudioFileChange(file);
       } else if (file.type === "application/pdf") {
         handlePdfFileChange(file);
+      } else if (file.type.startsWith("image/")) {
+        await processImageFile(file);
       } else {
-        toast({ title: "Invalid file type", description: "Please upload a .txt, audio, or .pdf file.", variant: "destructive" });
+        toast({ title: "Invalid file type", description: "Please upload a .txt, audio, image, or .pdf file.", variant: "destructive" });
       }
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -656,7 +696,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
           const progress = beams[0].progress;
           if (progress > ocrProgress) setOcrProgress(Math.round(progress));
         },
-      });
+      } as any);
 
       const transcribedText = (transcript as any).text;
       
@@ -718,47 +758,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
   const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file type", description: "Please upload an image file.", variant: "destructive" });
-      return;
-    }
-
-    setIsOcrProcessing(true);
-    setOcrProgress(0);
-
-    try {
-      const resizedDataUri = await resizeImage(file, 2000);
-      setImageDataUri(resizedDataUri);
-      setFileContent(null);
-      setFileName(file.name);
-
-      const { data: { text } } = await Tesseract.recognize(
-        resizedDataUri,
-        'eng',
-        {
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              setOcrProgress(Math.round(m.progress * 100));
-            }
-          }
-        }
-      );
-      setFileContent(text);
-      toast({
-        title: "Image & Text Attached",
-        description: `Text has been extracted. You can now ask questions.`,
-      });
-
-    } catch (error: any) {
-      toast({ title: "OCR or Image processing Failed", description: error.message || "Could not read or process the image file.", variant: "destructive" });
-      setFileContent(null);
-      setImageDataUri(null);
-      setFileName(null);
-    } finally {
-      setIsOcrProcessing(false);
-    }
-
+    await processImageFile(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -767,8 +767,6 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
       if (type === 'text') fileInputRef.current.accept = ".txt";
       else if (type === 'pdf') fileInputRef.current.accept = ".pdf";
       else if (type === 'audio') fileInputRef.current.accept = "audio/*";
-
-      fileInputRef.current.onchange = handleFileChange;
       fileInputRef.current.click();
     }
   };
@@ -776,7 +774,6 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
   const handleOpenImageDialog = () => {
     if (fileInputRef.current) {
       fileInputRef.current.accept = "image/*";
-      fileInputRef.current.onchange = handleImageFileChange;
       fileInputRef.current.click();
     }
   };
@@ -788,8 +785,7 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
       const file = e.detail?.file as File | undefined;
       if (file) {
         if (file.type.startsWith("image/")) {
-          const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
-          handleImageFileChange(fakeEvent);
+          processImageFile(file);
         } else if (file.type === "text/plain") {
           const reader = new FileReader();
           reader.onload = (ev) => {
@@ -856,10 +852,9 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
         initial={false}
         animate={isTyping ? { borderColor: "hsl(var(--primary))", boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.3)" } : { borderColor: "var(--chat-border-color)", boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.4)" }}
         whileHover={{ borderColor: "var(--chat-border-hover-color)" }}
-        whileFocusWithin={{ borderColor: "hsl(var(--primary))", boxShadow: "0 8px 32px -4px hsl(var(--primary) / 0.5)" }}
         transition={{ duration: 0.3 }}
         style={{ "--chat-border-color": theme === 'dark' ? "hsla(var(--foreground) / 0.08)" : "rgba(0,0,0,0.1)", "--chat-border-hover-color": theme === 'dark' ? "hsla(var(--foreground) / 0.2)" : "rgba(0,0,0,0.2)" } as React.CSSProperties}
-        className="relative flex flex-col gap-2 rounded-lg border bg-chat-input-background/60 backdrop-blur-2xl p-2 sm:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
+        className="relative flex flex-col gap-2 rounded-xl border dark:glass-panel bg-chat-input-background/60 backdrop-blur-2xl p-2 sm:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none" />
         {isCommandOpen && (
@@ -1059,7 +1054,12 @@ const ChatInput = ({ onSendMessage, isTyping, activeButton, setActiveButton, act
                 <DropdownMenuItem onSelect={() => handleOpenFileDialog('audio')}><FileAudio className="mr-2 h-4 w-4" />Audio File</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <input type="file" ref={fileInputRef} className="hidden" />
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileChange}
+            />
 
             <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleToggleRecording} disabled={isInputDisabled}>
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -1122,7 +1122,7 @@ const ChatBar = React.memo(({
   };
 
   return (
-    <div className={cn("mx-auto w-full", isPlayground ? "p-2 max-w-3xl" : "px-2 pb-2 sm:px-4 sm:pb-4 max-w-3xl")}>
+    <div className={cn("mx-auto w-full", isPlayground ? "p-2 max-w-3xl" : "px-2 pb-0 sm:px-4 sm:pb-0 max-w-3xl")}>
       <ChatInput
         onSendMessage={onSendMessage}
         isTyping={isTyping}
@@ -1142,10 +1142,12 @@ const ChatBar = React.memo(({
 ChatBar.displayName = "ChatBar";
 
 
+
+
 type ChatContentProps = {
   isPlayground?: boolean;
   onCanvasContent?: (content: string) => void;
-  answerTypes: { [key: string]: boolean };
+  answerTypes?: { [key: string]: boolean };
   onMessageSent?: () => void;
 };
 
@@ -1154,7 +1156,7 @@ type ChatContentHandle = {
 };
 
 
-export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ isPlayground = false, onCanvasContent, answerTypes, onMessageSent }, ref) => {
+export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ isPlayground = false, onCanvasContent, answerTypes = { auto: true }, onMessageSent }, ref) => {
   const { toast } = useToast();
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -1191,6 +1193,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
   const lastBotMessageId = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Local Ollama fallback states
+  const [localProgress, setLocalProgress] = useState<{ status: string; progress: number } | null>(null);
 
   useEffect(() => {
     // Initialize PDF.js worker safely
@@ -1239,9 +1244,10 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   }, [history]);
 
   const isUserNearBottom = useCallback(() => {
-    const viewport = scrollAreaRef.current;
-    if (!viewport) return true; // Default to true if viewport isn't ready
-    return viewport.scrollHeight - (viewport.scrollTop + viewport.clientHeight) < 150;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    return scrollHeight - (scrollTop + clientHeight) < 250;
   }, []);
 
   useEffect(() => {
@@ -1267,40 +1273,33 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           setTimeout(() => node.classList.remove("searn-highlight"), 800);
         }, 100);
       } else if (isUserNearBottom()) {
-        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
       }
     } else {
       // It's updating an existing message (i.e. streaming)
       // Auto-scroll to the bottom as long as the user hasn't scrolled up manually
       if (isTyping && isUserNearBottom()) {
-        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'auto' });
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' });
       }
     }
   }, [history, isTyping, isUserNearBottom]);
 
   // Handle Scroll to Bottom Visibility
   const handleScroll = () => {
-    const viewport = scrollAreaRef.current;
-    if (!viewport) return;
- 
-    const { scrollTop, scrollHeight, clientHeight } = viewport;
-    const isBottom = scrollHeight - (scrollTop + clientHeight) < 100;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    const isBottom = scrollHeight - (scrollTop + clientHeight) < 250;
     setShowScrollBottom(!isBottom);
   };
 
   useEffect(() => {
-    const viewport = scrollAreaRef.current;
-    if (viewport) {
-      viewport.addEventListener('scroll', handleScroll);
-      return () => viewport.removeEventListener('scroll', handleScroll);
-    }
-  }, [scrollAreaRef.current]);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToBottom = () => {
-    const viewport = scrollAreaRef.current;
-    if (viewport) {
-      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   };
 
   const handleTextToSpeech = useCallback(async (text: string, id: string) => {
@@ -1332,11 +1331,164 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
   }, [isSynthesizing, toast]);
 
+  const executeLocalChat = useCallback(async (
+    currentHistory: Message[],
+    currentFileContent?: string | null
+  ) => {
+    setIsTyping(true);
+    const startTime = Date.now();
+    const assistantMessageId = `${Date.now()}-assistant`;
+
+    // Add placeholder message for streaming
+    setHistory(prev => [...prev, { id: assistantMessageId, role: "assistant", content: "" }]);
+
+    // Prepare messages for Ollama
+    const ollamaMessages = currentHistory.map(h => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: String(h.content),
+    }));
+
+    try {
+      setLocalProgress({ status: 'Connecting to Ollama...', progress: 0 });
+
+      // Create new abort controller for this request
+      const localAbort = new AbortController();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.signal.addEventListener('abort', () => {
+          localAbort.abort();
+        });
+      }
+
+      const response = await fetch('/api/ollama/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: ollamaMessages,
+          fileContent: currentFileContent,
+        }),
+        signal: localAbort.signal,
+      });
+
+      setLocalProgress(null);
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ error: 'Ollama request failed' }));
+        throw new Error(errData.error || `HTTP ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response stream');
+
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      // Word-by-word rendering for smooth streaming
+      let wordBuffer: string[] = [];
+      let displayedContent = '';
+      let wordIntervalId: ReturnType<typeof setInterval> | null = null;
+      let streamDone = false;
+
+      const startWordDrain = () => {
+        if (wordIntervalId !== null) return;
+        wordIntervalId = setInterval(() => {
+          if (wordBuffer.length > 0) {
+            const word = wordBuffer.shift()!;
+            displayedContent += word;
+            setHistory(prev =>
+              prev.map(msg =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: displayedContent }
+                  : msg
+              )
+            );
+          } else if (streamDone) {
+            if (wordIntervalId !== null) {
+              clearInterval(wordIntervalId);
+              wordIntervalId = null;
+            }
+          }
+        }, 15);
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          streamDone = true;
+          break;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedContent += chunk;
+        const tokens = chunk.split(/(?<=\s)/);
+        wordBuffer.push(...tokens);
+        startWordDrain();
+      }
+
+      // Wait for word drain to complete
+      await new Promise<void>(resolve => {
+        const checkDone = setInterval(() => {
+          if (wordBuffer.length === 0) {
+            clearInterval(checkDone);
+            if (wordIntervalId !== null) {
+              clearInterval(wordIntervalId);
+              wordIntervalId = null;
+            }
+            resolve();
+          }
+        }, 50);
+      });
+
+      // Ensure final content is fully rendered
+      setHistory(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: accumulatedContent }
+            : msg
+        )
+      );
+
+      const duration = (Date.now() - startTime) / 1000;
+      setGenerationTime(duration);
+      setHistory(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, duration }
+            : msg
+        )
+      );
+      setIsTyping(false);
+
+    } catch (error: any) {
+      setLocalProgress(null);
+      setIsTyping(false);
+
+      if (error.name === 'AbortError') {
+        toast({ title: 'Generation Stopped', description: 'Local AI response was stopped.' });
+      } else {
+        setHistory(prev => prev.filter(msg => msg.id !== assistantMessageId));
+        toast({
+          title: "Local AI Error",
+          description: error.message || 'Failed to connect to Ollama. Make sure it is running.',
+          variant: "destructive"
+        });
+      }
+    }
+  }, [toast]);
+
   const executeChat = useCallback(async (
     currentHistory: Message[],
     currentImageDataUri?: string | null,
     currentFileContent?: string | null
   ) => {
+    if (currentModel === 'local-ollama') {
+      try {
+        abortControllerRef.current = new AbortController();
+        await executeLocalChat(currentHistory, currentFileContent);
+      } finally {
+        abortControllerRef.current = null;
+      }
+      return;
+    }
+
     setIsTyping(true);
     const startTime = Date.now();
 
@@ -1345,9 +1497,9 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
     }
 
     const genkitHistory: CoreMessage[] = currentHistory.map(h => ({
-      role: h.role === 'assistant' ? 'assistant' : h.role as 'user' | 'tool',
+      role: h.role === 'assistant' ? 'assistant' : h.role === 'tool' ? 'tool' : 'user',
       content: String(h.content),
-    }));
+    })) as CoreMessage[];
 
     // Create a temporary message ID for streaming
     const assistantMessageId = `${Date.now()}-assistant`;
@@ -1379,20 +1531,14 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
-        if (response.status === 429 || errorData.error === '__LIMIT_EXHAUSTED__') {
-          toast({ title: "Rate Limited", description: "Too many requests. Please wait a moment and try again.", variant: "destructive" });
-          setIsTyping(false);
-          return;
-        }
+        // Catch rate limits and payment errors for silent local fallback
+        const isLimitError = response.status === 429 || 
+                             response.status === 402 || 
+                             errorData.error === '__LIMIT_EXHAUSTED__' || 
+                             errorData.error === 'PAYMENT_REQUIRED';
 
-        if (response.status === 402 || errorData.error === 'PAYMENT_REQUIRED') {
-          toast({ 
-            title: "AI Provider Payment Required", 
-            description: errorData.message || "Your SambaNova account needs a payment method. Please add one at cloud.sambanova.ai or set up a free Google Gemini key in your .env.local file.", 
-            variant: "destructive",
-            duration: 10000 
-          });
-          setIsTyping(false);
+        if (isLimitError) {
+          await executeLocalChat(currentHistory, currentFileContent);
           return;
         }
 
@@ -1525,6 +1671,18 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       if (error.name === 'AbortError') {
         toast({ title: 'Generation Stopped', description: 'You have stopped the AI response.' });
       } else {
+        const isLimitError = error.message?.includes('429') || 
+                             error.message?.includes('402') || 
+                             error.message?.includes('limit') || 
+                             error.message?.includes('credit') || 
+                             error.message?.includes('exhausted') || 
+                             error.message?.includes('payment');
+
+        if (isLimitError) {
+          await executeLocalChat(currentHistory, currentFileContent);
+          return;
+        }
+
         toast({ title: "Chat Error", description: error.message, variant: "destructive" });
       }
 
@@ -1536,7 +1694,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       abortControllerRef.current = null;
     }
 
-  }, [currentModel, activeButton, toast, userName, onCanvasContent, isPlayground, answerTypes]);
+  }, [currentModel, activeButton, toast, userName, onCanvasContent, isPlayground, answerTypes, executeLocalChat]);
 
 
   const handleSendMessage = useCallback(async (messageContent: string, imageDataUri?: string | null, fileContent?: string | null) => {
@@ -1754,6 +1912,15 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
       }
     }
 
+    // Check for Auto-Injected Presentation Download
+    const presentationMatch = mainContent.match(/:::PRESENTATION_DOWNLOAD=(.*?):::/);
+    let presentationUrl = null;
+
+    if (presentationMatch) {
+      presentationUrl = presentationMatch[1];
+      mainContent = mainContent.replace(presentationMatch[0], '').trim();
+    }
+
     try {
       const data = JSON.parse(mainContent);
       if (data.type === 'youtube' && data.videoId) {
@@ -1908,13 +2075,17 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
             <strong>Response from {modelName}</strong>
           </div>
         )}
-        {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration} />}
+        {thinkingText && <ThinkingIndicator text={thinkingText} duration={message.duration ?? null} />}
 
         <ReactMarkdown {...markdownProps}>
           {restOfContent}
         </ReactMarkdown>
         {isActivelyStreaming && restOfContent.length > 0 && (
           <span className="streaming-cursor" aria-hidden="true">▌</span>
+        )}
+        
+        {presentationUrl && (
+          <PresentationDraftCard draftJson={presentationUrl} />
         )}
       </>
     );
@@ -1938,7 +2109,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
   );
 
   return (
-    <div className={cn("flex h-full flex-col", isPlayground ? "" : "relative")}>
+    <div className={cn("flex flex-col", isPlayground ? "" : "relative")}>
 
       <ShareDialog
         isOpen={!!shareContent}
@@ -1946,7 +2117,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
         content={shareContent || ""}
       />
       <div
-        className={cn("flex-1 relative bg-background", isPlayground ? "h-full flex flex-col" : "")}
+        className={cn("relative bg-background flex flex-col", isPlayground ? "h-full" : "")}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -1981,9 +2152,8 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
           />
         ) : (
           <div 
-            className="flex-1 w-full overflow-y-auto custom-scrollbar scroll-smooth" 
-            ref={scrollAreaRef} 
-            onScroll={handleScroll}
+            className="w-full" 
+            ref={scrollAreaRef}
           >
             <div className={cn("mx-auto w-full max-w-3xl space-y-6 px-2 sm:px-4 overflow-x-hidden min-w-0", isPlayground ? "pb-4" : "pb-48")}>
               {history.map((message, index) => (
@@ -2015,7 +2185,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                         ) : (
                           <>
                             <div className="relative group/msg">
-                              <div className="relative inline-block rounded-2xl px-5 py-3.5 bg-gradient-to-br from-primary via-primary/95 to-primary/85 text-primary-foreground shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-primary/20 backdrop-blur-md">
+                              <div className="relative inline-block rounded-2xl px-4 py-2 bg-transparent text-black dark:text-white border border-black dark:border-white backdrop-blur-md">
                                 {message.image && (
                                   <div className="mb-2 -mx-1 -mt-1">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2069,7 +2239,7 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
                             onPause={() => setIsSynthesizing(null)}
                           />
                         )}
-                        {message.role === 'assistant' && message.role !== 'browser' && (
+                        {message.role === 'assistant' && !(index === history.length - 1 && isTyping) && (
                           <div className="mt-3 flex flex-wrap items-center gap-1 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                             <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors" onClick={() => handleCopyToClipboard(message.content)} title="Copy">
                               <Copy className="h-3.5 w-3.5" />
@@ -2099,6 +2269,15 @@ export const ChatContent = forwardRef<ChatContentHandle, ChatContentProps>(({ is
 
                 </React.Fragment>
               )
+              )}
+              {localProgress && (
+                <div className="flex flex-col gap-2 py-3 px-4 rounded-xl border bg-muted/40 backdrop-blur-md max-w-sm mb-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="font-semibold animate-pulse">{localProgress.status}</span>
+                    <span className="font-bold">{Math.round(localProgress.progress)}%</span>
+                  </div>
+                  <Progress value={localProgress.progress} className="h-1.5" />
+                </div>
               )}
               {isTyping && <ThinkingIndicator text={null} duration={generationTime} />}
             </div>

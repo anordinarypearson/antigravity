@@ -72,7 +72,7 @@ function generateQuickSummary(results: WebSearchResult[], query: string): string
   if (topSnippets.length === 0) return '';
 
   const combinedText = topSnippets.join(' . ');
-  return generateExtractiveSummary(combinedText, 8);
+  return generateExtractiveSummary(combinedText, 8, query);
 }
 
 /**
@@ -361,16 +361,58 @@ async function searchBing(query: string): Promise<WebSearchResult[]> {
 }
 
 /**
+ * Dynamically fetch the list of active public SearXNG instances from searx.space
+ * and sort them to get the healthiest and fastest JSON-enabled instances.
+ */
+async function getHealthySearXNGInstances(): Promise<string[]> {
+  try {
+    const response = await stealthFetch('https://searx.space/data/instances.json', {
+      timeout: 5000,
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (!data || !data.instances) return [];
+
+    const list: { url: string; score: number }[] = [];
+    for (const [url, info] of Object.entries<any>(data.instances)) {
+      if (info && info.http?.status_code === 200 && !info.http?.error) {
+        const searchMedian = info.timing?.search?.all?.median ?? info.timing?.search?.median ?? 9.9;
+        const successRate = info.timing?.search?.success_percentage ?? 100;
+        
+        // Filter out onion addresses and rate-limited instances
+        if (successRate > 80 && !url.includes('.onion')) {
+          list.push({ url, score: searchMedian });
+        }
+      }
+    }
+
+    list.sort((a, b) => a.score - b.score);
+    return list.map(item => item.url.replace(/\/$/, ''));
+  } catch (e) {
+    console.error('[WebSearch] Failed to fetch SearXNG instances from searx.space:', e);
+    return [];
+  }
+}
+
+/**
  * Search using SearXNG — a privacy-respecting meta-search engine.
  * Uses public instances for broader coverage across many search engines.
  */
 async function searchSearXNG(query: string): Promise<WebSearchResult[]> {
   // Try multiple public SearXNG instances for reliability
-  const instances = [
+  const fallbackInstances = [
     'https://searx.be',
     'https://search.ononoki.org',
     'https://searx.tiekoetter.com',
   ];
+
+  let instances = await getHealthySearXNGInstances();
+  if (instances.length === 0) {
+    instances = fallbackInstances;
+  } else {
+    // Interleave the hardcoded fallback instances at the end of the top 6 healthy ones
+    instances = [...new Set([...instances.slice(0, 6), ...fallbackInstances])];
+  }
 
   for (const instance of instances) {
     try {

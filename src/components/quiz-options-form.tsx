@@ -11,7 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import { BackButton } from "./back-button";
-import { generateQuizAction, GenerateQuizzesInput } from "@/app/actions";
+import { generateQuizAction } from "@/app/actions";
+import type { GenerateQuizzesSambaInput as GenerateQuizzesInput } from "@/ai/flows/generate-quizzes-samba";
 import { useUsageLimits } from "@/hooks/use-usage-limits";
 import { LimitExhaustedDialog } from "./limit-exhausted-dialog";
 

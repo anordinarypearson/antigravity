@@ -1,11 +1,12 @@
 
 "use client";
 
-import { generateFlashcardsAction, GenerateFlashcardsSambaOutput } from "@/app/actions";
+import { generateFlashcardsAction } from "@/app/actions";
+import type { GenerateFlashcardsSambaOutput } from "@/ai/flows/generate-flashcards-samba";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { PlusSquare, Wand2, Bot, Sparkles, Mic, Send, BookCopy, FileQuestion } from "lucide-react"
+import { PlusSquare, Wand2, Bot, Mic, Send, BookCopy, FileQuestion } from "lucide-react"
 import { WavyLoader } from "@/components/ui/wavy-loader";
 import React, { useState, useTransition, useEffect, useRef } from "react";
 import { Flashcard } from "./flashcard";
@@ -158,7 +159,7 @@ export function CreateFlashcardsContent() {
     const stepsContent = [
         {
             bot: "Hello! I'm here to help you create a new flashcard deck. Let's get started!",
-            action: <Button onClick={handleNextStep} className="w-full justify-center">Let's go! <Sparkles className="ml-2 w-4 h-4" /></Button>
+            action: <Button onClick={handleNextStep} className="w-full justify-center">Let's go!</Button>
         },
         {
             bot: "First, what's the subject of your new deck? (e.g., Biology, History, JavaScript)",
@@ -302,7 +303,6 @@ export function CreateFlashcardsContent() {
                                     Click the button below to start a conversation with our AI assistant to build your deck.
                                 </p>
                                 <Button size="lg" className="mt-6" onClick={() => setIsDialogOpen(true)}>
-                                    <Sparkles className="mr-2 h-5 w-5" />
                                     Start Creating
                                 </Button>
                             </div>

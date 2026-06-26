@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -14,7 +14,7 @@ interface ChatWelcomeScreenProps {
 }
 
 const ACTION_CHIPS = [
-    { label: "Create image", icon: <Sparkles className="h-4 w-4 text-yellow-400 fill-yellow-400" />, action: "/image A beautiful landscape" },
+    { label: "Create image", action: "/image A beautiful landscape" },
     { label: "Write anything", icon: null, action: "Write anything" },
     { label: "Build an idea", icon: null, action: "Build an idea" },
 ];
