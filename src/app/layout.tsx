@@ -7,13 +7,14 @@ import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
+import { Analytics } from '@vercel/analytics/react';
 
 
 const literata = Literata({
   subsets: ['latin'],
   variable: '--font-literata',
   display: 'swap',
-});
+  });
 
 
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
-
+            <Analytics />
           </AuthProvider>
           <Toaster />
 
